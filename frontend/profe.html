@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnidaApp</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <header>
+        <h1>UnidaApp</h1>
+        <div id="nav-placeholder"></div>
+      </header>
+    <main>
+    <!-- Formulario para crear o actualizar un profesor -->
+    <form id="profesor-form">
+        <h2 id="form-title">Crear Profesor</h2>
+        <input type="hidden" id="id_profesor">
+
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" required>
+
+        <label for="departamento">Departamento:</label>
+        <input type="text" id="departamento" required>
+
+        <label for="Sede">Sede:</label>
+        <input type="text" id="Sede" required>
+
+        <label for="Sede_actual">Sede Actual:</label>
+        <input type="text" id="Sede_actual" required>
+
+        <label for="Talleres">Talleres:</label>
+        <input type="text" id="Talleres">
+
+        <label for="Formacion">Formación:</label>
+        <input type="checkbox" id="Formacion"> <span>Completada</span>
+
+        <label for="Estado_I">Estado:</label>
+        <input type="checkbox" id="Estado_I"> <span>Activo</span>
+
+        <label for="Magister">¿Magíster?</label>
+        <input type="checkbox" id="Magister"> <span>Sí</span>
+
+        <label for="Otro_I">Información Adicional:</label>
+        <input type="text" id="Otro_I">
+
+        <button type="submit">Guardar</button>
+    </form>
+
+    <h2>Lista de Profesores</h2>
+    <div class="search-container">
+        <label for="search-nombre">Buscar por nombre:</label>
+        <input type="text" id="search-nombre" placeholder="Buscar por nombre">
+        
+        <label for="search-departamento">Buscar por departamento:</label>
+        <input type="text" id="search-departamento" placeholder="Buscar por departamento">
+        
+        <label for="search-sede">Buscar por Sede:</label>
+        <input type="text" id="search-sede" placeholder="Buscar por Sede">
+
+        <label for="search-sede-clases">Buscar por Sede de clases:</label>
+        <input type="text" id="search-sede-clases" placeholder="Buscar por Sede de clases">
+
+        <label for="search-talleres-vra">Buscar por Talleres VRA:</label>
+        <input type="text" id="search-talleres-vra" placeholder="Buscar por Talleres VRA">
+
+        <button id="search-btn">Buscar</button>
+    </div>
+    <table id="profesores-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Departamento</th>
+                <th>Sede</th>
+                <th>Sede de clases</th>
+                <th>Talleres VRA</th>
+                <th>Formación VRA</th>
+                <th>Investigación</th>
+                <th>Magíster en Docencia</th>
+                <th>Otra información</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="profesores-body">
+            <!-- Los datos de los profesores se insertarán aquí dinámicamente -->
+        </tbody>
+    </table>
+</main>
+
+<script src="/scripts/loadProf.js"></script>
+<script src="/scripts/nav.js"></script>
+</body>
+</html>
+

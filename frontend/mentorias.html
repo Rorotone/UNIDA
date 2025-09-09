@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentorías</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+    
+    <main class="container">
+        <h1>Mentorías</h1>
+        
+        <form id="crear-mentoria-form">
+            <h2>Crear Nueva Mentoría</h2>
+            <div class="form-group">
+                <label for="titulo-mentoria">Título de la mentoría:</label>
+                <input type="text" id="titulo-mentoria" required>
+            </div>
+            <div class="form-group">
+                <label for="mentor-select">Seleccione un mentor:</label>
+                <select id="mentor-select" required></select>
+            </div>
+            <div class="form-group">
+                <label for="profesor-select">Seleccione un profesor:</label>
+                <select id="profesor-select" required></select>
+            </div>
+            <button type="submit">Crear Mentoría</button>
+        </form>
+        
+        <div id="lista-mentorias">
+            <!-- Las mentorías se cargarán aquí dinámicamente -->
+        </div>
+
+        <!-- Template para la tarjeta de mentoría -->
+        <template id="mentoria-template">
+            <div class="mentoria-card" data-mentoria-id="">
+                <h3></h3>
+                <p class="mentor"></p>
+                <p class="profesor"></p>
+                <div class="mentoria-actions">
+                    <button class="btn-ver-tareas">Ver Tareas</button>
+                    <button class="btn-completar">Completar</button>
+                    <button class="btn-eliminar">Eliminar</button>
+                </div>
+                <div class="tareas-container" style="display: none;">
+                    <h4>Tareas</h4>
+                    <ul class="lista-tareas"></ul>
+                    <button class="btn-mostrar-form-tarea">Agregar nueva tarea</button>
+                    <form class="form-nueva-tarea" style="display: none;">
+                        <div class="form-group">
+                            <label for="titulo">Título:</label>
+                            <input type="text" name="titulo" required placeholder="Título de la tarea">
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcion">Descripción:</label>
+                            <textarea name="descripcion" required placeholder="Descripción de la tarea"></textarea>
+                        </div>
+                        <button type="submit">Guardar tarea</button>
+                    </form>
+                </div>
+            </div>
+        </template>
+    </main>
+    
+    <script src="/scripts/nav.js"></script>
+    <script src="/scripts/mentorias.js"></script>
+</body>
+</html>
