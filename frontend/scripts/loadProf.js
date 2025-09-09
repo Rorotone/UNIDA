@@ -217,3 +217,4 @@ async function eliminarProfesor(id_profesor) {
 // Asegúrate de que estas funciones estén disponibles globalmente
 window.editarProfesor = editarProfesor;
 window.eliminarProfesor = eliminarProfesor;
+console.error('Error al eliminar profesor:', error);
