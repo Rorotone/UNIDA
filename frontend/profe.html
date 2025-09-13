@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UnidaApp</title>
     <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/profe.css">
 </head>
 <body>
     <header>
@@ -12,57 +13,64 @@
         <div id="nav-placeholder"></div>
       </header>
     <main>
-    <!-- Formulario para crear o actualizar un profesor -->
-    <form id="profesor-form">
-        <h2 id="form-title">Crear Profesor</h2>
-        <input type="hidden" id="id_profesor">
+    <!-- Modal -->
+    <div id="modal-profesor" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-modal">&times;</span>
+            <!-- Formulario para crear o actualizar un profesor -->
+            <form id="profesor-form">
+                <h2 id="form-title">Agregar Profesor</h2>
+                <input type="hidden" id="id_profesor">
 
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" required>
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" required>
 
-        <label for="departamento">Departamento:</label>
-        <input type="text" id="departamento" required>
+                <label for="departamento">Departamento:</label>
+                <input type="text" id="departamento" required>
 
-        <label for="Sede">Sede:</label>
-        <input type="text" id="Sede" required>
+                <label for="Sede">Sede:</label>
+                <input type="text" id="Sede" required>
 
-        <label for="Sede_actual">Sede Actual:</label>
-        <input type="text" id="Sede_actual" required>
+                <label for="Sede_actual">Sede Actual:</label>
+                <input type="text" id="Sede_actual" required>
 
-        <label for="Talleres">Talleres:</label>
-        <input type="text" id="Talleres">
+                <label for="Talleres">Talleres:</label>
+                <input type="text" id="Talleres">
 
-        <label for="Formacion">Formación:</label>
-        <input type="checkbox" id="Formacion"> <span>Completada</span>
+                <label for="Formacion">Formación:</label>
+                <input type="checkbox" id="Formacion"> <span>Completada</span>
 
-        <label for="Estado_I">Estado:</label>
-        <input type="checkbox" id="Estado_I"> <span>Activo</span>
+                <label for="Estado_I">Estado:</label>
+                <input type="checkbox" id="Estado_I"> <span>Activo</span>
 
-        <label for="Magister">¿Magíster?</label>
-        <input type="checkbox" id="Magister"> <span>Sí</span>
+                <label for="Magister">¿Magíster?</label>
+                <input type="checkbox" id="Magister"> <span>Sí</span>
 
-        <label for="Otro_I">Información Adicional:</label>
-        <input type="text" id="Otro_I">
+                <label for="Otro_I">Información Adicional:</label>
+                <input type="text" id="Otro_I">
 
-        <button type="submit">Guardar</button>
-    </form>
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+    </div>
 
     <h2>Lista de Profesores</h2>
+    <button id="open-modal-btn" type="button">Agregar Profesor</button>
     <div class="search-container">
         <label for="search-nombre">Buscar por nombre:</label>
         <input type="text" id="search-nombre" placeholder="Buscar por nombre">
-        
-        <label for="search-departamento">Buscar por departamento:</label>
-        <input type="text" id="search-departamento" placeholder="Buscar por departamento">
-        
-        <label for="search-sede">Buscar por Sede:</label>
-        <input type="text" id="search-sede" placeholder="Buscar por Sede">
 
-        <label for="search-sede-clases">Buscar por Sede de clases:</label>
-        <input type="text" id="search-sede-clases" placeholder="Buscar por Sede de clases">
+        <label for="search-departamento">Departamento:</label>
+        <select id="search-departamento"></select>
 
-        <label for="search-talleres-vra">Buscar por Talleres VRA:</label>
-        <input type="text" id="search-talleres-vra" placeholder="Buscar por Talleres VRA">
+        <label for="search-sede">Sede:</label>
+        <select id="search-sede"></select>
+
+        <label for="search-sede-clases">Sede de clases:</label>
+        <select id="search-sede-clases"></select>
+
+        <label for="search-talleres-vra">Talleres VRA:</label>
+        <select id="search-talleres-vra"></select>
 
         <button id="search-btn">Buscar</button>
     </div>
@@ -89,6 +97,7 @@
 
 <script src="/scripts/loadProf.js"></script>
 <script src="/scripts/nav.js"></script>
+<script src="/scripts/profe.js"></script>
 </body>
 </html>
 

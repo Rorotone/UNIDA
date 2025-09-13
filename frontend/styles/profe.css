@@ -1,0 +1,91 @@
+/* ===== Reset breve ===== */
+*{box-sizing:border-box} html,body{height:100%}
+body{
+  margin:0;
+  font: 500 15px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  color:#1a1a1a;
+  background:#f6f7fb;
+}
+
+/* ===== Barra superior ===== */
+header{
+  position:sticky;top:0;z-index:10;
+  background:#4b3df0;color:#fff;border-bottom:1px solid rgba(0,0,0,.06)
+}
+header .container, header{
+  max-width:1100px;margin:0 auto;padding:10px 16px;
+  display:flex;align-items:center
+}
+header h1{font-size:16px;margin:0;font-weight:700}
+header #nav-placeholder{margin-left:auto}
+
+/* ===== Layout ===== */
+main{max-width:1100px;margin:18px auto;padding:0 16px}
+
+/* ===== Botones compactos ===== */
+button,.btn,input[type="button"],input[type="submit"]{
+  appearance:none;border:1px solid #e4e7ee;background:#fff;color:#1a1a1a;
+  padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer;
+  transition:box-shadow .15s ease, transform .04s ease
+}
+button:hover{box-shadow:0 0 0 3px rgba(75,61,240,.18)}
+button:active{transform:translateY(1px)}
+.btn-primary{background:#4b3df0;color:#fff;border-color:#4b3df0}
+.btn-danger{background:#ef5350;color:#fff;border-color:#ef5350}
+.btn-ghost{background:#fff;border-color:#dfe2ea;color:#494c56}
+
+/* ===== Chips (para navegación de días) ===== */
+.chip{padding:5px 10px;border-radius:999px;background:#eef0ff;border:1px solid #dfe2ff;font-size:14px}
+.chip.is-today{background:#4b3df0;border-color:#4b3df0;color:#fff}
+
+/* ===== Tarjeta Mentorías ===== */
+.card{
+  background:#fff;border:1px solid #e9ecf3;border-radius:10px;
+  padding:14px;box-shadow:0 2px 6px rgba(18,24,40,.06)
+}
+.card + .card{margin-top:12px}
+.card h3{margin:0 0 6px;font-size:15px;font-weight:600}
+.card .meta{color:#6b7280;font-size:13px;margin-bottom:8px}
+.card .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.card.is-done{opacity:.85;border-color:#c8e6c9;background:#f6fbf6}
+
+/* ===== Buscador ===== */
+.search-container{
+  display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  background:#fff;border:1px solid #e9ecf3;border-radius:10px;
+  padding:12px;box-shadow:0 2px 6px rgba(18,24,40,.06);margin:10px 0 14px
+}
+.search-container label{font-size:12px;color:#6b7280}
+.search-container input, .search-container select{
+  width:100%;padding:8px 10px;border:1px solid #dfe2ea;border-radius:6px;background:#fbfcff
+}
+.search-container input:focus, .search-container select:focus{
+  outline:none;box-shadow:0 0 0 3px rgba(75,61,240,.18)
+}
+
+/* ===== Tabla compacta ===== */
+table{width:100%;border-collapse:separate;border-spacing:0 8px}
+thead th{
+  text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#ffffff;padding:0 10px 4px
+}
+tbody tr{
+  background:#fff;border:1px solid #e9ecf3;border-radius:8px;
+  box-shadow:0 2px 6px rgba(18,24,40,.06)
+}
+tbody td{padding:10px}
+tbody tr:hover{border-color:#cfd5e6}
+
+/* ===== Modal ===== */
+.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(16,18,27,.35);backdrop-filter:blur(4px)}
+.modal.is-open{display:grid}
+.modal .modal-content{
+  width:min(560px,92vw);background:#fff;border:1px solid #e9ecf3;border-radius:10px;
+  padding:14px;box-shadow:0 10px 24px rgba(18,24,40,.12)
+}
+.modal .close{float:right;font-size:20px;line-height:1;cursor:pointer;color:#6b7280}
+
+/* ===== Utilidades ===== */
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.mr-auto{margin-right:auto}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;background:#eef0ff;color:#4b3df0}
+.hidden{display:none}
