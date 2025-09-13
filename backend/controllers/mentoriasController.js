@@ -1,3 +1,25 @@
+// Subida de archivo para tarea
+export const subirArchivoTarea = async (req, res) => {
+  try {
+    const { id_mentoria, id_tarea } = req.params;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se subió ningún archivo.' });
+    }
+    // Guardar la ruta relativa del archivo
+    const archivoPath = `/uploads/${req.file.filename}`;
+    // Verificar que la tarea existe y pertenece a la mentoría
+    const [tasks] = await db.execute('SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?', [id_tarea, id_mentoria]);
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'Tarea no encontrada o no pertenece a esta mentoría' });
+    }
+    // Actualizar la columna archivo
+    await db.execute('UPDATE tareas SET archivo = ? WHERE id = ? AND id_mentoria = ?', [archivoPath, id_tarea, id_mentoria]);
+    res.status(200).json({ message: 'Archivo subido exitosamente', archivo: archivoPath });
+  } catch (error) {
+    console.error('Error al subir archivo de tarea:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
 // mentoriasController.js
 import db from '../config/database.js';
 
@@ -31,9 +53,9 @@ export const obtenerMentorias = async (req, res) => {
 
 export const crearTarea = async (req, res) => {
   try {
-    const { id_mentoria, titulo, descripcion } = req.body;
-    const query = 'INSERT INTO tareas (id_mentoria, titulo, descripcion) VALUES (?, ?, ?)';
-    const [result] = await db.execute(query, [id_mentoria, titulo, descripcion]);
+    const { id_mentoria, titulo, descripcion, fecha } = req.body;
+    const query = 'INSERT INTO tareas (id_mentoria, titulo, descripcion, fecha) VALUES (?, ?, ?, ?)';
+    const [result] = await db.execute(query, [id_mentoria, titulo, descripcion, fecha || null]);
     res.status(201).json({ message: 'Tarea creada exitosamente', id: result.insertId });
   } catch (error) {
     console.error('Error al crear tarea:', error);

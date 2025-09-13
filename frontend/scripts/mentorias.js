@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
+
+    // Calendario semanal
+
+    let fechaSeleccionada = new Date();
+    let semanaOffset = 0; // 0 = semana actual, -1 = semana anterior, 1 = siguiente semana, etc.
+    renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
+
     try {
         await Promise.all([
             cargarMentores(),
@@ -10,6 +17,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     document.getElementById('crear-mentoria-form').addEventListener('submit', crearMentoria);
+
+    // Función para renderizar el calendario semanal
+    function renderCalendarioSemanal(fecha, offset = semanaOffset) {
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const calendario = document.getElementById('calendario-semanal');
+        calendario.innerHTML = '';
+
+        // Controles de navegación
+        const btnPrev = document.createElement('button');
+        btnPrev.textContent = '<';
+        btnPrev.className = 'btn-semana-nav';
+        btnPrev.onclick = () => {
+            semanaOffset--;
+            const nuevaFecha = new Date(fechaSeleccionada);
+            nuevaFecha.setDate(nuevaFecha.getDate() - 7);
+            fechaSeleccionada = nuevaFecha;
+            renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
+            filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
+        };
+        calendario.appendChild(btnPrev);
+
+        // Obtener el primer día de la semana (lunes)
+        const diaActual = new Date(fecha);
+    const primerDia = new Date(diaActual);
+    primerDia.setDate(diaActual.getDate() - ((diaActual.getDay() + 6) % 7) + (offset * 7));
+
+        for (let i = 0; i < 7; i++) {
+            const dia = new Date(primerDia);
+            dia.setDate(primerDia.getDate() + i);
+            const btn = document.createElement('button');
+            btn.className = 'btn-dia-semana';
+            btn.textContent = `${diasSemana[dia.getDay()]} ${dia.getDate()}`;
+            btn.style.margin = '0 4px';
+            btn.dataset.fecha = dia.toISOString().slice(0, 10);
+            if (dia.toDateString() === fechaSeleccionada.toDateString()) {
+                btn.classList.add('seleccionado');
+            }
+            btn.onclick = () => {
+                fechaSeleccionada = dia;
+                renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
+                filtrarTareasPorFecha(dia.toISOString().slice(0, 10));
+            };
+            calendario.appendChild(btn);
+        }
+
+        const btnNext = document.createElement('button');
+        btnNext.textContent = '>';
+        btnNext.className = 'btn-semana-nav';
+        btnNext.onclick = () => {
+            semanaOffset++;
+            const nuevaFecha = new Date(fechaSeleccionada);
+            nuevaFecha.setDate(nuevaFecha.getDate() + 7);
+            fechaSeleccionada = nuevaFecha;
+            renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
+            filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
+        };
+        calendario.appendChild(btnNext);
+    }
+
+    // Función para filtrar tareas por fecha seleccionada
+    window.filtrarTareasPorFecha = function(fechaISO) {
+        // Oculta todas las tareas y muestra solo las que coinciden con la fecha
+        document.querySelectorAll('.tarea-item').forEach(item => {
+            const tareaFecha = item.getAttribute('data-tarea-fecha');
+            if (!tareaFecha || tareaFecha === fechaISO) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    };
 });
 
 async function cargarMentores() {
@@ -157,7 +235,20 @@ async function cargarMentorias() {
             mentoriaElement.querySelector('.profesor').textContent = `Profesor: ${mentoria.profesor}`;
 
             mentoriaElement.querySelector('.btn-ver-tareas').addEventListener('click', () => mostrarTareas(mentoria.id));
-            mentoriaElement.querySelector('.btn-completar').addEventListener('click', () => completarMentoria(mentoria.id));
+            // Estado de completado local (localStorage)
+            const completada = localStorage.getItem(`mentoria_${mentoria.id}_completada`) === 'true';
+            const btnCompletar = mentoriaElement.querySelector('.btn-completar');
+            btnCompletar.textContent = completada ? 'Completada' : 'Marcar como completada';
+            if (completada) {
+                btnCompletar.classList.add('completada');
+            } else {
+                btnCompletar.classList.remove('completada');
+            }
+            btnCompletar.addEventListener('click', () => {
+                const nuevoEstado = !(localStorage.getItem(`mentoria_${mentoria.id}_completada`) === 'true');
+                localStorage.setItem(`mentoria_${mentoria.id}_completada`, nuevoEstado);
+                cargarMentorias(); // Recargar para reflejar el cambio
+            });
             mentoriaElement.querySelector('.btn-eliminar').addEventListener('click', () => eliminarMentoria(mentoria.id));
             
             mentoriaElement.querySelector('.btn-mostrar-form-tarea').addEventListener('click', (e) => {
@@ -195,6 +286,28 @@ async function mostrarTareas(id) {
         const listaTareas = mentoriaCard.querySelector('.lista-tareas');
         const tareasContainer = mentoriaCard.querySelector('.tareas-container');
 
+        // Botones de marcar/desmarcar todas
+        const btnMarcarTodas = tareasContainer.querySelector('.btn-marcar-todas');
+        const btnDesmarcarTodas = tareasContainer.querySelector('.btn-desmarcar-todas');
+        if (btnMarcarTodas && btnDesmarcarTodas) {
+            btnMarcarTodas.onclick = async function() {
+                for (const tarea of tareas) {
+                    if (!tarea.completada) {
+                        await toggleTareaCompletada(tarea.id, true);
+                    }
+                }
+                await mostrarTareas(id);
+            };
+            btnDesmarcarTodas.onclick = async function() {
+                for (const tarea of tareas) {
+                    if (tarea.completada) {
+                        await toggleTareaCompletada(tarea.id, false);
+                    }
+                }
+                await mostrarTareas(id);
+            };
+        }
+
         listaTareas.innerHTML = '';
 
         if (tareas.length === 0) {
@@ -202,21 +315,115 @@ async function mostrarTareas(id) {
         } else {
             tareas.forEach(tarea => {
                 const li = document.createElement('li');
-                
-                li.innerHTML = `
-                    <div class="tarea-item ${tarea.completada ? 'completada' : ''}"
-                        data-tarea-id="${tarea.id}"
-                        data-mentoria-id="${id}">
-                        <h4>${tarea.titulo}</h4>
-                        <p>${tarea.descripcion}</p>
-                        <div class="tarea-actions">
-                            <button onclick="toggleTareaCompletada(${tarea.id}, ${!tarea.completada})" class="btn-completar-tarea">
-                                ${tarea.completada ? 'Desmarcar' : 'Completar'}
-                            </button>
-                            <button onclick="eliminarTarea(${tarea.id})" class="btn-eliminar-tarea">Eliminar</button>
-                        </div>
-                    </div>
-                `;
+                const tareaItem = document.createElement('div');
+                tareaItem.className = `tarea-item ${tarea.completada ? 'completada' : ''}`;
+                tareaItem.setAttribute('data-tarea-id', tarea.id);
+                tareaItem.setAttribute('data-mentoria-id', id);
+                if (tarea.fecha) {
+                    tareaItem.setAttribute('data-tarea-fecha', tarea.fecha.slice(0, 10));
+                }
+
+                const h4 = document.createElement('h4');
+                h4.textContent = tarea.titulo;
+                const p = document.createElement('p');
+                p.textContent = tarea.descripcion;
+
+                const actions = document.createElement('div');
+                actions.className = 'tarea-actions';
+
+                // Botón de completar/desmarcar con íconos
+                const btnCompletar = document.createElement('button');
+                btnCompletar.className = 'btn-completar-tarea';
+                if (!tarea.completada) {
+                    btnCompletar.innerHTML = '<span title="Confirmar">✅</span>';
+                    btnCompletar.onclick = function() {
+                        toggleTareaCompletada(tarea.id, true);
+                    };
+                } else {
+                    btnCompletar.innerHTML = '<span title="Desmarcar">↩️</span>';
+                    btnCompletar.onclick = function() {
+                        toggleTareaCompletada(tarea.id, false);
+                    };
+                }
+                actions.appendChild(btnCompletar);
+
+                // Botón eliminar
+                const btnEliminar = document.createElement('button');
+                btnEliminar.className = 'btn-eliminar-tarea';
+                btnEliminar.textContent = 'Eliminar';
+                btnEliminar.onclick = function() { eliminarTarea(tarea.id); };
+                actions.appendChild(btnEliminar);
+
+                // Input y botón para subir archivo
+                const formArchivo = document.createElement('form');
+                formArchivo.className = 'form-subir-archivo';
+                formArchivo.enctype = 'multipart/form-data';
+                formArchivo.style.display = 'inline-block';
+                const inputArchivo = document.createElement('input');
+                inputArchivo.type = 'file';
+                inputArchivo.name = 'archivo';
+                inputArchivo.style.marginRight = '5px';
+                const btnSubir = document.createElement('button');
+                btnSubir.type = 'submit';
+                btnSubir.textContent = 'Subir archivo';
+                formArchivo.appendChild(inputArchivo);
+                formArchivo.appendChild(btnSubir);
+                formArchivo.onsubmit = async function(e) {
+                    e.preventDefault();
+                    if (!inputArchivo.files[0]) {
+                        alert('Selecciona un archivo');
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('archivo', inputArchivo.files[0]);
+                    try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`http://localhost:3000/api/mentorias/${id}/tareas/${tarea.id}/archivo`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: formData
+                        });
+                        const contentType = res.headers.get('content-type');
+                        if (!res.ok) {
+                            if (contentType && contentType.includes('application/json')) {
+                                const err = await res.json();
+                                throw new Error(err.message || 'Error al subir archivo');
+                            } else {
+                                const text = await res.text();
+                                throw new Error(text);
+                            }
+                        }
+                        alert('Archivo subido correctamente');
+                        mostrarTareas(id);
+                    } catch (err) {
+                        alert('Error al subir archivo: ' + err.message);
+                    }
+                };
+                actions.appendChild(formArchivo);
+
+                // Mostrar enlace al archivo si existe
+                if (tarea.archivo) {
+                    const linkArchivo = document.createElement('a');
+                    linkArchivo.href = tarea.archivo;
+                    linkArchivo.target = '_blank';
+                    linkArchivo.textContent = 'Ver archivo';
+                    linkArchivo.style.marginLeft = '10px';
+                    actions.appendChild(linkArchivo);
+                }
+
+                tareaItem.appendChild(h4);
+                // Mostrar fecha si existe
+                if (tarea.fecha) {
+                    const pFecha = document.createElement('p');
+                    pFecha.className = 'tarea-fecha';
+                    pFecha.textContent = `Fecha: ${tarea.fecha}`;
+                    tareaItem.appendChild(pFecha);
+                }
+                tareaItem.appendChild(p);
+                tareaItem.appendChild(actions);
+                li.appendChild(tareaItem);
                 listaTareas.appendChild(li);
             });
         }
@@ -285,6 +492,7 @@ async function agregarTarea(e, id_mentoria) {
     e.preventDefault();
     const titulo = e.target.querySelector('input[name="titulo"]').value;
     const descripcion = e.target.querySelector('textarea[name="descripcion"]').value;
+    const fecha = e.target.querySelector('input[name="fecha"]').value;
 
     try {
         const token = localStorage.getItem('token');
@@ -300,6 +508,7 @@ async function agregarTarea(e, id_mentoria) {
                 id_mentoria,
                 titulo,
                 descripcion,
+                fecha,
                 completada: 0 // Por defecto la tarea no está completada
             })
         });

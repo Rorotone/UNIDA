@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mentorías</title>
     <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/mentoria.css">
 </head>
 <body>
     <div id="nav-placeholder"></div>
     
     <main class="container">
-        <h1>Mentorías</h1>
+    <h1>Mentorías</h1>
+    <div id="calendario-semanal"></div>
         
         <form id="crear-mentoria-form">
             <h2>Crear Nueva Mentoría</h2>
@@ -46,6 +48,10 @@
                 </div>
                 <div class="tareas-container" style="display: none;">
                     <h4>Tareas</h4>
+                    <div class="tareas-masivo-actions">
+                        <button class="btn-marcar-todas" type="button">Marcar todas</button>
+                        <button class="btn-desmarcar-todas" type="button">Desmarcar todas</button>
+                    </div>
                     <ul class="lista-tareas"></ul>
                     <button class="btn-mostrar-form-tarea">Agregar nueva tarea</button>
                     <form class="form-nueva-tarea" style="display: none;">
@@ -56,6 +62,10 @@
                         <div class="form-group">
                             <label for="descripcion">Descripción:</label>
                             <textarea name="descripcion" required placeholder="Descripción de la tarea"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha">Fecha:</label>
+                            <input type="date" name="fecha" placeholder="Fecha de la tarea">
                         </div>
                         <button type="submit">Guardar tarea</button>
                     </form>

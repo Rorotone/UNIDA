@@ -1,3 +1,26 @@
+/* Botón de completar mentoría */
+.btn-completar {
+  background-color: #f6c94b;
+  color: #222;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-completar.completada {
+  background-color: #4bf67b;
+  color: #fff;
+  border: 2px solid #2e9c4b;
+  text-decoration: line-through;
+}
+
+.btn-completar:hover {
+  background-color: #ffe08a;
+  color: #111;
+}
 /* General Styles */
 body {
     font-family: Arial, sans-serif;
