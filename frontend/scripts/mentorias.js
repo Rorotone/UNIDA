@@ -1,5 +1,19 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // Modal crear mentoría
+    const btnAbrirModal = document.getElementById('btn-abrir-modal-mentoria');
+    const modalMentoria = document.getElementById('modal-mentoria');
+    const cerrarModal = document.getElementById('cerrar-modal-mentoria');
+    if (btnAbrirModal && modalMentoria && cerrarModal) {
+        btnAbrirModal.onclick = () => { modalMentoria.style.display = 'flex'; };
+        cerrarModal.onclick = () => { modalMentoria.style.display = 'none'; };
+        window.onclick = function(event) {
+            if (event.target === modalMentoria) {
+                modalMentoria.style.display = 'none';
+            }
+        };
+    }
+
     // Calendario semanal
 
     let fechaSeleccionada = new Date();
@@ -21,8 +35,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para renderizar el calendario semanal
     function renderCalendarioSemanal(fecha, offset = semanaOffset) {
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const calendario = document.getElementById('calendario-semanal');
         calendario.innerHTML = '';
+
+    // Obtener el primer día de la semana (lunes) usando solo el offset
+    const hoy = new Date();
+    const base = new Date(hoy);
+    base.setDate(hoy.getDate() + (offset * 7));
+    const primerDia = new Date(base);
+    primerDia.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+
+        // Mostrar mes y año de la semana
+        const mesSemana = meses[primerDia.getMonth()];
+        const anioSemana = primerDia.getFullYear();
+        const mesLabel = document.createElement('div');
+        mesLabel.className = 'mes-semana-label';
+        mesLabel.style.fontWeight = 'bold';
+        mesLabel.style.marginBottom = '8px';
+        mesLabel.textContent = `${mesSemana} ${anioSemana}`;
+        calendario.appendChild(mesLabel);
 
         // Controles de navegación
         const btnPrev = document.createElement('button');
@@ -30,18 +62,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnPrev.className = 'btn-semana-nav';
         btnPrev.onclick = () => {
             semanaOffset--;
-            const nuevaFecha = new Date(fechaSeleccionada);
-            nuevaFecha.setDate(nuevaFecha.getDate() - 7);
-            fechaSeleccionada = nuevaFecha;
             renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
             filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
         };
         calendario.appendChild(btnPrev);
-
-        // Obtener el primer día de la semana (lunes)
-        const diaActual = new Date(fecha);
-    const primerDia = new Date(diaActual);
-    primerDia.setDate(diaActual.getDate() - ((diaActual.getDay() + 6) % 7) + (offset * 7));
 
         for (let i = 0; i < 7; i++) {
             const dia = new Date(primerDia);
@@ -67,9 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnNext.className = 'btn-semana-nav';
         btnNext.onclick = () => {
             semanaOffset++;
-            const nuevaFecha = new Date(fechaSeleccionada);
-            nuevaFecha.setDate(nuevaFecha.getDate() + 7);
-            fechaSeleccionada = nuevaFecha;
             renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
             filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
         };
@@ -194,6 +215,11 @@ async function crearMentoria(e) {
         alert('Mentoría creada exitosamente');
         document.getElementById('crear-mentoria-form').reset();
         cargarMentorias();
+        // Cerrar el modal si existe
+        const modalMentoria = document.getElementById('modal-mentoria');
+        if (modalMentoria) {
+            modalMentoria.style.display = 'none';
+        }
     } catch (error) {
         console.error('Error al crear mentoría:', error);
         alert(error.message || 'Error al crear la mentoría');

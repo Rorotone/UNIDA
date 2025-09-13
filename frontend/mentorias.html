@@ -11,25 +11,33 @@
     <div id="nav-placeholder"></div>
     
     <main class="container">
-    <h1>Mentorías</h1>
-    <div id="calendario-semanal"></div>
-        
-        <form id="crear-mentoria-form">
-            <h2>Crear Nueva Mentoría</h2>
-            <div class="form-group">
-                <label for="titulo-mentoria">Título de la mentoría:</label>
-                <input type="text" id="titulo-mentoria" required>
+        <h1>Mentorías</h1>
+        <div id="calendario-semanal"></div>
+
+        <button id="btn-abrir-modal-mentoria" style="margin-bottom: 16px;">Crear nueva mentoría</button>
+
+        <!-- Modal para crear mentoría -->
+        <div id="modal-mentoria" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content" style="background:#fff; padding:24px; border-radius:8px; max-width:400px; margin:auto; position:relative;">
+                <span id="cerrar-modal-mentoria" style="position:absolute; top:8px; right:16px; cursor:pointer; font-size:24px;">&times;</span>
+                <form id="crear-mentoria-form">
+                    <h2>Crear Nueva Mentoría</h2>
+                    <div class="form-group">
+                        <label for="titulo-mentoria">Título de la mentoría:</label>
+                        <input type="text" id="titulo-mentoria" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mentor-select">Seleccione un mentor:</label>
+                        <select id="mentor-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profesor-select">Seleccione un profesor:</label>
+                        <select id="profesor-select" required></select>
+                    </div>
+                    <button type="submit">Crear Mentoría</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="mentor-select">Seleccione un mentor:</label>
-                <select id="mentor-select" required></select>
-            </div>
-            <div class="form-group">
-                <label for="profesor-select">Seleccione un profesor:</label>
-                <select id="profesor-select" required></select>
-            </div>
-            <button type="submit">Crear Mentoría</button>
-        </form>
+        </div>
         
         <div id="lista-mentorias">
             <!-- Las mentorías se cargarán aquí dinámicamente -->
