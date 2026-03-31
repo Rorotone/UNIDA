@@ -35,18 +35,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para renderizar el calendario semanal
     function renderCalendarioSemanal(fecha, offset = semanaOffset) {
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const calendario = document.getElementById('calendario-semanal');
         calendario.innerHTML = '';
 
-    // Obtener el primer día de la semana (lunes) usando solo el offset
-    const hoy = new Date();
-    const base = new Date(hoy);
-    base.setDate(hoy.getDate() + (offset * 7));
-    const primerDia = new Date(base);
-    primerDia.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+        // Calcular el lunes de la semana con el offset
+        const hoy = new Date();
+        const base = new Date(hoy);
+        base.setDate(hoy.getDate() + (offset * 7));
+        const primerDia = new Date(base);
+        primerDia.setDate(base.getDate() - ((base.getDay() + 6) % 7));
 
-        // Mostrar mes y año de la semana
+        // Encabezado con mes y año
         const mesSemana = meses[primerDia.getMonth()];
         const anioSemana = primerDia.getFullYear();
         const mesLabel = document.createElement('div');
@@ -56,50 +57,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         mesLabel.textContent = `${mesSemana} ${anioSemana}`;
         calendario.appendChild(mesLabel);
 
-        // Controles de navegación
+        // Botón semana anterior
         const btnPrev = document.createElement('button');
         btnPrev.textContent = '<';
         btnPrev.className = 'btn-semana-nav';
         btnPrev.onclick = () => {
             semanaOffset--;
             renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-            filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
+            filtrarTareasPorFecha(null); // Mostrar todas
         };
         calendario.appendChild(btnPrev);
 
+        // Botones de cada día de la semana
         for (let i = 0; i < 7; i++) {
             const dia = new Date(primerDia);
             dia.setDate(primerDia.getDate() + i);
+
             const btn = document.createElement('button');
             btn.className = 'btn-dia-semana';
             btn.textContent = `${diasSemana[dia.getDay()]} ${dia.getDate()}`;
             btn.style.margin = '0 4px';
             btn.dataset.fecha = dia.toISOString().slice(0, 10);
+
+            // Marcar día seleccionado
             if (dia.toDateString() === fechaSeleccionada.toDateString()) {
                 btn.classList.add('seleccionado');
             }
+
             btn.onclick = () => {
                 fechaSeleccionada = dia;
                 renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
                 filtrarTareasPorFecha(dia.toISOString().slice(0, 10));
             };
+
             calendario.appendChild(btn);
         }
 
+        // Botón semana siguiente
         const btnNext = document.createElement('button');
         btnNext.textContent = '>';
         btnNext.className = 'btn-semana-nav';
         btnNext.onclick = () => {
             semanaOffset++;
             renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-            filtrarTareasPorFecha(null); // Mostrar todas hasta seleccionar un día
+            filtrarTareasPorFecha(null); // Mostrar todas
         };
         calendario.appendChild(btnNext);
     }
 
     // Función para filtrar tareas por fecha seleccionada
     window.filtrarTareasPorFecha = function(fechaISO) {
-        // Oculta todas las tareas y muestra solo las que coinciden con la fecha
         document.querySelectorAll('.tarea-item').forEach(item => {
             const tareaFecha = item.getAttribute('data-tarea-fecha');
             if (!tareaFecha || tareaFecha === fechaISO) {
@@ -110,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 });
+
 
 async function cargarMentores() {
     try {

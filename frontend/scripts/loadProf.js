@@ -16,6 +16,19 @@ function getAuthHeader() {
     return { 'Authorization': `Bearer ${token}` };
 }
 
+function normalizeProfesor(profesor) {
+    return {
+        ...profesor,
+        sede: profesor.Sede ?? profesor.sede ?? '',
+        sede_actual: profesor.Sede_actual ?? profesor.sede_actual ?? '',
+        talleres: profesor.Talleres ?? profesor.talleres ?? '',
+        formacion: profesor.Formacion ?? profesor.formacion ?? 0,
+        estado_I: profesor.Estado_I ?? profesor.estado_I ?? 0,
+        magister: profesor.Magister ?? profesor.magister ?? 0,
+        otro_i: profesor.Otro_I ?? profesor.Otro_i ?? profesor.otro_i ?? '',
+    };
+}
+
 async function handleFormSubmit(e) {
     e.preventDefault();
     const id_profesor = document.getElementById('id_profesor').value;
@@ -23,13 +36,13 @@ async function handleFormSubmit(e) {
     const profesorData = {
         nombre: document.getElementById('nombre').value,
         departamento: document.getElementById('departamento').value,
-        Sede: document.getElementById('Sede').value,
-        Sede_actual: document.getElementById('Sede_actual').value,
-        Talleres: document.getElementById('Talleres').value,
-        Formacion: document.getElementById('Formacion').checked ? 1 : 0,
-        Estado_I: document.getElementById('Estado_I').checked ? 1 : 0,
-        Magister: document.getElementById('Magister').checked ? 1 : 0,
-        Otro_I: document.getElementById('Otro_I').value,
+        sede: document.getElementById('sede').value,
+        sede_actual: document.getElementById('sede_actual').value,
+        talleres: document.getElementById('talleres').value,
+        formacion: document.getElementById('formacion').checked ? 1 : 0,
+        estado_I: document.getElementById('estado_I').checked ? 1 : 0,
+        magister: document.getElementById('magister').checked ? 1 : 0,
+        otro_i: document.getElementById('otro_i').value,
     };
 
     try {
@@ -72,15 +85,15 @@ async function cargarProfesores() {
             profesores.forEach((profesor) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${profesor.nombre}</td>
+                        <td>${profesor.nombre}</td>
                     <td>${profesor.departamento}</td>
-                    <td>${profesor.Sede}</td>
-                    <td>${profesor.Sede_actual}</td>
-                    <td>${profesor.Talleres}</td>
-                    <td>${profesor.Formacion === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Estado_I === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Magister === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Otro_i || 'No value'}</td>
+                    <td>${profesor.sede}</td>
+                    <td>${profesor.sede_actual}</td>
+                    <td>${profesor.talleres}</td>
+                    <td>${profesor.formacion === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.estado_I === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.magister === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.otro_i || 'No value'}</td>
                     <td>
                         <button onclick="editarProfesor(${profesor.id_profesor})">Editar</button>
                         <button onclick="eliminarProfesor(${profesor.id_profesor})">Eliminar</button>
@@ -134,13 +147,13 @@ async function filtrarProfesores() {
                 row.innerHTML = `
                     <td>${profesor.nombre}</td>
                     <td>${profesor.departamento}</td>
-                    <td>${profesor.Sede}</td>
-                    <td>${profesor.Sede_actual}</td>
-                    <td>${profesor.Talleres}</td>
-                    <td>${profesor.Formacion === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Estado_I === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Magister === 1 ? 'Sí' : 'No'}</td>
-                    <td>${profesor.Otro_I || 'No value'}</td>
+                    <td>${profesor.sede}</td>
+                    <td>${profesor.sede_actual}</td>
+                    <td>${profesor.talleres}</td>
+                    <td>${profesor.formacion === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.estado_I === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.magister === 1 ? 'Sí' : 'No'}</td>
+                    <td>${profesor.otro_i || 'No value'}</td>
                     <td>
                         <button onclick="editarProfesor(${profesor.id_profesor})">Editar</button>
                         <button onclick="eliminarProfesor(${profesor.id_profesor})">Eliminar</button>
@@ -171,13 +184,13 @@ async function editarProfesor(id_profesor) {
             document.getElementById('id_profesor').value = profesor.id_profesor;
             document.getElementById('nombre').value = profesor.nombre;
             document.getElementById('departamento').value = profesor.departamento;
-            document.getElementById('Sede').value = profesor.Sede;
-            document.getElementById('Sede_actual').value = profesor.Sede_actual;
-            document.getElementById('Talleres').value = profesor.Talleres;
-            document.getElementById('Formacion').checked = profesor.Formacion === 1;
-            document.getElementById('Estado_I').checked = profesor.Estado_I === 1;
-            document.getElementById('Magister').checked = profesor.Magister === 1;
-            document.getElementById('Otro_I').value = profesor.Otro_I;
+            document.getElementById('sede').value = profesor.sede;
+            document.getElementById('sede_actual').value = profesor.sede_actual;
+            document.getElementById('talleres').value = profesor.talleres;
+            document.getElementById('formacion').checked = profesor.formacion === 1;
+            document.getElementById('estado_I').checked = profesor.estado_I === 1;
+            document.getElementById('magister').checked = profesor.magister === 1;
+            document.getElementById('otro_i').value = profesor.otro_i;
 
             document.getElementById('form-title').textContent = 'Editar Profesor';
         } else if (response.status === 401) {

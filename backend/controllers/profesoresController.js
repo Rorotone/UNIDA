@@ -1,15 +1,54 @@
 import db from '../config/database.js';
 
+const normalizeProfesorRow = (row) => ({
+    id_profesor: row.id_profesor,
+    nombre: row.nombre,
+    departamento: row.departamento,
+    sede: row.Sede ?? row.sede ?? '',
+    sede_actual: row.Sede_actual ?? row.sede_actual ?? '',
+    talleres: row.Talleres ?? row.talleres ?? '',
+    formacion: row.Formacion ?? row.formacion ?? 0,
+    estado_I: row.Estado_I ?? row.estado_I ?? 0,
+    magister: row.Magister ?? row.magister ?? 0,
+    otro_i: row.Otro_I ?? row.Otro_i ?? row.otro_i ?? '',
+});
+
 // Crear un nuevo profesor
 export const createProfesor = async (req, res) => {
     try {
-        const { nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I } = req.body;
+        const {
+            nombre,
+            departamento,
+            Sede,
+            sede,
+            Sede_actual,
+            sede_actual,
+            Talleres,
+            talleres,
+            Formacion,
+            formacion,
+            Estado_I,
+            estado_I,
+            Magister,
+            magister,
+            Otro_I,
+            otro_i,
+        } = req.body;
+
+        const sedeValue = Sede ?? sede ?? null;
+        const sedeActualValue = Sede_actual ?? sede_actual ?? null;
+        const talleresValue = Talleres ?? talleres ?? null;
+        const formacionValue = Formacion ?? formacion ?? 0;
+        const estadoIValue = Estado_I ?? estado_I ?? 0;
+        const magisterValue = Magister ?? magister ?? 0;
+        const otroIValue = Otro_I ?? otro_i ?? '';
+
         const query = `
             INSERT INTO profesores 
             (nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        const [result] = await db.execute(query, [nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I]);
+        const [result] = await db.execute(query, [nombre, departamento, sedeValue, sedeActualValue, talleresValue, formacionValue, estadoIValue, magisterValue, otroIValue]);
         res.status(201).json({ message: 'Profesor creado exitosamente.', id_profesor: result.insertId });
     } catch (error) {
         console.error('Error al crear profesor:', error);
@@ -61,7 +100,7 @@ export const getProfesores = async (req, res) => {
         }
 
         const [rows] = await db.execute(query, queryParams);
-        res.status(200).json(rows);
+        res.status(200).json(rows.map(normalizeProfesorRow));
     } catch (error) {
         console.error('Error al obtener profesores:', error);
         res.status(500).json({ message: 'Error interno del servidor.' });
@@ -73,7 +112,7 @@ export const getProfesorById = async (req, res) => {
         const { id_profesor } = req.params;
         const [rows] = await db.execute('SELECT * FROM profesores WHERE id_profesor = ?', [id_profesor]);
         if (rows.length > 0) {
-            res.status(200).json(rows[0]);
+            res.status(200).json(normalizeProfesorRow(rows[0]));
         } else {
             res.status(404).json({ message: 'Profesor no encontrado.' });
         }
@@ -86,13 +125,39 @@ export const getProfesorById = async (req, res) => {
 export const updateProfesor = async (req, res) => {
     try {
         const { id_profesor } = req.params;
-        const { nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I } = req.body;
+        const {
+            nombre,
+            departamento,
+            Sede,
+            sede,
+            Sede_actual,
+            sede_actual,
+            Talleres,
+            talleres,
+            Formacion,
+            formacion,
+            Estado_I,
+            estado_I,
+            Magister,
+            magister,
+            Otro_I,
+            otro_i,
+        } = req.body;
+
+        const sedeValue = Sede ?? sede ?? null;
+        const sedeActualValue = Sede_actual ?? sede_actual ?? null;
+        const talleresValue = Talleres ?? talleres ?? null;
+        const formacionValue = Formacion ?? formacion ?? 0;
+        const estadoIValue = Estado_I ?? estado_I ?? 0;
+        const magisterValue = Magister ?? magister ?? 0;
+        const otroIValue = Otro_I ?? otro_i ?? '';
+
         const query = `
             UPDATE profesores 
             SET nombre = ?, departamento = ?, Sede = ?, Sede_actual = ?, Talleres = ?, Formacion = ?, Estado_I = ?, Magister = ?, Otro_I = ?
             WHERE id_profesor = ?
         `;
-        const [result] = await db.execute(query, [nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I, id_profesor]);
+        const [result] = await db.execute(query, [nombre, departamento, sedeValue, sedeActualValue, talleresValue, formacionValue, estadoIValue, magisterValue, otroIValue, id_profesor]);
 
         if (result.affectedRows > 0) {
             res.status(200).json({ message: 'Profesor actualizado exitosamente.' });

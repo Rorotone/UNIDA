@@ -24,6 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // Filtros
 let profesoresCache = [];
 
+function normalizeProfesor(p) {
+  return {
+    ...p,
+    sede: p.Sede ?? p.sede ?? '',
+    sede_actual: p.Sede_actual ?? p.sede_actual ?? '',
+    talleres: p.Talleres ?? p.talleres ?? '',
+    formacion: p.Formacion ?? p.formacion ?? 0,
+    estado_I: p.Estado_I ?? p.estado_I ?? 0,
+    magister: p.Magister ?? p.magister ?? 0,
+    otro_i: p.Otro_I ?? p.Otro_i ?? p.otro_i ?? '',
+  };
+}
+
 function renderRows(data) {
   const tbody = document.getElementById('profesores-body');
   tbody.innerHTML = '';
@@ -32,13 +45,13 @@ function renderRows(data) {
     row.innerHTML = `
       <td>${p.nombre}</td>
       <td>${p.departamento}</td>
-      <td>${p.Sede || ''}</td>
-      <td>${p.Sede_actual || ''}</td>
-      <td>${p.Talleres || ''}</td>
-      <td>${p.Formacion === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.Estado_I === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.Magister === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.Otro_i || ''}</td>
+      <td>${p.sede || ''}</td>
+      <td>${p.sede_actual || ''}</td>
+      <td>${p.talleres || ''}</td>
+      <td>${p.formacion === 1 ? 'Sí' : 'No'}</td>
+      <td>${p.estado_I === 1 ? 'Sí' : 'No'}</td>
+      <td>${p.magister === 1 ? 'Sí' : 'No'}</td>
+      <td>${p.otro_i || ''}</td>
       <td>
         <button onclick="editarProfesor(${p.id_profesor})">Editar</button>
         <button onclick="eliminarProfesor(${p.id_profesor})">Eliminar</button>
@@ -66,9 +79,9 @@ function applyFilters() {
   const filtrados = profesoresCache.filter(p => {
     const byNombre = !qNombre || (p.nombre || '').toLowerCase().includes(qNombre);
     const byDepto = !depto || (p.departamento || '') === depto;
-    const bySede = !sede || (p.Sede || '') === sede;
-    const bySedeA = !sedeCls || (p.Sede_actual || '') === sedeCls;
-    const byTaller = !talleres || (p.Talleres || '') === talleres;
+    const bySede = !sede || (p.sede || '') === sede;
+    const bySedeA = !sedeCls || (p.sede_actual || '') === sedeCls;
+    const byTaller = !talleres || (p.talleres || '') === talleres;
     return byNombre && byDepto && bySede && bySedeA && byTaller;
   });
 
@@ -79,15 +92,16 @@ async function cargarProfesores() {
   try {
     const res = await fetch('/api/profesores', { headers: getAuthHeader() });
     if (!res.ok) throw new Error(res.status);
-    profesoresCache = await res.json();
+    const rawProfesores = await res.json();
+    profesoresCache = rawProfesores.map(normalizeProfesor);
 
     renderRows(profesoresCache);
 
     // Llenar selects
     populateSelect(document.getElementById('search-departamento'), uniqueValues(profesoresCache, 'departamento'));
-    populateSelect(document.getElementById('search-sede'), uniqueValues(profesoresCache, 'Sede'));
-    populateSelect(document.getElementById('search-sede-clases'), uniqueValues(profesoresCache, 'Sede_actual'));
-    populateSelect(document.getElementById('search-talleres-vra'), uniqueValues(profesoresCache, 'Talleres'));
+    populateSelect(document.getElementById('search-sede'), uniqueValues(profesoresCache, 'sede'));
+    populateSelect(document.getElementById('search-sede-clases'), uniqueValues(profesoresCache, 'sede_actual'));
+    populateSelect(document.getElementById('search-talleres-vra'), uniqueValues(profesoresCache, 'talleres'));
 
     // Eventos
     document.getElementById('search-nombre').addEventListener('input', applyFilters);
