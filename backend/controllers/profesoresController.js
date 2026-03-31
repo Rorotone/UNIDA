@@ -59,7 +59,7 @@ export const createProfesor = async (req, res) => {
 export const getProfesores = async (req, res) => {
     try {
         const { nombre, departamento, sede, sede_actual, talleres, otro_i } = req.query;
-        let query = `SELECT * FROM profesores`;
+        let query = `SELECT * FROM profesores WHERE deleted_at IS NULL`;
         const queryParams = [];
 
         if (nombre || departamento || sede || sede_actual || talleres || otro_i) {
@@ -173,7 +173,7 @@ export const updateProfesor = async (req, res) => {
 export const deleteProfesor = async (req, res) => {
     try {
         const { id_profesor } = req.params;
-        const query = 'DELETE FROM profesores WHERE id_profesor = ?';
+        const query = 'UPDATE profesores SET deleted_at = NOW() WHERE id_profesor = ?';
         const [result] = await db.execute(query, [id_profesor]);
 
         if (result.affectedRows > 0) {
