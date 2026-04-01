@@ -2,8 +2,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initMentorias();
 });
 
+let mentoriasCache = [];
+
 async function initMentorias() {
   bindEventosBase();
+  MentoriasUI.renderCalendarioSemanal(aplicarFiltroCalendario);
   await cargarSelects();
   await recargarMentorias();
 }
@@ -15,6 +18,10 @@ function bindEventosBase() {
 
   document
     .getElementById("cerrar-modal-mentoria")
+    ?.addEventListener("click", MentoriasUI.cerrarModal);
+
+  document
+    .getElementById("btn-cancelar-modal-mentoria")
     ?.addEventListener("click", MentoriasUI.cerrarModal);
 
   document
@@ -66,17 +73,27 @@ async function cargarSelects() {
     );
   } catch (error) {
     console.error("Error al cargar mentores/profesores:", error);
-    alert(error.message || "No se pudieron cargar mentores y profesores.");
   }
 }
 
 async function recargarMentorias() {
   try {
     const mentorias = await MentoriasAPI.obtenerMentorias();
-    MentoriasUI.renderMentorias(Array.isArray(mentorias) ? mentorias : []);
+    mentoriasCache = Array.isArray(mentorias) ? mentorias : [];
+    aplicarFiltroCalendario(MentoriasUI.obtenerFechaSeleccionada());
   } catch (error) {
     console.error("Error al cargar mentorías:", error);
     alert(error.message || "No se pudieron cargar las mentorías.");
+  }
+}
+
+function aplicarFiltroCalendario(fechaSeleccionada) {
+  const filtradas = MentoriasUI.filtrarTareasPorFecha(mentoriasCache, fechaSeleccionada);
+
+  if (filtradas.length > 0) {
+    MentoriasUI.renderMentorias(filtradas);
+  } else {
+    MentoriasUI.renderMentorias(mentoriasCache);
   }
 }
 

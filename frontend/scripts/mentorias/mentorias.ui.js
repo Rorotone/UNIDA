@@ -1,4 +1,7 @@
 const MentoriasUI = (() => {
+  let fechaSeleccionada = new Date();
+  let semanaOffset = 0;
+
   function abrirModal() {
     document.getElementById("modal-mentoria")?.classList.add("is-open");
   }
@@ -52,7 +55,7 @@ const MentoriasUI = (() => {
       const idMentoria = mentoria.id_mentoria || mentoria.id || mentoria.idMentoria;
       card.dataset.mentoriaId = idMentoria;
 
-      clone.querySelector("h3").textContent = mentoria.titulo || "Sin título";
+      clone.querySelector(".mentoria-titulo").textContent = mentoria.titulo || "Sin título";
       clone.querySelector(".mentor").textContent = `Mentor: ${mentoria.mentor || mentoria.nombre_mentor || "-"}`;
       clone.querySelector(".profesor").textContent = `Profesor: ${mentoria.profesor || mentoria.nombre_profesor || "-"}`;
 
@@ -69,7 +72,7 @@ const MentoriasUI = (() => {
   function toggleTareas(card, visible) {
     const container = card.querySelector(".tareas-container");
     if (!container) return;
-    container.style.display = visible ? "block" : "none";
+    container.classList.toggle("hidden-block", !visible);
   }
 
   function renderTareas(card, tareas) {
@@ -98,7 +101,7 @@ const MentoriasUI = (() => {
             <div>
               <strong>${tarea.titulo || "Sin título"}</strong>
               <div>${tarea.descripcion || ""}</div>
-              ${tarea.fecha ? `<small>Fecha: ${tarea.fecha}</small>` : ""}
+              ${tarea.fecha ? `<small>Fecha: ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
             </div>
           </label>
         </div>
@@ -114,7 +117,7 @@ const MentoriasUI = (() => {
   function toggleFormularioTarea(card, visible) {
     const form = card.querySelector(".form-nueva-tarea");
     if (!form) return;
-    form.style.display = visible ? "block" : "none";
+    form.classList.toggle("hidden-block", !visible);
   }
 
   function limpiarFormularioTarea(form) {
@@ -131,12 +134,126 @@ const MentoriasUI = (() => {
 
   function estaTareasVisible(card) {
     const container = card.querySelector(".tareas-container");
-    return container?.style.display === "block";
+    return container && !container.classList.contains("hidden-block");
   }
 
   function estaFormularioTareaVisible(card) {
     const form = card.querySelector(".form-nueva-tarea");
-    return form?.style.display === "block";
+    return form && !form.classList.contains("hidden-block");
+  }
+
+  function obtenerFechaSeleccionada() {
+    return new Date(fechaSeleccionada);
+  }
+
+  function renderCalendarioSemanal(onSeleccionarFecha) {
+    const calendario = document.getElementById("calendario-semanal");
+    if (!calendario) return;
+
+    calendario.innerHTML = "";
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const base = new Date(hoy);
+    base.setDate(base.getDate() + semanaOffset * 7);
+
+    const diaSemana = base.getDay();
+    const lunesOffset = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+    const inicioSemana = new Date(base);
+    inicioSemana.setDate(base.getDate() + lunesOffset);
+
+    const mesLabel = document.createElement("div");
+    mesLabel.className = "mes-semana-label";
+    mesLabel.textContent = inicioSemana.toLocaleDateString("es-CL", {
+      month: "long",
+      year: "numeric"
+    });
+    calendario.appendChild(mesLabel);
+
+    const btnPrev = document.createElement("button");
+    btnPrev.type = "button";
+    btnPrev.className = "btn-semana-nav";
+    btnPrev.textContent = "<";
+    btnPrev.addEventListener("click", () => {
+      semanaOffset--;
+      renderCalendarioSemanal(onSeleccionarFecha);
+    });
+    calendario.appendChild(btnPrev);
+
+    const nombres = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+    for (let i = 0; i < 7; i++) {
+      const fecha = new Date(inicioSemana);
+      fecha.setDate(inicioSemana.getDate() + i);
+      fecha.setHours(0, 0, 0, 0);
+
+      const btnDia = document.createElement("button");
+      btnDia.type = "button";
+      btnDia.className = "btn-dia-semana";
+
+      const mismoDia =
+        fechaSeleccionada.getFullYear() === fecha.getFullYear() &&
+        fechaSeleccionada.getMonth() === fecha.getMonth() &&
+        fechaSeleccionada.getDate() === fecha.getDate();
+
+      if (mismoDia) {
+        btnDia.classList.add("seleccionado");
+      }
+
+      btnDia.innerHTML = `${nombres[i]}<br>${fecha.getDate()}`;
+
+      btnDia.addEventListener("click", () => {
+        fechaSeleccionada = new Date(fecha);
+        renderCalendarioSemanal(onSeleccionarFecha);
+        if (typeof onSeleccionarFecha === "function") {
+          onSeleccionarFecha(new Date(fechaSeleccionada));
+        }
+      });
+
+      calendario.appendChild(btnDia);
+    }
+
+    const btnNext = document.createElement("button");
+    btnNext.type = "button";
+    btnNext.className = "btn-semana-nav";
+    btnNext.textContent = ">";
+    btnNext.addEventListener("click", () => {
+      semanaOffset++;
+      renderCalendarioSemanal(onSeleccionarFecha);
+    });
+    calendario.appendChild(btnNext);
+  }
+
+  function filtrarTareasPorFecha(mentorias, fecha) {
+    if (!Array.isArray(mentorias)) return [];
+
+    const fechaBase = normalizarFecha(fecha);
+
+    return mentorias.filter((mentoria) => {
+      if (!Array.isArray(mentoria.tareas)) return true;
+
+      return mentoria.tareas.some((tarea) => {
+        if (!tarea.fecha) return false;
+        return normalizarFecha(tarea.fecha) === fechaBase;
+      });
+    });
+  }
+
+  function normalizarFecha(valor) {
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function formatearFechaTexto(valor) {
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return valor;
+    return d.toLocaleDateString("es-CL");
   }
 
   return {
@@ -152,6 +269,9 @@ const MentoriasUI = (() => {
     limpiarFormularioTarea,
     obtenerDatosTarea,
     estaTareasVisible,
-    estaFormularioTareaVisible
+    estaFormularioTareaVisible,
+    renderCalendarioSemanal,
+    filtrarTareasPorFecha,
+    obtenerFechaSeleccionada
   };
 })();
