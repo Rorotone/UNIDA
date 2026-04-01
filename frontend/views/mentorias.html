@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentorías</title>
+  <link rel="stylesheet" href="/styles/styles.css">
+  <link rel="stylesheet" href="/styles/mentoria.css">
+</head>
+<body>
+  <header>
+    <div class="header-shell">
+      <div class="brand"><h1>UNIDA</h1></div>
+      <div id="nav-placeholder"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h1>Mentorías</h1>
+      <div id="calendario-semanal"></div>
+
+      <div class="form-actions" style="margin-bottom:16px;">
+        <button id="btn-abrir-modal-mentoria">Crear nueva mentoría</button>
+      </div>
+
+      <div id="modal-mentoria" class="modal">
+        <div class="modal-content">
+          <span id="cerrar-modal-mentoria" class="close">&times;</span>
+          <form id="crear-mentoria-form">
+            <h2>Crear Nueva Mentoría</h2>
+            <div class="form-group">
+              <label for="titulo-mentoria">Título de la mentoría</label>
+              <input type="text" id="titulo-mentoria" required>
+            </div>
+            <div class="form-group">
+              <label for="mentor-select">Seleccione un mentor</label>
+              <select id="mentor-select" required></select>
+            </div>
+            <div class="form-group">
+              <label for="profesor-select">Seleccione un profesor</label>
+              <select id="profesor-select" required></select>
+            </div>
+            <button type="submit">Crear Mentoría</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="lista-mentorias"></div>
+    </section>
+
+    <template id="mentoria-template">
+      <div class="card mentoria-card" data-mentoria-id="">
+        <h3></h3>
+        <p class="mentor"></p>
+        <p class="profesor"></p>
+        <div class="mentoria-actions">
+          <button class="btn-ver-tareas btn-secondary">Ver Tareas</button>
+          <button class="btn-completar">Completar</button>
+          <button class="btn-eliminar btn-danger">Eliminar</button>
+        </div>
+        <div class="tareas-container" style="display:none; margin-top:16px;">
+          <h4>Tareas</h4>
+          <div class="tareas-masivo-actions">
+            <button class="btn-marcar-todas btn-secondary" type="button">Marcar todas</button>
+            <button class="btn-desmarcar-todas btn-secondary" type="button">Desmarcar todas</button>
+          </div>
+          <ul class="lista-tareas"></ul>
+          <button class="btn-mostrar-form-tarea btn-secondary">Agregar nueva tarea</button>
+          <form class="form-nueva-tarea" style="display:none; margin-top:16px;">
+            <div class="form-group">
+              <label for="titulo">Título</label>
+              <input type="text" name="titulo" required placeholder="Título de la tarea">
+            </div>
+            <div class="form-group">
+              <label for="descripcion">Descripción</label>
+              <textarea name="descripcion" required placeholder="Descripción de la tarea"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha</label>
+              <input type="date" name="fecha" placeholder="Fecha de la tarea">
+            </div>
+            <button type="submit">Guardar tarea</button>
+          </form>
+        </div>
+      </div>
+    </template>
+  </main>
+
+  <script src="/scripts/nav.js"></script>
+  <script src="/scripts/mentorias.js"></script>
+</body>
+</html>

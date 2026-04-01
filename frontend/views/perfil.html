@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil de Usuario</title>
+  <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-shell">
+      <div class="brand"><h1>UNIDA</h1></div>
+      <div id="nav-placeholder"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="profile-container">
+      <div class="profile-header">
+        <h1>Perfil de Usuario</h1>
+      </div>
+
+      <div class="profile-info">
+        <p><strong>Nombre de usuario:</strong> <span id="username-display"></span></p>
+        <p><strong>ID de usuario:</strong> <span id="user-id-display"></span></p>
+      </div>
+
+      <form id="change-password-form">
+        <h2>Cambiar Contraseña</h2>
+
+        <div class="form-group">
+          <label for="current-password">Contraseña Actual</label>
+          <input type="password" id="current-password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="new-password">Nueva Contraseña</label>
+          <input type="password" id="new-password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirmar Nueva Contraseña</label>
+          <input type="password" id="confirm-password" required>
+        </div>
+
+        <button type="submit">Cambiar Contraseña</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/scripts/nav.js"></script>
+  <script src="/scripts/perfil.js"></script>
+</body>
+</html>

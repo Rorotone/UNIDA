@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investigaciones</title>
+  <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-shell">
+      <div class="brand"><h1>UNIDA</h1></div>
+      <div id="nav-placeholder"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h1>Investigaciones</h1>
+    </section>
+
+    <section class="section">
+      <form id="crear-investigacion-form" enctype="multipart/form-data">
+        <h2>Nueva Investigación</h2>
+        <div class="search-container">
+          <div>
+            <label for="titulo">Título</label>
+            <input type="text" id="titulo" name="titulo" required>
+          </div>
+          <div>
+            <label for="area">Área</label>
+            <input type="text" id="area" name="area" required>
+          </div>
+          <div>
+            <label for="fecha_inicio">Fecha de inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+          </div>
+          <div>
+            <label for="fecha_fin">Fecha de fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" required>
+          </div>
+          <div>
+            <label for="profesor-select">Profesor</label>
+            <select id="profesor-select" name="id_profesor" required></select>
+          </div>
+          <div>
+            <label for="mentor-select">Mentor</label>
+            <select id="mentor-select" name="id_mentor" required></select>
+          </div>
+          <div>
+            <label for="archivo">Archivo</label>
+            <input type="file" id="archivo" name="archivo">
+          </div>
+        </div>
+        <button type="submit">Crear Investigación</button>
+      </form>
+    </section>
+
+    <section class="investigaciones-layout">
+      <aside class="sidebar-filtros">
+        <div class="sidebar-card">
+          <h2>Filtros</h2>
+
+          <div class="sidebar-form-group">
+            <label for="filtro-titulo">Título</label>
+            <input type="text" id="filtro-titulo" placeholder="Filtrar por título">
+          </div>
+
+          <div class="sidebar-form-group">
+            <label for="filtro-area">Área</label>
+            <input type="text" id="filtro-area" placeholder="Filtrar por área">
+          </div>
+
+          <div class="sidebar-form-group">
+            <label for="filtro-profesor">Profesor</label>
+            <input type="text" id="filtro-profesor" placeholder="Filtrar por profesor">
+          </div>
+
+          <div class="sidebar-form-group">
+            <label for="filtro-mentor">Mentor</label>
+            <input type="text" id="filtro-mentor" placeholder="Filtrar por mentor">
+          </div>
+
+          <div class="sidebar-actions">
+            <button id="aplicar-filtros" type="button">Aplicar filtros</button>
+            <button id="limpiar-filtros" type="button" class="btn-secondary">Limpiar filtros</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="investigaciones-content">
+        <section class="section">
+          <h2>Lista de Investigaciones</h2>
+          <div class="table-wrap">
+            <table id="tabla-investigaciones">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Área</th>
+                  <th>Fecha de inicio</th>
+                  <th>Fecha de fin</th>
+                  <th>Profesor</th>
+                  <th>Mentor</th>
+                  <th>Archivo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="/scripts/nav.js"></script>
+  <script src="/scripts/investigaciones.js"></script>
+</body>
+</html>

@@ -39,11 +39,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const viewsPath = path.join(__dirname, '../frontend/views');
+
 app.use(express.json());
 app.use('/uploads', express.static(uploadsPath));
 
-// Serve static files from the frontend directory
+// Serve static files from the frontend directory for assets
 app.use(express.static(path.join(__dirname, '../frontend')));
+// Serve HTML views from the frontend/views directory
+app.use(express.static(viewsPath));
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -51,12 +55,12 @@ app.use('/api/profesores', authenticateToken, profesoresRoutes);
 app.use('/api/mentorias', authenticateToken, mentoriasRoutes);
 app.use('/api/investigaciones', authenticateToken, investigacionesRoutes);
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(viewsPath, 'index.html'));
 });
 
 // Handle any requests that don't match the ones above
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(viewsPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
