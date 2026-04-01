@@ -34,6 +34,7 @@ function bindFilterEvents() {
   document.getElementById('search-talleres-vra').addEventListener('change', applyFilters);
   document.getElementById('search-btn').addEventListener('click', applyFilters);
   document.getElementById('reset-btn').addEventListener('click', resetFiltros);
+  document.getElementById('toggle-filtros-btn').addEventListener('click', toggleFiltros);
 }
 
 function bindFormSubmit() {

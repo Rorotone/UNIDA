@@ -101,6 +101,14 @@ function actualizarFiltrosEnCascada(filtrados, seleccionActual) {
   selectTalleres.value = seleccionActual.talleres;
 }
 
+function toggleFiltros() {
+  const container = document.getElementById('search-container');
+  const btn = document.getElementById('toggle-filtros-btn');
+  const visible = !container.classList.contains('hidden');
+  container.classList.toggle('hidden');
+  btn.textContent = visible ? 'Filtrar' : 'Ocultar filtros';
+}
+
 function resetFiltros() {
   document.getElementById('search-nombre').value = '';
   document.getElementById('search-departamento').value = '';

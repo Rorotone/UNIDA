@@ -400,3 +400,5 @@ tbody tr:hover { background: #f4f6ff; }
   .auth-card, .login-container, .register-container { padding: 22px; }
   thead th, tbody td { padding: 10px; font-size: .92rem; }
 }
+
+.hidden { display: none !important; }
