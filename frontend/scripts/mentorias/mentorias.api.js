@@ -3,15 +3,30 @@ const MentoriasAPI = (() => {
   const MENTORES_URL = "/api/mentores";
   const PROFESORES_URL = "/api/profesores";
 
+  function getAuthHeaders(extraHeaders = {}) {
+    const token = localStorage.getItem("token");
+
+    return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extraHeaders
+    };
+  }
+
+  function manejarNoAutorizado() {
+    alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
+    localStorage.removeItem("token");
+    window.location.href = "/login.html";
+  }
+
   async function request(url, options = {}) {
     const response = await fetch(url, {
       credentials: "include",
-      ...options
+      ...options,
+      headers: getAuthHeaders(options.headers || {})
     });
 
     if (response.status === 401) {
-      alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
-      window.location.href = "/login.html";
+      manejarNoAutorizado();
       throw new Error("No autorizado");
     }
 
