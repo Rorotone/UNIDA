@@ -2,7 +2,6 @@
   --primary: #5a4bf6;
   --primary-dark: #4739c1;
   --primary-soft: #eef0ff;
-  --secondary: #f6f7fb;
   --surface: #ffffff;
   --surface-muted: #f8f9fc;
   --text: #1f2937;
@@ -16,332 +15,28 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --container: 1120px;
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--text);
-  background: linear-gradient(180deg, #f7f8ff 0%, #f3f5fb 100%);
-  line-height: 1.5;
+/* ===== Utilidades del módulo ===== */
+.hidden-block {
+  display: none !important;
 }
 
-a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-a:hover { text-decoration: underline; }
-
-img { max-width: 100%; display: block; }
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: rgba(90, 75, 246, 0.96);
-  backdrop-filter: blur(8px);
-  color: #fff;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
-}
-
-.header-shell {
-  width: min(100%, var(--container));
-  margin: 0 auto;
-  padding: 14px 20px;
+.section-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand h1,
-header h1 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-nav ul {
-  list-style: none;
-  display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
 }
 
-nav ul li a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  color: #fff;
-  font-weight: 600;
-  transition: background-color .2s ease, transform .08s ease;
-}
-
-nav ul li a:hover {
-  background: rgba(255,255,255,.14);
-  text-decoration: none;
-}
-
-nav ul li a:active { transform: translateY(1px); }
-
-main,
-.container {
-  width: min(100%, var(--container));
-  margin: 0 auto;
-  padding: 24px 20px 40px;
-}
-
-.page-title,
-main h1,
-main h2:first-child {
-  margin-top: 0;
-}
-
-.section,
-form,
-.card,
-.profile-container,
-.search-container,
-.filter-container,
-.login-container,
-.auth-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.section,
-.card,
-.profile-container,
-.search-container,
-.filter-container {
-  padding: 20px;
-}
-
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.auth-card,
-.login-container,
-.register-container {
-  width: min(100%, 420px);
-  padding: 28px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.auth-card h1,
-.login-container h1,
-.register-container h1 {
-  margin: 0 0 18px;
-  text-align: center;
-  color: var(--primary);
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: .95rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 11px 13px;
-  border: 1px solid #d7dce5;
-  border-radius: 10px;
-  background: #fff;
-  font: inherit;
-  color: var(--text);
-  transition: border-color .2s ease, box-shadow .2s ease;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(90, 75, 246, 0.16);
-}
-
-textarea {
-  min-height: 110px;
-  resize: vertical;
-}
-
-button,
-.btn,
-input[type="submit"],
-input[type="button"] {
-  appearance: none;
-  border: none;
-  border-radius: 10px;
-  min-height: 42px;
-  padding: 0 16px;
-  background: var(--primary);
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform .08s ease, filter .2s ease, box-shadow .2s ease;
-  box-shadow: 0 8px 20px rgba(90, 75, 246, 0.18);
-}
-
-button:hover,
-.btn:hover,
-input[type="submit"]:hover,
-input[type="button"]:hover {
-  filter: brightness(0.96);
-}
-
-button:active,
-.btn:active,
-input[type="submit"]:active,
-input[type="button"]:active {
-  transform: translateY(1px);
-}
-
-.btn-secondary,
-.btn-ghost {
-  background: #fff;
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: none;
-}
-
-.btn-danger {
-  background: var(--danger);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.16);
-}
-
-.btn-success { background: var(--success); box-shadow: 0 8px 20px rgba(34, 197, 94, 0.16); }
-.btn-warning { background: var(--warning); color: #222; box-shadow: none; }
-
-.form-group { margin-bottom: 16px; }
-.form-actions,
-.actions,
-.mentoria-actions,
-.tareas-masivo-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.search-container,
-.filter-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.table-wrap {
-  overflow-x: auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--surface);
-}
-
-thead th {
-  background: var(--primary);
-  color: #fff;
-  text-align: left;
-  font-size: .9rem;
-  padding: 14px 12px;
-}
-
-tbody td {
-  padding: 14px 12px;
-  border-bottom: 1px solid #eef1f6;
-  vertical-align: top;
-}
-
-tbody tr:nth-child(even) { background: #fafbff; }
-tbody tr:hover { background: #f4f6ff; }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-size: .82rem;
-  font-weight: 700;
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-}
-
-.modal.is-open { display: flex; }
-
-.modal-content {
-  width: min(100%, 560px);
-  max-height: 90vh;
-  overflow: auto;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  position: relative;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
-}
-
-.close {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 1.75rem;
-  line-height: 1;
+.section-subtitle {
+  margin: 6px 0 0;
   color: var(--text-soft);
-  cursor: pointer;
+  font-size: 0.95rem;
 }
 
-.close:hover { color: var(--text); }
-
+/* ===== Calendario semanal ===== */
 #calendario-semanal {
   display: flex;
   flex-wrap: wrap;
@@ -349,6 +44,16 @@ tbody tr:hover { background: #f4f6ff; }
   justify-content: center;
   gap: 10px;
   margin-bottom: 18px;
+}
+
+.mes-semana-label {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: capitalize;
+  margin-bottom: 6px;
 }
 
 .btn-semana-nav,
@@ -365,38 +70,168 @@ tbody tr:hover { background: #f4f6ff; }
   box-shadow: none;
 }
 
-.btn-dia-semana.seleccionado,
-.btn-completar.completada {
-  background: var(--success);
-  color: #fff;
+.btn-dia-semana:hover {
+  background: var(--primary-soft);
 }
 
+.btn-dia-semana.seleccionado {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* ===== Lista de mentorías ===== */
+#lista-mentorias {
+  display: grid;
+  gap: 16px;
+}
+
+.mentoria-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.mentoria-card h3,
+.mentoria-titulo {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.mentoria-card .mentor,
+.mentoria-card .profesor {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+}
+
+.mentoria-actions,
+.tareas-masivo-actions,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.mentoria-actions {
+  margin-top: 14px;
+}
+
+/* ===== Botones específicos del módulo ===== */
 .btn-completar {
   background: var(--warning);
   color: #222;
   box-shadow: none;
 }
 
-.error-message {
-  color: #b91c1c;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  padding: 12px 14px;
-  border-radius: 10px;
+.btn-completar:hover {
+  filter: brightness(0.97);
+}
+
+.btn-completar.completada {
+  background: var(--success);
+  color: #fff;
+}
+
+/* ===== Contenedor de tareas ===== */
+.tareas-container {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.tareas-container h4 {
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.lista-tareas {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.tarea-item {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.tarea-item strong {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.tarea-item small {
+  color: var(--text-soft);
+}
+
+.tarea-item-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ===== Formulario nueva tarea ===== */
+.form-nueva-tarea {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.form-group {
   margin-bottom: 16px;
 }
 
-.profile-info p { margin: 10px 0; }
-
-.inline-note {
-  color: var(--text-soft);
-  font-size: .92rem;
+/* ===== Modal de mentorías ===== */
+#modal-mentoria .modal-content {
+  width: min(100%, 560px);
 }
 
+#modal-mentoria h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+/* ===== Estados ===== */
+.empty-state-mentorias {
+  text-align: center;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-soft);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
-  .header-shell { flex-direction: column; align-items: stretch; }
-  nav ul { justify-content: center; }
-  main, .container { padding: 20px 14px 34px; }
-  .auth-card, .login-container, .register-container { padding: 22px; }
-  thead th, tbody td { padding: 10px; font-size: .92rem; }
+  .section-header {
+    align-items: flex-start;
+  }
+
+  .mentoria-actions,
+  .tareas-masivo-actions,
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mentoria-actions > button,
+  .tareas-masivo-actions > button,
+  .form-actions > button {
+    width: 100%;
+  }
+
+  .tarea-item {
+    padding: 12px;
+  }
 }
