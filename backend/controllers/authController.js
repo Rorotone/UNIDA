@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from '../config/database.js';
 
-const JWT_SECRET = 'your_jwt_secret'; // In a real application, this should be in an environment variable
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
   try {
@@ -46,7 +46,8 @@ export const login = async (req, res) => {
     }
     
     // Generate JWT
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const JWT_SECRET = process.env.JWT_SECRET;
+    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });   
     
     res.json({ message: 'Login successful', token });
   } catch (error) {

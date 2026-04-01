@@ -33,6 +33,7 @@ function bindFilterEvents() {
   document.getElementById('search-sede-clases').addEventListener('change', applyFilters);
   document.getElementById('search-talleres-vra').addEventListener('change', applyFilters);
   document.getElementById('search-btn').addEventListener('click', applyFilters);
+  document.getElementById('reset-btn').addEventListener('click', resetFiltros);
 }
 
 function bindFormSubmit() {

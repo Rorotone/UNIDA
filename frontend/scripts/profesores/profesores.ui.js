@@ -80,6 +80,35 @@ function applyFilters() {
   });
 
   renderRows(filtrados);
+  actualizarFiltrosEnCascada(filtrados, { depto, sede, sedeCls, talleres });
+}
+
+function actualizarFiltrosEnCascada(filtrados, seleccionActual) {
+  const selectDepto = document.getElementById('search-departamento');
+  const selectSede = document.getElementById('search-sede');
+  const selectSedeClases = document.getElementById('search-sede-clases');
+  const selectTalleres = document.getElementById('search-talleres-vra');
+
+  populateSelect(selectDepto, uniqueValues(filtrados, 'departamento'));
+  populateSelect(selectSede, uniqueValues(filtrados, 'sede'));
+  populateSelect(selectSedeClases, uniqueValues(filtrados, 'sede_actual'));
+  populateSelect(selectTalleres, uniqueValues(filtrados, 'talleres'));
+
+  // Restaurar la selección actual si el valor todavía existe
+  selectDepto.value = seleccionActual.depto;
+  selectSede.value = seleccionActual.sede;
+  selectSedeClases.value = seleccionActual.sedeCls;
+  selectTalleres.value = seleccionActual.talleres;
+}
+
+function resetFiltros() {
+  document.getElementById('search-nombre').value = '';
+  document.getElementById('search-departamento').value = '';
+  document.getElementById('search-sede').value = '';
+  document.getElementById('search-sede-clases').value = '';
+  document.getElementById('search-talleres-vra').value = '';
+  renderRows(profesoresCache);
+  renderFiltros();
 }
 
 function abrirModal() {

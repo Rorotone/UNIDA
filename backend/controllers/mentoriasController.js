@@ -1,3 +1,6 @@
+// mentoriasController.js
+import db from '../config/database.js';
+
 // Subida de archivo para tarea
 export const subirArchivoTarea = async (req, res) => {
   try {
@@ -20,8 +23,6 @@ export const subirArchivoTarea = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
-// mentoriasController.js
-import db from '../config/database.js';
 
 export const crearMentoria = async (req, res) => {
   try {
