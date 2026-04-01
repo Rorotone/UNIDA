@@ -63,7 +63,6 @@ export const getProfesores = async (req, res) => {
         const queryParams = [];
 
         if (nombre || departamento || sede || sede_actual || talleres || otro_i) {
-            query += ' WHERE';
             const conditions = [];
 
             if (nombre) {
@@ -96,7 +95,7 @@ export const getProfesores = async (req, res) => {
                 queryParams.push(`%${otro_i}%`)
             }
 
-            query += ' ' + conditions.join(' AND ');
+            query += ' AND ' + conditions.join(' AND ');
         }
 
         const [rows] = await db.execute(query, queryParams);
@@ -186,4 +185,3 @@ export const deleteProfesor = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 };
-
