@@ -1,10 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const openModalBtn = document.getElementById('open-modal-btn');
+    const modal = document.getElementById('modal-profesor');
     const profesorForm = document.getElementById('profesor-form');
-    const formTitle = document.getElementById('form-title');
     const searchButton = document.getElementById('search-btn');
 
     profesorForm.addEventListener('submit', handleFormSubmit);
     searchButton.addEventListener('click', filtrarProfesores);
+
+    openModalBtn.addEventListener('click', () => {
+        document.getElementById('profesor-form').reset();
+        document.getElementById('id_profesor').value = '';
+        document.getElementById('form-title').textContent = 'Agregar Profesor';
+
+        modal.style.display = 'block';
+    });
 
     // Cargar profesores al iniciar la página
     cargarProfesores();
@@ -193,6 +202,7 @@ async function editarProfesor(id_profesor) {
             document.getElementById('otro_i').value = profesor.otro_i;
 
             document.getElementById('form-title').textContent = 'Editar Profesor';
+            document.getElementById('modal-profesor').style.display = 'block';
         } else if (response.status === 401) {
             alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
             window.location.href = '/login.html';
