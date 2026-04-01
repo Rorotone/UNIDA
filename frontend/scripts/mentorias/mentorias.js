@@ -1,676 +1,252 @@
-document.addEventListener('DOMContentLoaded', async () => {
-
-    // Modal crear mentoría
-    const btnAbrirModal = document.getElementById('btn-abrir-modal-mentoria');
-    const modalMentoria = document.getElementById('modal-mentoria');
-    const cerrarModal = document.getElementById('cerrar-modal-mentoria');
-    if (btnAbrirModal && modalMentoria && cerrarModal) {
-        btnAbrirModal.onclick = () => { modalMentoria.style.display = 'flex'; };
-        cerrarModal.onclick = () => { modalMentoria.style.display = 'none'; };
-        window.onclick = function(event) {
-            if (event.target === modalMentoria) {
-                modalMentoria.style.display = 'none';
-            }
-        };
-    }
-
-    // Calendario semanal
-
-    let fechaSeleccionada = new Date();
-    let semanaOffset = 0; // 0 = semana actual, -1 = semana anterior, 1 = siguiente semana, etc.
-    renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-
-    try {
-        await Promise.all([
-            cargarMentores(),
-            cargarProfesores()
-        ]);
-        cargarMentorias();
-    } catch (error) {
-        console.error('Error al cargar datos iniciales:', error);
-    }
-
-    document.getElementById('crear-mentoria-form').addEventListener('submit', crearMentoria);
-
-    // Función para renderizar el calendario semanal
-    function renderCalendarioSemanal(fecha, offset = semanaOffset) {
-        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const calendario = document.getElementById('calendario-semanal');
-        calendario.innerHTML = '';
-
-        // Calcular el lunes de la semana con el offset
-        const hoy = new Date();
-        const base = new Date(hoy);
-        base.setDate(hoy.getDate() + (offset * 7));
-        const primerDia = new Date(base);
-        primerDia.setDate(base.getDate() - ((base.getDay() + 6) % 7));
-
-        // Encabezado con mes y año
-        const mesSemana = meses[primerDia.getMonth()];
-        const anioSemana = primerDia.getFullYear();
-        const mesLabel = document.createElement('div');
-        mesLabel.className = 'mes-semana-label';
-        mesLabel.style.fontWeight = 'bold';
-        mesLabel.style.marginBottom = '8px';
-        mesLabel.textContent = `${mesSemana} ${anioSemana}`;
-        calendario.appendChild(mesLabel);
-
-        // Botón semana anterior
-        const btnPrev = document.createElement('button');
-        btnPrev.textContent = '<';
-        btnPrev.className = 'btn-semana-nav';
-        btnPrev.onclick = () => {
-            semanaOffset--;
-            renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-            filtrarTareasPorFecha(null); // Mostrar todas
-        };
-        calendario.appendChild(btnPrev);
-
-        // Botones de cada día de la semana
-        for (let i = 0; i < 7; i++) {
-            const dia = new Date(primerDia);
-            dia.setDate(primerDia.getDate() + i);
-
-            const btn = document.createElement('button');
-            btn.className = 'btn-dia-semana';
-            btn.textContent = `${diasSemana[dia.getDay()]} ${dia.getDate()}`;
-            btn.style.margin = '0 4px';
-            btn.dataset.fecha = dia.toISOString().slice(0, 10);
-
-            // Marcar día seleccionado
-            if (dia.toDateString() === fechaSeleccionada.toDateString()) {
-                btn.classList.add('seleccionado');
-            }
-
-            btn.onclick = () => {
-                fechaSeleccionada = dia;
-                renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-                filtrarTareasPorFecha(dia.toISOString().slice(0, 10));
-            };
-
-            calendario.appendChild(btn);
-        }
-
-        // Botón semana siguiente
-        const btnNext = document.createElement('button');
-        btnNext.textContent = '>';
-        btnNext.className = 'btn-semana-nav';
-        btnNext.onclick = () => {
-            semanaOffset++;
-            renderCalendarioSemanal(fechaSeleccionada, semanaOffset);
-            filtrarTareasPorFecha(null); // Mostrar todas
-        };
-        calendario.appendChild(btnNext);
-    }
-
-    // Función para filtrar tareas por fecha seleccionada
-    window.filtrarTareasPorFecha = function(fechaISO) {
-        document.querySelectorAll('.tarea-item').forEach(item => {
-            const tareaFecha = item.getAttribute('data-tarea-fecha');
-            if (!tareaFecha || tareaFecha === fechaISO) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    };
+document.addEventListener("DOMContentLoaded", () => {
+  initMentorias();
 });
 
-
-async function cargarMentores() {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        console.log('Cargando mentores...');
-        const response = await fetch('http://localhost:3000/api/auth/users', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error al obtener mentores: ${response.status} ${response.statusText}`);
-        }
-
-        const mentores = await response.json();
-        console.log('Mentores cargados:', mentores);
-
-        const select = document.getElementById('mentor-select');
-        select.innerHTML = '<option value="">Seleccione un mentor</option>';
-        
-        mentores.forEach(mentor => {
-            const option = document.createElement('option');
-            option.value = mentor.id;
-            option.textContent = mentor.username;
-            select.appendChild(option);
-        });
-        console.log('Opciones de mentores agregadas al select');
-    } catch (error) {
-        console.error('Error al cargar mentores:', error);
-        alert('Error al cargar la lista de mentores: ' + error.message);
-    }
+async function initMentorias() {
+  bindEventosBase();
+  await cargarSelects();
+  await recargarMentorias();
 }
 
-async function cargarProfesores() {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
+function bindEventosBase() {
+  document
+    .getElementById("btn-abrir-modal-mentoria")
+    ?.addEventListener("click", MentoriasUI.abrirModal);
 
-        console.log('Cargando profesores...');
-        const response = await fetch('http://localhost:3000/api/profesores', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+  document
+    .getElementById("cerrar-modal-mentoria")
+    ?.addEventListener("click", MentoriasUI.cerrarModal);
 
-        if (!response.ok) {
-            throw new Error(`Error al obtener profesores: ${response.status} ${response.statusText}`);
-        }
+  document
+    .getElementById("modal-mentoria")
+    ?.addEventListener("click", (e) => {
+      if (e.target.id === "modal-mentoria") {
+        MentoriasUI.cerrarModal();
+      }
+    });
 
-        const profesores = await response.json();
-        console.log('Profesores cargados:', profesores);
+  document
+    .getElementById("crear-mentoria-form")
+    ?.addEventListener("submit", handleCrearMentoria);
 
-        const select = document.getElementById('profesor-select');
-        select.innerHTML = '<option value="">Seleccione un profesor</option>';
-        
-        profesores.forEach(profesor => {
-            const option = document.createElement('option');
-            option.value = profesor.id_profesor;
-            option.textContent = profesor.nombre;
-            select.appendChild(option);
-        });
-        console.log('Opciones de profesores agregadas al select');
-    } catch (error) {
-        console.error('Error al cargar profesores:', error);
-        alert('Error al cargar la lista de profesores: ' + error.message);
-    }
+  document
+    .getElementById("lista-mentorias")
+    ?.addEventListener("click", handleClickListaMentorias);
+
+  document
+    .getElementById("lista-mentorias")
+    ?.addEventListener("submit", handleSubmitTarea);
+
+  document
+    .getElementById("lista-mentorias")
+    ?.addEventListener("change", handleChangeListaMentorias);
 }
 
-async function crearMentoria(e) {
-    e.preventDefault();
-    
-    const titulo = document.getElementById('titulo-mentoria').value;
-    const id_mentor = document.getElementById('mentor-select').value;
-    const id_profesor = document.getElementById('profesor-select').value;
+async function cargarSelects() {
+  try {
+    const [mentores, profesores] = await Promise.all([
+      MentoriasAPI.obtenerMentores(),
+      MentoriasAPI.obtenerProfesores()
+    ]);
 
-    if (!titulo || !id_mentor || !id_profesor) {
-        alert('Por favor, complete todos los campos');
-        return;
-    }
+    MentoriasUI.poblarSelect(
+      "mentor-select",
+      Array.isArray(mentores) ? mentores : [],
+      "id_mentor",
+      "nombre",
+      "Seleccione un mentor"
+    );
 
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch('http://localhost:3000/api/mentorias', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ titulo, id_mentor, id_profesor })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Error al crear mentoría');
-        }
-
-        const result = await response.json();
-        alert('Mentoría creada exitosamente');
-        document.getElementById('crear-mentoria-form').reset();
-        cargarMentorias();
-        // Cerrar el modal si existe
-        const modalMentoria = document.getElementById('modal-mentoria');
-        if (modalMentoria) {
-            modalMentoria.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Error al crear mentoría:', error);
-        alert(error.message || 'Error al crear la mentoría');
-    }
+    MentoriasUI.poblarSelect(
+      "profesor-select",
+      Array.isArray(profesores) ? profesores : [],
+      "id_profesor",
+      "nombre",
+      "Seleccione un profesor"
+    );
+  } catch (error) {
+    console.error("Error al cargar mentores/profesores:", error);
+    alert(error.message || "No se pudieron cargar mentores y profesores.");
+  }
 }
 
-async function cargarMentorias() {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch('http://localhost:3000/api/mentorias', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al obtener mentorías');
-        }
-
-        const mentorias = await response.json();
-        const listaMentorias = document.getElementById('lista-mentorias');
-        listaMentorias.innerHTML = '';
-
-        if (mentorias.length === 0) {
-            listaMentorias.innerHTML = '<p>No hay mentorías registradas</p>';
-            return;
-        }
-
-        const template = document.getElementById('mentoria-template');
-
-        mentorias.forEach(mentoria => {
-            const mentoriaElement = template.content.cloneNode(true);
-            
-            mentoriaElement.querySelector('.mentoria-card').dataset.mentoriaId = mentoria.id;
-            mentoriaElement.querySelector('h3').textContent = mentoria.titulo;
-            mentoriaElement.querySelector('.mentor').textContent = `Mentor: ${mentoria.mentor}`;
-            mentoriaElement.querySelector('.profesor').textContent = `Profesor: ${mentoria.profesor}`;
-
-            mentoriaElement.querySelector('.btn-ver-tareas').addEventListener('click', () => mostrarTareas(mentoria.id));
-            // Estado de completado local (localStorage)
-            const completada = localStorage.getItem(`mentoria_${mentoria.id}_completada`) === 'true';
-            const btnCompletar = mentoriaElement.querySelector('.btn-completar');
-            btnCompletar.textContent = completada ? 'Completada' : 'Marcar como completada';
-            if (completada) {
-                btnCompletar.classList.add('completada');
-            } else {
-                btnCompletar.classList.remove('completada');
-            }
-            btnCompletar.addEventListener('click', () => {
-                const nuevoEstado = !(localStorage.getItem(`mentoria_${mentoria.id}_completada`) === 'true');
-                localStorage.setItem(`mentoria_${mentoria.id}_completada`, nuevoEstado);
-                cargarMentorias(); // Recargar para reflejar el cambio
-            });
-            mentoriaElement.querySelector('.btn-eliminar').addEventListener('click', () => eliminarMentoria(mentoria.id));
-            
-            mentoriaElement.querySelector('.btn-mostrar-form-tarea').addEventListener('click', (e) => {
-                const formTarea = e.target.nextElementSibling;
-                formTarea.style.display = formTarea.style.display === 'none' ? 'block' : 'none';
-            });
-
-            mentoriaElement.querySelector('.form-nueva-tarea').addEventListener('submit', (e) => agregarTarea(e, mentoria.id));
-
-            listaMentorias.appendChild(mentoriaElement);
-        });
-    } catch (error) {
-        console.error('Error al cargar mentorías:', error);
-        alert('Error al cargar la lista de mentorías');
-    }
+async function recargarMentorias() {
+  try {
+    const mentorias = await MentoriasAPI.obtenerMentorias();
+    MentoriasUI.renderMentorias(Array.isArray(mentorias) ? mentorias : []);
+  } catch (error) {
+    console.error("Error al cargar mentorías:", error);
+    alert(error.message || "No se pudieron cargar las mentorías.");
+  }
 }
 
-async function mostrarTareas(id) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id}/tareas`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al obtener tareas');
-        }
-
-        const tareas = await response.json();
-        const mentoriaCard = document.querySelector(`.mentoria-card[data-mentoria-id="${id}"]`);
-        const listaTareas = mentoriaCard.querySelector('.lista-tareas');
-        const tareasContainer = mentoriaCard.querySelector('.tareas-container');
-
-        // Botones de marcar/desmarcar todas
-        const btnMarcarTodas = tareasContainer.querySelector('.btn-marcar-todas');
-        const btnDesmarcarTodas = tareasContainer.querySelector('.btn-desmarcar-todas');
-        if (btnMarcarTodas && btnDesmarcarTodas) {
-            btnMarcarTodas.onclick = async function() {
-                for (const tarea of tareas) {
-                    if (!tarea.completada) {
-                        await toggleTareaCompletada(tarea.id, true);
-                    }
-                }
-                await mostrarTareas(id);
-            };
-            btnDesmarcarTodas.onclick = async function() {
-                for (const tarea of tareas) {
-                    if (tarea.completada) {
-                        await toggleTareaCompletada(tarea.id, false);
-                    }
-                }
-                await mostrarTareas(id);
-            };
-        }
-
-        listaTareas.innerHTML = '';
-
-        if (tareas.length === 0) {
-            listaTareas.innerHTML = '<li>No hay tareas para esta mentoría</li>';
-        } else {
-            tareas.forEach(tarea => {
-                const li = document.createElement('li');
-                const tareaItem = document.createElement('div');
-                tareaItem.className = `tarea-item ${tarea.completada ? 'completada' : ''}`;
-                tareaItem.setAttribute('data-tarea-id', tarea.id);
-                tareaItem.setAttribute('data-mentoria-id', id);
-                if (tarea.fecha) {
-                    tareaItem.setAttribute('data-tarea-fecha', tarea.fecha.slice(0, 10));
-                }
-
-                const h4 = document.createElement('h4');
-                h4.textContent = tarea.titulo;
-                const p = document.createElement('p');
-                p.textContent = tarea.descripcion;
-
-                const actions = document.createElement('div');
-                actions.className = 'tarea-actions';
-
-                // Botón de completar/desmarcar con íconos
-                const btnCompletar = document.createElement('button');
-                btnCompletar.className = 'btn-completar-tarea';
-                if (!tarea.completada) {
-                    btnCompletar.innerHTML = '<span title="Confirmar">✅</span>';
-                    btnCompletar.onclick = function() {
-                        toggleTareaCompletada(tarea.id, true);
-                    };
-                } else {
-                    btnCompletar.innerHTML = '<span title="Desmarcar">↩️</span>';
-                    btnCompletar.onclick = function() {
-                        toggleTareaCompletada(tarea.id, false);
-                    };
-                }
-                actions.appendChild(btnCompletar);
-
-                // Botón eliminar
-                const btnEliminar = document.createElement('button');
-                btnEliminar.className = 'btn-eliminar-tarea';
-                btnEliminar.textContent = 'Eliminar';
-                btnEliminar.onclick = function() { eliminarTarea(tarea.id); };
-                actions.appendChild(btnEliminar);
-
-                // Input y botón para subir archivo
-                const formArchivo = document.createElement('form');
-                formArchivo.className = 'form-subir-archivo';
-                formArchivo.enctype = 'multipart/form-data';
-                formArchivo.style.display = 'inline-block';
-                const inputArchivo = document.createElement('input');
-                inputArchivo.type = 'file';
-                inputArchivo.name = 'archivo';
-                inputArchivo.style.marginRight = '5px';
-                const btnSubir = document.createElement('button');
-                btnSubir.type = 'submit';
-                btnSubir.textContent = 'Subir archivo';
-                formArchivo.appendChild(inputArchivo);
-                formArchivo.appendChild(btnSubir);
-                formArchivo.onsubmit = async function(e) {
-                    e.preventDefault();
-                    if (!inputArchivo.files[0]) {
-                        alert('Selecciona un archivo');
-                        return;
-                    }
-                    const formData = new FormData();
-                    formData.append('archivo', inputArchivo.files[0]);
-                    try {
-                        const token = localStorage.getItem('token');
-                        const res = await fetch(`http://localhost:3000/api/mentorias/${id}/tareas/${tarea.id}/archivo`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: formData
-                        });
-                        const contentType = res.headers.get('content-type');
-                        if (!res.ok) {
-                            if (contentType && contentType.includes('application/json')) {
-                                const err = await res.json();
-                                throw new Error(err.message || 'Error al subir archivo');
-                            } else {
-                                const text = await res.text();
-                                throw new Error(text);
-                            }
-                        }
-                        alert('Archivo subido correctamente');
-                        mostrarTareas(id);
-                    } catch (err) {
-                        alert('Error al subir archivo: ' + err.message);
-                    }
-                };
-                actions.appendChild(formArchivo);
-
-                // Mostrar enlace al archivo si existe
-                if (tarea.archivo) {
-                    const linkArchivo = document.createElement('a');
-                    linkArchivo.href = tarea.archivo;
-                    linkArchivo.target = '_blank';
-                    linkArchivo.textContent = 'Ver archivo';
-                    linkArchivo.style.marginLeft = '10px';
-                    actions.appendChild(linkArchivo);
-                }
-
-                tareaItem.appendChild(h4);
-                // Mostrar fecha si existe
-                if (tarea.fecha) {
-                    const pFecha = document.createElement('p');
-                    pFecha.className = 'tarea-fecha';
-                    pFecha.textContent = `Fecha: ${tarea.fecha}`;
-                    tareaItem.appendChild(pFecha);
-                }
-                tareaItem.appendChild(p);
-                tareaItem.appendChild(actions);
-                li.appendChild(tareaItem);
-                listaTareas.appendChild(li);
-            });
-        }
-
-        tareasContainer.style.display = 'block';
-    } catch (error) {
-        console.error('Error al mostrar tareas:', error);
-        alert('Error al cargar las tareas de la mentoría');
-    }
+async function recargarTareas(card, idMentoria) {
+  try {
+    const tareas = await MentoriasAPI.obtenerTareas(idMentoria);
+    MentoriasUI.renderTareas(card, Array.isArray(tareas) ? tareas : []);
+    MentoriasUI.toggleTareas(card, true);
+  } catch (error) {
+    console.error("Error al cargar tareas:", error);
+    alert(error.message || "No se pudieron cargar las tareas.");
+  }
 }
 
-async function completarMentoria(id) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
+async function handleCrearMentoria(e) {
+  e.preventDefault();
 
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id}/completar`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+  const data = MentoriasUI.obtenerDatosMentoria();
 
-        if (!response.ok) {
-            throw new Error('Error al completar la mentoría');
-        }
+  if (!data.titulo || !data.id_mentor || !data.id_profesor) {
+    alert("Completa todos los campos de la mentoría.");
+    return;
+  }
 
-        alert('Mentoría completada exitosamente');
-        cargarMentorias();
-    } catch (error) {
-        console.error('Error al completar mentoría:', error);
-        alert('Error al completar la mentoría');
-    }
+  try {
+    await MentoriasAPI.crearMentoria(data);
+    MentoriasUI.limpiarFormularioMentoria();
+    MentoriasUI.cerrarModal();
+    await recargarMentorias();
+  } catch (error) {
+    console.error("Error al crear mentoría:", error);
+    alert(error.message || "No se pudo crear la mentoría.");
+  }
 }
 
+async function handleClickListaMentorias(e) {
+  const card = e.target.closest(".mentoria-card");
+  if (!card) return;
 
-async function eliminarMentoria(id) {
-    if (!confirm('¿Está seguro de que desea eliminar esta mentoría?')) {
-        return;
-    }
+  const idMentoria = card.dataset.mentoriaId;
+  if (!idMentoria) return;
 
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al eliminar la mentoría');
-        }
-
-        alert('Mentoría eliminada exitosamente');
-        cargarMentorias();
-    } catch (error) {
-        console.error('Error al eliminar mentoría:', error);
-        alert('Error al eliminar la mentoría');
-    }
-}
-
-async function agregarTarea(e, id_mentoria) {
-    e.preventDefault();
-    const titulo = e.target.querySelector('input[name="titulo"]').value;
-    const descripcion = e.target.querySelector('textarea[name="descripcion"]').value;
-    const fecha = e.target.querySelector('input[name="fecha"]').value;
+  if (e.target.closest(".btn-eliminar")) {
+    const confirmar = confirm("¿Deseas eliminar esta mentoría?");
+    if (!confirmar) return;
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id_mentoria}/tareas`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                id_mentoria,
-                titulo,
-                descripcion,
-                fecha,
-                completada: 0 // Por defecto la tarea no está completada
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al agregar la tarea');
-        }
-
-        alert('Tarea agregada exitosamente');
-        e.target.reset();
-        mostrarTareas(id_mentoria);
+      await MentoriasAPI.eliminarMentoria(idMentoria);
+      await recargarMentorias();
     } catch (error) {
-        console.error('Error al agregar tarea:', error);
-        alert('Error al agregar la tarea');
+      console.error("Error al eliminar mentoría:", error);
+      alert(error.message || "No se pudo eliminar la mentoría.");
     }
-}
+    return;
+  }
 
-async function toggleTareaCompletada(id_tarea, completada) {
+  if (e.target.closest(".btn-completar")) {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        const response = await fetch(`http://localhost:3000/api/tareas/${id_tarea}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ completada: completada ? 1 : 0 })
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al actualizar el estado de la tarea');
-        }
-
-        // Recargar las tareas para mostrar el cambio
-        const mentoriaCard = document.querySelector(`.tarea-item[data-tarea-id="${id_tarea}"]`).closest('.mentoria-card');
-        const id_mentoria = mentoriaCard.dataset.mentoriaId;
-        mostrarTareas(id_mentoria);
+      await MentoriasAPI.completarMentoria(idMentoria);
+      await recargarMentorias();
     } catch (error) {
-        console.error('Error al actualizar tarea:', error);
-        alert('Error al actualizar el estado de la tarea');
+      console.error("Error al completar mentoría:", error);
+      alert(error.message || "No se pudo completar la mentoría.");
     }
-}
+    return;
+  }
 
-// ... (previous code remains the same until eliminarTarea function)
-async function eliminarTarea(id_tarea) {
-    if (!confirm('¿Está seguro de que desea eliminar esta tarea?')) {
-        return;
+  if (e.target.closest(".btn-ver-tareas")) {
+    const visible = MentoriasUI.estaTareasVisible(card);
+
+    if (visible) {
+      MentoriasUI.toggleTareas(card, false);
+    } else {
+      await recargarTareas(card, idMentoria);
     }
+    return;
+  }
+
+  if (e.target.closest(".btn-mostrar-form-tarea")) {
+    const visible = MentoriasUI.estaFormularioTareaVisible(card);
+    MentoriasUI.toggleFormularioTarea(card, !visible);
+    return;
+  }
+
+  if (e.target.closest(".btn-marcar-todas")) {
+    try {
+      await MentoriasAPI.marcarTodasTareas(idMentoria, true);
+      await recargarTareas(card, idMentoria);
+    } catch (error) {
+      console.error("Error al marcar todas las tareas:", error);
+      alert(error.message || "No se pudieron marcar todas las tareas.");
+    }
+    return;
+  }
+
+  if (e.target.closest(".btn-desmarcar-todas")) {
+    try {
+      await MentoriasAPI.marcarTodasTareas(idMentoria, false);
+      await recargarTareas(card, idMentoria);
+    } catch (error) {
+      console.error("Error al desmarcar todas las tareas:", error);
+      alert(error.message || "No se pudieron desmarcar todas las tareas.");
+    }
+    return;
+  }
+
+  if (e.target.closest(".btn-eliminar-tarea")) {
+    const tareaItem = e.target.closest(".tarea-item");
+    const idTarea = tareaItem?.dataset.tareaId;
+    if (!idTarea) return;
+
+    const confirmar = confirm("¿Deseas eliminar esta tarea?");
+    if (!confirmar) return;
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
-
-        // Find the tarea-item element and get both tarea and mentoria IDs
-        const tareaItem = document.querySelector(`.tarea-item[data-tarea-id="${id_tarea}"]`);
-        if (!tareaItem) throw new Error('No se pudo encontrar el elemento de la tarea');
-
-        const id_mentoria = tareaItem.getAttribute('data-mentoria-id');
-        if (!id_mentoria) throw new Error('No se pudo encontrar el ID de la mentoría');
-
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id_mentoria}/tareas/${id_tarea}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al eliminar la tarea');
-        }
-
-        // Remove the task item from the DOM
-        const listItem = tareaItem.closest('li');
-        if (listItem) {
-            listItem.remove();
-        } else {
-            tareaItem.remove();
-        }
-
-        // If there are no more tasks, update the list
-        const listaTareas = document.querySelector(`.mentoria-card[data-mentoria-id="${id_mentoria}"] .lista-tareas`);
-        if (listaTareas && listaTareas.children.length === 0) {
-            listaTareas.innerHTML = '<li>No hay tareas para esta mentoría</li>';
-        }
-
+      await MentoriasAPI.eliminarTarea(idMentoria, idTarea);
+      await recargarTareas(card, idMentoria);
     } catch (error) {
-        console.error('Error al eliminar tarea:', error);
-        alert('Error al eliminar la tarea: ' + error.message);
+      console.error("Error al eliminar tarea:", error);
+      alert(error.message || "No se pudo eliminar la tarea.");
     }
+  }
 }
 
-// Update the toggleTareaCompletada function to use the correct route as well
-async function toggleTareaCompletada(id_tarea, completada) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No hay token');
+async function handleSubmitTarea(e) {
+  const form = e.target.closest(".form-nueva-tarea");
+  if (!form) return;
 
-        // Get the mentoria ID from the DOM structure
-        const mentoriaCard = document.querySelector(`.tarea-item[data-tarea-id="${id_tarea}"]`).closest('.mentoria-card');
-        const id_mentoria = mentoriaCard.dataset.mentoriaId;
+  e.preventDefault();
 
-        // Use the nested route structure
-        const response = await fetch(`http://localhost:3000/api/mentorias/${id_mentoria}/tareas/${id_tarea}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ completada: completada ? 1 : 0 })
-        });
+  const card = form.closest(".mentoria-card");
+  const idMentoria = card?.dataset.mentoriaId;
+  if (!idMentoria) return;
 
-        if (!response.ok) {
-            throw new Error('Error al actualizar el estado de la tarea');
-        }
+  const data = MentoriasUI.obtenerDatosTarea(form);
 
-        // Reload tasks to show the change
-        await mostrarTareas(id_mentoria);
-    } catch (error) {
-        console.error('Error al actualizar tarea:', error);
-        alert('Error al actualizar el estado de la tarea');
-    }
+  if (!data.titulo || !data.descripcion) {
+    alert("Completa al menos título y descripción de la tarea.");
+    return;
+  }
+
+  try {
+    await MentoriasAPI.crearTarea(idMentoria, data);
+    MentoriasUI.limpiarFormularioTarea(form);
+    MentoriasUI.toggleFormularioTarea(card, false);
+    await recargarTareas(card, idMentoria);
+  } catch (error) {
+    console.error("Error al crear tarea:", error);
+    alert(error.message || "No se pudo crear la tarea.");
+  }
 }
 
-// Asegúrate de que estas funciones estén disponibles globalmente
-window.mostrarTareas = mostrarTareas;
-window.completarMentoria = completarMentoria;
-window.eliminarMentoria = eliminarMentoria;
-window.toggleTareaCompletada = toggleTareaCompletada;
-window.eliminarTarea = eliminarTarea;
+async function handleChangeListaMentorias(e) {
+  const checkbox = e.target.closest(".tarea-check");
+  if (!checkbox) return;
+
+  const tareaItem = checkbox.closest(".tarea-item");
+  const card = checkbox.closest(".mentoria-card");
+
+  const idMentoria = card?.dataset.mentoriaId;
+  const idTarea = tareaItem?.dataset.tareaId;
+  const completada = checkbox.checked;
+
+  if (!idMentoria || !idTarea) return;
+
+  try {
+    await MentoriasAPI.actualizarEstadoTarea(idMentoria, idTarea, completada);
+  } catch (error) {
+    console.error("Error al actualizar estado de tarea:", error);
+    checkbox.checked = !completada;
+    alert(error.message || "No se pudo actualizar la tarea.");
+  }
+}
