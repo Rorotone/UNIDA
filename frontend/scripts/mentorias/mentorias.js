@@ -238,10 +238,14 @@ async function handleSubmitTarea(e) {
 
   // Validar que la fecha esté dentro del período de la mentoría
   if (data.fecha) {
-    const fechaTarea = new Date(data.fecha);
+    const fechaTarea = MentoriasUI.parsearFechaMs(data.fecha);
     const inicio = MentoriasUI.parsearFechaMs(card.dataset.fechaInicio);
     const termino = MentoriasUI.parsearFechaMs(card.dataset.fechaTermino);
  
+    console.log('fechaTarea exacto:', fechaTarea)
+    console.log('inicio exacto:', inicio)
+    console.log('son iguales:', fechaTarea === inicio)
+
     if (inicio && termino && (fechaTarea < inicio || fechaTarea > termino)) {
       const inicioStr = card.dataset.fechaInicio.slice(0, 10);
       const terminoStr = card.dataset.fechaTermino.slice(0, 10);

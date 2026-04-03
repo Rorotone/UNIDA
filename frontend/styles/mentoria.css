@@ -1,26 +1,5 @@
-:root {
-  --primary: #5a4bf6;
-  --primary-dark: #4739c1;
-  --primary-soft: #eef0ff;
-  --surface: #ffffff;
-  --surface-muted: #f8f9fc;
-  --text: #1f2937;
-  --text-soft: #6b7280;
-  --border: #e5e7eb;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --warning: #f6c94b;
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.10);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-}
-
-/* ===== Utilidades del módulo ===== */
-.hidden-block {
-  display: none !important;
-}
+/* ===== Utilidades ===== */
+.hidden-block { display: none !important; }
 
 .section-header {
   display: flex;
@@ -36,14 +15,14 @@
   font-size: 0.95rem;
 }
 
-/* ===== Calendario semanal ===== */
+/* ===== Calendario ===== */
 #calendario-semanal {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .mes-semana-label {
@@ -53,185 +32,239 @@
   font-weight: 700;
   color: var(--text);
   text-transform: capitalize;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
-.btn-semana-nav,
-.btn-dia-semana {
-  min-height: 38px;
-  padding: 0 14px;
+.btn-semana-nav {
+  min-height: 48px;
+  width: 48px;
+  padding: 0;
   border-radius: 999px;
+  font-size: 1.1rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: none;
+  box-shadow: none;
 }
 
+.btn-semana-nav:hover { background: var(--primary); color: #fff; }
+
 .btn-dia-semana {
+  min-height: 64px;
+  width: 60px;
+  padding: 0;
+  border-radius: 14px;
   background: #fff;
   color: var(--text);
   border: 1px solid var(--border);
   box-shadow: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
 }
 
 .btn-dia-semana:hover {
   background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .btn-dia-semana.seleccionado {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+  box-shadow: 0 4px 14px rgba(90,75,246,0.3);
+}
+
+#btn-ver-todas {
+  font-size: 0.85rem;
+  min-height: 34px;
+  padding: 0 14px;
 }
 
 /* ===== Lista de mentorías ===== */
-#lista-mentorias {
-  display: grid;
-  gap: 16px;
+#lista-mentorias { display: grid; gap: 16px; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-soft);
+  font-size: 0.95rem;
 }
 
+/* ===== Card ===== */
 .mentoria-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  padding: 20px;
+  overflow: hidden;
+  transition: box-shadow .2s, transform .15s;
 }
 
-.mentoria-card h3,
-.mentoria-titulo {
-  margin: 0 0 8px;
-  font-size: 1.1rem;
-  color: var(--text);
+.mentoria-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-.mentoria-card .mentor,
-.mentoria-card .profesor {
-  margin: 0 0 6px;
-  color: var(--text-soft);
-}
-
-.mentoria-actions,
-.tareas-masivo-actions,
-.form-actions {
+.mentoria-card-header {
+  background: linear-gradient(135deg, var(--primary) 0%, #7c6af7 100%);
+  padding: 16px 20px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.mentoria-actions {
-  margin-top: 14px;
-}
-
-/* ===== Botones específicos del módulo ===== */
-.btn-completar {
-  background: var(--warning);
-  color: #222;
-  box-shadow: none;
-}
-
-.btn-completar:hover {
-  filter: brightness(0.97);
-}
-
-.btn-completar.completada {
-  background: var(--success);
-  color: #fff;
-}
-
-/* ===== Contenedor de tareas ===== */
-.tareas-container {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
-.tareas-container h4 {
-  margin: 0 0 12px;
-  color: var(--text);
-}
-
-.lista-tareas {
-  list-style: none;
-  padding: 0;
-  margin: 14px 0;
-  display: grid;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
 }
 
-.tarea-item {
+.mentoria-titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mentoria-badge-estado {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  white-space: nowrap;
+}
+
+.mentoria-badge-estado.completada {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.mentoria-card-body { padding: 16px 20px 20px; }
+
+.mentoria-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mentoria-meta-item { display: flex; flex-direction: column; gap: 3px; }
+
+.mentoria-meta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+}
+
+.mentoria-meta-value {
+  font-size: 0.92rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.mentoria-periodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--primary-soft);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 14px;
+}
+
+.mentoria-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.mentoria-actions button {
+  font-size: 0.85rem;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+.btn-completar { background: var(--warning); color: #222; box-shadow: none; }
+.btn-completar:hover { filter: brightness(0.95); }
+.btn-completar.completada { background: var(--success); color: #fff; }
+
+/* ===== Tareas ===== */
+.tareas-container {
+  border-top: 1px solid var(--border);
   background: var(--surface-muted);
+  padding: 16px 20px 20px;
+}
+
+.tareas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tareas-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tareas-masivo-actions { display: flex; gap: 6px; }
+.tareas-masivo-actions button { font-size: 0.78rem; min-height: 30px; padding: 0 10px; }
+
+.lista-tareas { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 10px; }
+
+.tarea-item {
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px;
+  padding: 12px 14px;
+  transition: border-color .15s;
 }
 
-.tarea-item strong {
-  display: inline-block;
-  margin-bottom: 4px;
+.tarea-item:has(.tarea-check:checked) {
+  border-color: var(--success);
+  background: #f0fdf4;
 }
 
-.tarea-item small {
-  color: var(--text-soft);
-}
+.tarea-item strong { display: block; margin-bottom: 2px; font-size: 0.92rem; }
+.tarea-item small { color: var(--text-soft); font-size: 0.8rem; }
+.tarea-item-actions { margin-top: 8px; display: flex; gap: 8px; }
+.tarea-item-actions button { font-size: 0.78rem; min-height: 28px; padding: 0 10px; }
 
-.tarea-item-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.btn-mostrar-form-tarea { font-size: 0.85rem; min-height: 34px; padding: 0 14px; }
 
-/* ===== Formulario nueva tarea ===== */
 .form-nueva-tarea {
-  margin-top: 16px;
+  margin-top: 14px;
   padding: 16px;
-  background: var(--surface-muted);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
-.form-group {
-  margin-bottom: 16px;
-}
+.form-group { margin-bottom: 14px; }
 
-/* ===== Modal de mentorías ===== */
-#modal-mentoria .modal-content {
-  width: min(100%, 560px);
-}
+#modal-mentoria .modal-content { width: min(100%, 520px); }
+#modal-mentoria h2 { margin-top: 0; margin-bottom: 18px; color: var(--primary); }
 
-#modal-mentoria h2 {
-  margin-top: 0;
-  margin-bottom: 18px;
-}
-
-/* ===== Estados ===== */
-.empty-state-mentorias {
-  text-align: center;
-  padding: 24px;
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-soft);
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .section-header {
-    align-items: flex-start;
-  }
-
-  .mentoria-actions,
-  .tareas-masivo-actions,
-  .form-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .mentoria-actions > button,
-  .tareas-masivo-actions > button,
-  .form-actions > button {
-    width: 100%;
-  }
-
-  .tarea-item {
-    padding: 12px;
-  }
+@media (max-width: 600px) {
+  .mentoria-meta { grid-template-columns: 1fr; }
+  .mentoria-actions { flex-direction: column; }
+  .mentoria-actions button { width: 100%; }
+  .tareas-header { flex-direction: column; align-items: flex-start; }
+  .btn-dia-semana { width: 44px; min-height: 52px; font-size: 0.75rem; }
 }

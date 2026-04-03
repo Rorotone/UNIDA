@@ -103,19 +103,20 @@ export const crearTarea = async (req, res) => {
  
     // Validar que la fecha de la tarea esté dentro del período de la mentoría
     if (fecha) {
-      const fechaTarea = new Date(fecha);
-      const fechaInicio = new Date(mentoria[0].fecha_inicio);
-      const fechaTermino = new Date(mentoria[0].fecha_termino);
- 
-      // Normalizar a solo fecha sin hora
-      fechaInicio.setHours(0, 0, 0, 0);
-      fechaTermino.setHours(23, 59, 59, 999);
- 
-      if (fechaTarea < fechaInicio || fechaTarea > fechaTermino) {
-        const inicio = mentoria[0].fecha_inicio.toISOString().slice(0, 10);
-        const termino = mentoria[0].fecha_termino.toISOString().slice(0, 10);
+      const parsearFecha = (valor) => {
+        const [y, m, d] = String(valor).slice(0, 10).split("-").map(Number);
+        return new Date(y, m - 1, d).getTime();
+      };
+
+      const fechaTareaMs = parsearFecha(fecha);
+      const inicioMs = parsearFecha(mentoria[0].fecha_inicio);
+      const terminoMs = parsearFecha(mentoria[0].fecha_termino);
+
+      if (fechaTareaMs < inicioMs || fechaTareaMs > terminoMs) {
+        const inicioStr = String(mentoria[0].fecha_inicio).slice(0, 10);
+        const terminoStr = String(mentoria[0].fecha_termino).slice(0, 10);
         return res.status(400).json({
-          message: `La fecha de la tarea debe estar dentro del período de la mentoría (${inicio} → ${termino}).`
+          message: `La fecha de la tarea debe estar dentro del período de la mentoría (${inicioStr} → ${terminoStr}).`
         });
       }
     }

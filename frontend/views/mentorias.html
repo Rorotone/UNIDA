@@ -89,30 +89,49 @@
 
   <!-- Template de tarjeta -->
   <template id="mentoria-template">
-    <div class="card mentoria-card" data-mentoria-id="">
-      <h3 class="mentoria-titulo"></h3>
-      <p class="mentor"></p>
-      <p class="profesor"></p>
-      <p class="mentoria-fechas"></p>
+    <div class="mentoria-card" data-mentoria-id="">
 
-      <div class="mentoria-actions">
-        <button class="btn-ver-tareas btn-secondary" type="button">Ver Tareas</button>
-        <button class="btn-completar" type="button">Completar</button>
-        <button class="btn-eliminar btn-danger" type="button">Eliminar</button>
+      <div class="mentoria-card-header">
+        <h3 class="mentoria-titulo"></h3>
+        <span class="mentoria-badge-estado">Activa</span>
+      </div>
+
+      <div class="mentoria-card-body">
+        <div class="mentoria-meta">
+          <div class="mentoria-meta-item">
+            <span class="mentoria-meta-label">👤 Mentor</span>
+            <span class="mentoria-meta-value mentor"></span>
+          </div>
+          <div class="mentoria-meta-item">
+            <span class="mentoria-meta-label">🎓 Profesor</span>
+            <span class="mentoria-meta-value profesor"></span>
+          </div>
+        </div>
+
+        <div class="mentoria-periodo">
+          📅 <span class="mentoria-fechas"></span>
+        </div>
+
+        <div class="mentoria-actions">
+          <button class="btn-ver-tareas btn-secondary" type="button">📋 Ver Tareas</button>
+          <button class="btn-completar" type="button">✓ Completar</button>
+          <button class="btn-eliminar btn-danger" type="button">Eliminar</button>
+        </div>
       </div>
 
       <div class="tareas-container hidden-block">
-        <h4>Tareas</h4>
-
-        <div class="tareas-masivo-actions">
-          <button class="btn-marcar-todas btn-secondary" type="button">Marcar todas</button>
-          <button class="btn-desmarcar-todas btn-secondary" type="button">Desmarcar todas</button>
+        <div class="tareas-header">
+          <h4>📌 Tareas</h4>
+          <div class="tareas-masivo-actions">
+            <button class="btn-marcar-todas btn-secondary" type="button">✓ Marcar todas</button>
+            <button class="btn-desmarcar-todas btn-secondary" type="button">✗ Desmarcar todas</button>
+          </div>
         </div>
 
         <ul class="lista-tareas"></ul>
 
         <button class="btn-mostrar-form-tarea btn-secondary" type="button">
-          Agregar nueva tarea
+          + Agregar tarea
         </button>
 
         <form class="form-nueva-tarea hidden-block">
@@ -120,22 +139,20 @@
             <label>Título</label>
             <input type="text" name="titulo" required placeholder="Título de la tarea">
           </div>
-
           <div class="form-group">
             <label>Descripción</label>
             <textarea name="descripcion" required placeholder="Descripción de la tarea"></textarea>
           </div>
-
           <div class="form-group">
             <label>Fecha</label>
             <input type="date" name="fecha">
           </div>
-
           <div class="form-actions">
             <button type="submit">Guardar tarea</button>
           </div>
         </form>
       </div>
+
     </div>
   </template>
 

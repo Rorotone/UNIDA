@@ -46,7 +46,7 @@ const MentoriasUI = (() => {
     lista.innerHTML = "";
 
     if (!Array.isArray(mentorias) || mentorias.length === 0) {
-      lista.innerHTML = `<p>No hay mentorías registradas.</p>`;
+      lista.innerHTML = `<p class="empty-state">No hay mentorías para la fecha seleccionada.</p>`;
       return;
     }
 
@@ -60,20 +60,23 @@ const MentoriasUI = (() => {
       card.dataset.fechaTermino = mentoria.fecha_termino || "";
 
       clone.querySelector(".mentoria-titulo").textContent = mentoria.titulo || "Sin título";
-      clone.querySelector(".mentor").textContent = `Mentor: ${mentoria.mentor || mentoria.nombre_mentor || "-"}`;
-      clone.querySelector(".profesor").textContent = `Profesor: ${mentoria.profesor || mentoria.nombre_profesor || "-"}`;
+      clone.querySelector(".mentor").textContent = mentoria.mentor || mentoria.nombre_mentor || "-";
+      clone.querySelector(".profesor").textContent = mentoria.profesor || mentoria.nombre_profesor || "-";
 
       const fechasEl = clone.querySelector(".mentoria-fechas");
       if (fechasEl) {
         const inicio = mentoria.fecha_inicio ? normalizarFecha(mentoria.fecha_inicio) : "-";
         const termino = mentoria.fecha_termino ? normalizarFecha(mentoria.fecha_termino) : "-";
-        fechasEl.textContent = `Período: ${inicio} → ${termino}`;
+        fechasEl.textContent = `${inicio} → ${termino}`;
       }
 
+      const badge = clone.querySelector(".mentoria-badge-estado");
       const btnCompletar = clone.querySelector(".btn-completar");
       if (mentoria.completada) {
+        badge.textContent = "✓ Completada";
+        badge.classList.add("completada");
         btnCompletar.classList.add("completada");
-        btnCompletar.textContent = "Completada";
+        btnCompletar.textContent = "✓ Completada";
       }
 
       lista.appendChild(clone);
@@ -276,9 +279,12 @@ const MentoriasUI = (() => {
   }
 
   function formatearFechaTexto(valor) {
-    const d = new Date(valor);
-    if (Number.isNaN(d.getTime())) return valor;
-    return d.toLocaleDateString("es-CL");
+    if (!valor) return "";
+    const soloFecha = String(valor).slice(0, 10);
+    const [y, m, d] = soloFecha.split("-").map(Number);
+    const fecha = new Date(y, m - 1, d);
+    if (isNaN(fecha.getTime())) return valor;
+    return fecha.toLocaleDateString("es-CL");
   }
 
   return {
@@ -298,6 +304,7 @@ const MentoriasUI = (() => {
     renderCalendarioSemanal,
     filtrarTareasPorFecha,
     obtenerFechaSeleccionada,
-    parsearFechaMs
+    parsearFechaMs,
+    formatearFechaTexto
   };
 })();
