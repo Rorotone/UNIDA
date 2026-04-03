@@ -13,6 +13,12 @@ async function initMentorias() {
 
 function bindEventosBase() {
   document
+    .getElementById("btn-ver-todas")
+    ?.addEventListener("click", () => {
+      MentoriasUI.renderMentorias(mentoriasCache);
+    });
+  
+  document
     .getElementById("btn-abrir-modal-mentoria")
     ?.addEventListener("click", MentoriasUI.abrirModal);
 
@@ -89,12 +95,7 @@ async function recargarMentorias() {
 
 function aplicarFiltroCalendario(fechaSeleccionada) {
   const filtradas = MentoriasUI.filtrarTareasPorFecha(mentoriasCache, fechaSeleccionada);
-
-  if (filtradas.length > 0) {
-    MentoriasUI.renderMentorias(filtradas);
-  } else {
-    MentoriasUI.renderMentorias(mentoriasCache);
-  }
+  MentoriasUI.renderMentorias(filtradas);
 }
 
 async function recargarTareas(card, idMentoria) {

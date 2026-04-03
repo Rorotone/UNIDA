@@ -61,8 +61,15 @@ const MentoriasUI = (() => {
       clone.querySelector(".mentor").textContent = `Mentor: ${mentoria.mentor || mentoria.nombre_mentor || "-"}`;
       clone.querySelector(".profesor").textContent = `Profesor: ${mentoria.profesor || mentoria.nombre_profesor || "-"}`;
 
+      const fechasEl = clone.querySelector(".mentoria-fechas");
+      if (fechasEl) {
+        const inicio = mentoria.fecha_inicio ? normalizarFecha(mentoria.fecha_inicio) : "-";
+        const termino = mentoria.fecha_termino ? normalizarFecha(mentoria.fecha_termino) : "-";
+        fechasEl.textContent = `Período: ${inicio} → ${termino}`;
+      }
+
       const btnCompletar = clone.querySelector(".btn-completar");
-      if (mentoria.completada || mentoria.estado === "completada") {
+      if (mentoria.completada) {
         btnCompletar.classList.add("completada");
         btnCompletar.textContent = "Completada";
       }
@@ -231,25 +238,39 @@ const MentoriasUI = (() => {
   function filtrarTareasPorFecha(mentorias, fecha) {
     if (!Array.isArray(mentorias)) return [];
 
-    const fechaBase = normalizarFecha(fecha);
+    const fechaMs = parsearFechaMs(fecha);
+    if (fechaMs === null) return [];
 
     return mentorias.filter((mentoria) => {
-      if (!Array.isArray(mentoria.tareas)) return true;
-
-      return mentoria.tareas.some((tarea) => {
-        if (!tarea.fecha) return false;
-        return normalizarFecha(tarea.fecha) === fechaBase;
-      });
+      if (!mentoria.fecha_inicio || !mentoria.fecha_termino) return false;
+      const inicio = parsearFechaMs(mentoria.fecha_inicio);
+      const termino = parsearFechaMs(mentoria.fecha_termino);
+      if (inicio === null || termino === null) return false;
+      return fechaMs >= inicio && fechaMs <= termino;
     });
   }
 
+  function parsearFechaMs(valor) {
+    if (!valor) return null;
+ 
+    // Si es objeto Date, extraer año/mes/día en hora local
+    if (valor instanceof Date) {
+      if (isNaN(valor.getTime())) return null;
+      return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate()).getTime();
+    }
+ 
+    // Si es string ISO "2026-03-31T00:48:45.000Z" o "2026-03-31 21:48:45"
+    const soloFecha = String(valor).slice(0, 10); // "2026-03-31"
+    const partes = soloFecha.split("-");
+    if (partes.length !== 3) return null;
+    const d = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+
   function normalizarFecha(valor) {
-    const d = new Date(valor);
-    if (Number.isNaN(d.getTime())) return "";
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+    if (!valor) return "";
+    const soloFecha = String(valor).slice(0, 10);
+    return soloFecha;
   }
 
   function formatearFechaTexto(valor) {

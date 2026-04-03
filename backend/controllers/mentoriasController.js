@@ -8,7 +8,7 @@ import db from "../config/database.js";
 export const obtenerMentores = async (req, res) => {
   try {
     const [rows] = await db.execute(`
-      SELECT id, username
+      SELECT *
       FROM users
       ORDER BY username ASC
     `);
@@ -59,6 +59,8 @@ export const obtenerMentorias = async (req, res) => {
         m.titulo,
         m.id_mentor,
         m.id_profesor,
+        m.fecha_inicio,
+        m.fecha_termino,
         u.username AS mentor,
         p.nombre AS profesor
       FROM mentorias m
