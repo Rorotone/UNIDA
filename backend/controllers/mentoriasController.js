@@ -1,197 +1,293 @@
-// mentoriasController.js
-import db from '../config/database.js';
+import db from "../config/database.js";
 
-// Subida de archivo para tarea
-export const subirArchivoTarea = async (req, res) => {
+/**
+ * =====================================================
+ * TODOS LOS USERS SON MENTORES
+ * =====================================================
+ */
+export const obtenerMentores = async (req, res) => {
   try {
-    const { id_mentoria, id_tarea } = req.params;
-    if (!req.file) {
-      return res.status(400).json({ message: 'No se subió ningún archivo.' });
-    }
-    // Guardar la ruta relativa del archivo
-    const archivoPath = `/uploads/${req.file.filename}`;
-    // Verificar que la tarea existe y pertenece a la mentoría
-    const [tasks] = await db.execute('SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?', [id_tarea, id_mentoria]);
-    if (tasks.length === 0) {
-      return res.status(404).json({ message: 'Tarea no encontrada o no pertenece a esta mentoría' });
-    }
-    // Actualizar la columna archivo
-    await db.execute('UPDATE tareas SET archivo = ? WHERE id = ? AND id_mentoria = ?', [archivoPath, id_tarea, id_mentoria]);
-    res.status(200).json({ message: 'Archivo subido exitosamente', archivo: archivoPath });
+    const [rows] = await db.execute(`
+      SELECT id, username
+      FROM users
+      ORDER BY username ASC
+    `);
+
+    res.status(200).json(rows);
   } catch (error) {
-    console.error('Error al subir archivo de tarea:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al obtener mentores:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
+/**
+ * =====================================================
+ * MENTORÍAS
+ * =====================================================
+ */
 export const crearMentoria = async (req, res) => {
   try {
     const { titulo, id_mentor, id_profesor } = req.body;
-    const query = 'INSERT INTO mentorias (titulo, id_mentor, id_profesor) VALUES (?, ?, ?)';
-    const [result] = await db.execute(query, [titulo, id_mentor, id_profesor]);
-    res.status(201).json({ message: 'Mentoría creada exitosamente', id: result.insertId });
+
+    if (!titulo || !id_mentor || !id_profesor) {
+      return res.status(400).json({
+        message: "Título, mentor y profesor son obligatorios."
+      });
+    }
+
+    const [result] = await db.execute(
+      `INSERT INTO mentorias (titulo, id_mentor, id_profesor)
+       VALUES (?, ?, ?)`,
+      [titulo, id_mentor, id_profesor]
+    );
+
+    res.status(201).json({
+      message: "Mentoría creada exitosamente",
+      id: result.insertId
+    });
   } catch (error) {
-    console.error('Error al crear mentoría:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al crear mentoría:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
 export const obtenerMentorias = async (req, res) => {
   try {
-    const query = `
-      SELECT m.id, m.titulo, u.username as mentor, p.nombre as profesor
+    const [rows] = await db.execute(`
+      SELECT 
+        m.id,
+        m.titulo,
+        m.id_mentor,
+        m.id_profesor,
+        u.username AS mentor,
+        p.nombre AS profesor
       FROM mentorias m
       JOIN users u ON m.id_mentor = u.id
       JOIN profesores p ON m.id_profesor = p.id_profesor
-    `;
-    const [rows] = await db.execute(query);
+      ORDER BY m.id DESC
+    `);
+
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error al obtener mentorías:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al obtener mentorías:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
+/**
+ * =====================================================
+ * TAREAS
+ * =====================================================
+ */
 export const crearTarea = async (req, res) => {
   try {
-    const { id_mentoria, titulo, descripcion, fecha } = req.body;
-    const query = 'INSERT INTO tareas (id_mentoria, titulo, descripcion, fecha) VALUES (?, ?, ?, ?)';
-    const [result] = await db.execute(query, [id_mentoria, titulo, descripcion, fecha || null]);
-    res.status(201).json({ message: 'Tarea creada exitosamente', id: result.insertId });
+    const { id_mentoria } = req.params;
+    const { titulo, descripcion, fecha } = req.body;
+
+    if (!titulo || !descripcion) {
+      return res.status(400).json({
+        message: "Título y descripción son obligatorios."
+      });
+    }
+
+    const [mentoria] = await db.execute(
+      "SELECT id FROM mentorias WHERE id = ?",
+      [id_mentoria]
+    );
+
+    if (mentoria.length === 0) {
+      return res.status(404).json({ message: "Mentoría no encontrada." });
+    }
+
+    const [result] = await db.execute(
+      `INSERT INTO tareas (id_mentoria, titulo, descripcion, fecha)
+       VALUES (?, ?, ?, ?)`,
+      [id_mentoria, titulo, descripcion, fecha || null]
+    );
+
+    res.status(201).json({
+      message: "Tarea creada exitosamente",
+      id: result.insertId
+    });
   } catch (error) {
-    console.error('Error al crear tarea:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al crear tarea:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
 export const obtenerTareas = async (req, res) => {
   try {
     const { id_mentoria } = req.params;
-    const query = 'SELECT * FROM tareas WHERE id_mentoria = ?';
-    const [rows] = await db.execute(query, [id_mentoria]);
+
+    const [rows] = await db.execute(
+      `SELECT id, id_mentoria, titulo, descripcion, fecha, completada, archivo, created_at
+       FROM tareas
+       WHERE id_mentoria = ?
+       ORDER BY created_at DESC, id DESC`,
+      [id_mentoria]
+    );
+
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error al obtener tareas:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al obtener tareas:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
+/**
+ * =====================================================
+ * COMPLETAR MENTORÍA (marca todas las tareas)
+ * =====================================================
+ */
 export const completarMentoria = async (req, res) => {
   try {
     const { id_mentoria } = req.params;
-    const query = 'UPDATE mentorias SET completada = TRUE WHERE id = ?';
-    const [result] = await db.execute(query, [id_mentoria]);
-    if (result.affectedRows > 0) {
-      res.status(200).json({ message: 'Mentoría completada exitosamente' });
-    } else {
-      res.status(404).json({ message: 'Mentoría no encontrada' });
+
+    const [mentoria] = await db.execute(
+      "SELECT id FROM mentorias WHERE id = ?",
+      [id_mentoria]
+    );
+
+    if (mentoria.length === 0) {
+      return res.status(404).json({ message: "Mentoría no encontrada." });
     }
+
+    await db.execute(
+      "UPDATE tareas SET completada = 1 WHERE id_mentoria = ?",
+      [id_mentoria]
+    );
+
+    res.status(200).json({
+      message: "Mentoría completada (todas las tareas marcadas)."
+    });
   } catch (error) {
-    console.error('Error al completar mentoría:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
+    console.error("Error al completar mentoría:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
-export const eliminarMentoria = async (req, res) => {
-  const connection = await db.getConnection();
+/**
+ * =====================================================
+ * MARCAR TODAS LAS TAREAS
+ * =====================================================
+ */
+export const marcarTodasTareas = async (req, res) => {
   try {
-    await connection.beginTransaction();
-
     const { id_mentoria } = req.params;
+    const { completada } = req.body;
 
-    // First, delete all associated tasks
-    const deleteTasksQuery = 'DELETE FROM tareas WHERE id_mentoria = ?';
-    await connection.execute(deleteTasksQuery, [id_mentoria]);
+    const [mentoria] = await db.execute(
+      "SELECT id FROM mentorias WHERE id = ?",
+      [id_mentoria]
+    );
 
-    // Then, delete the mentorship
-    const deleteMentoriaQuery = 'DELETE FROM mentorias WHERE id = ?';
-    const [result] = await connection.execute(deleteMentoriaQuery, [id_mentoria]);
-
-    if (result.affectedRows > 0) {
-      await connection.commit();
-      res.status(200).json({ message: 'Mentoría y tareas asociadas eliminadas exitosamente' });
-    } else {
-      await connection.rollback();
-      res.status(404).json({ message: 'Mentoría no encontrada' });
+    if (mentoria.length === 0) {
+      return res.status(404).json({ message: "Mentoría no encontrada." });
     }
+
+    await db.execute(
+      "UPDATE tareas SET completada = ? WHERE id_mentoria = ?",
+      [completada ? 1 : 0, id_mentoria]
+    );
+
+    res.status(200).json({
+      message: "Tareas actualizadas correctamente."
+    });
   } catch (error) {
-    await connection.rollback();
-    console.error('Error al eliminar mentoría:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
-  } finally {
-    connection.release();
+    console.error("Error al marcar tareas:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+/**
+ * =====================================================
+ * ACTUALIZAR / ELIMINAR
+ * =====================================================
+ */
+export const actualizarTarea = async (req, res) => {
+  try {
+    const { id_mentoria, id_tarea } = req.params;
+    const { completada } = req.body;
+
+    const [task] = await db.execute(
+      "SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?",
+      [id_tarea, id_mentoria]
+    );
+
+    if (task.length === 0) {
+      return res.status(404).json({
+        message: "Tarea no encontrada."
+      });
+    }
+
+    await db.execute(
+      "UPDATE tareas SET completada = ? WHERE id = ? AND id_mentoria = ?",
+      [completada ? 1 : 0, id_tarea, id_mentoria]
+    );
+
+    res.status(200).json({ message: "Tarea actualizada." });
+  } catch (error) {
+    console.error("Error al actualizar tarea:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
 export const eliminarTarea = async (req, res) => {
-  const connection = await db.getConnection();
   try {
-      await connection.beginTransaction();
-      
-      const { id_mentoria, id_tarea } = req.params;
-      
-      // First verify the task belongs to the mentorship
-      const verifyQuery = 'SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?';
-      const [tasks] = await connection.execute(verifyQuery, [id_tarea, id_mentoria]);
-      
-      if (tasks.length === 0) {
-          await connection.rollback();
-          return res.status(404).json({ message: 'Tarea no encontrada o no pertenece a esta mentoría' });
-      }
+    const { id_mentoria, id_tarea } = req.params;
 
-      // Then delete the task
-      const deleteQuery = 'DELETE FROM tareas WHERE id = ? AND id_mentoria = ?';
-      const [result] = await connection.execute(deleteQuery, [id_tarea, id_mentoria]);
+    await db.execute(
+      "DELETE FROM tareas WHERE id = ? AND id_mentoria = ?",
+      [id_tarea, id_mentoria]
+    );
 
-      if (result.affectedRows > 0) {
-          await connection.commit();
-          res.status(200).json({ message: 'Tarea eliminada exitosamente' });
-      } else {
-          await connection.rollback();
-          res.status(404).json({ message: 'Tarea no encontrada' });
-      }
+    res.status(200).json({ message: "Tarea eliminada." });
   } catch (error) {
-      await connection.rollback();
-      console.error('Error al eliminar tarea:', error);
-      res.status(500).json({ message: 'Error interno del servidor.' });
-  } finally {
-      connection.release();
+    console.error("Error al eliminar tarea:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
-export const actualizarTarea = async (req, res) => {
-  const connection = await db.getConnection();
+export const eliminarMentoria = async (req, res) => {
   try {
-      await connection.beginTransaction();
-      
-      const { id_mentoria, id_tarea } = req.params;
-      const { completada } = req.body;
-      
-      // First verify the task belongs to the mentorship
-      const verifyQuery = 'SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?';
-      const [tasks] = await connection.execute(verifyQuery, [id_tarea, id_mentoria]);
-      
-      if (tasks.length === 0) {
-          await connection.rollback();
-          return res.status(404).json({ message: 'Tarea no encontrada o no pertenece a esta mentoría' });
-      }
+    const { id_mentoria } = req.params;
 
-      // Then update the task
-      const updateQuery = 'UPDATE tareas SET completada = ? WHERE id = ? AND id_mentoria = ?';
-      const [result] = await connection.execute(updateQuery, [completada, id_tarea, id_mentoria]);
+    await db.execute("DELETE FROM tareas WHERE id_mentoria = ?", [id_mentoria]);
+    await db.execute("DELETE FROM mentorias WHERE id = ?", [id_mentoria]);
 
-      if (result.affectedRows > 0) {
-          await connection.commit();
-          res.status(200).json({ message: 'Tarea actualizada exitosamente' });
-      } else {
-          await connection.rollback();
-          res.status(404).json({ message: 'Tarea no encontrada' });
-      }
+    res.status(200).json({ message: "Mentoría eliminada." });
   } catch (error) {
-      await connection.rollback();
-      console.error('Error al actualizar tarea:', error);
-      res.status(500).json({ message: 'Error interno del servidor.' });
-  } finally {
-      connection.release();
+    console.error("Error al eliminar mentoría:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+/**
+ * =====================================================
+ * SUBIR ARCHIVO
+ * =====================================================
+ */
+export const subirArchivoTarea = async (req, res) => {
+  try {
+    const { id_mentoria, id_tarea } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No se subió archivo." });
+    }
+
+    const archivoPath = `/uploads/${req.file.filename}`;
+
+    await db.execute(
+      "UPDATE tareas SET archivo = ? WHERE id = ? AND id_mentoria = ?",
+      [archivoPath, id_tarea, id_mentoria]
+    );
+
+    res.status(200).json({
+      message: "Archivo subido correctamente",
+      archivo: archivoPath
+    });
+  } catch (error) {
+    console.error("Error al subir archivo:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
   }
 };
