@@ -59,8 +59,8 @@ async function cargarSelects() {
     MentoriasUI.poblarSelect(
       "mentor-select",
       Array.isArray(mentores) ? mentores : [],
-      "id_mentor",
-      "nombre",
+      "id",
+      "username",
       "Seleccione un mentor"
     );
 
@@ -113,7 +113,7 @@ async function handleCrearMentoria(e) {
 
   const data = MentoriasUI.obtenerDatosMentoria();
 
-  if (!data.titulo || !data.id_mentor || !data.id_profesor) {
+  if (!data.titulo || !data.id_mentor || !data.id_profesor || !data.fecha_inicio || !data.fecha_termino) {
     alert("Completa todos los campos de la mentoría.");
     return;
   }

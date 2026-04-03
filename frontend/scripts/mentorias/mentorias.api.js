@@ -1,6 +1,6 @@
 const MentoriasAPI = (() => {
   const BASE_URL = "/api/mentorias";
-  const MENTORES_URL = "/api/mentores";
+  const MENTORES_URL = "/api/auth/users";
   const PROFESORES_URL = "/api/profesores";
 
   function getAuthHeaders(extraHeaders = {}) {

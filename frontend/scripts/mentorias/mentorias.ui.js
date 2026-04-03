@@ -18,7 +18,9 @@ const MentoriasUI = (() => {
     return {
       titulo: document.getElementById("titulo-mentoria")?.value.trim() || "",
       id_mentor: document.getElementById("mentor-select")?.value || "",
-      id_profesor: document.getElementById("profesor-select")?.value || ""
+      id_profesor: document.getElementById("profesor-select")?.value || "",
+      fecha_inicio: document.getElementById("fecha-mentoria-inicio")?.value || "",
+      fecha_termino: document.getElementById("fecha-mentoria-termino")?.value || ""
     };
   }
 

@@ -27,18 +27,18 @@ export const obtenerMentores = async (req, res) => {
  */
 export const crearMentoria = async (req, res) => {
   try {
-    const { titulo, id_mentor, id_profesor } = req.body;
+    const { titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino } = req.body;
 
-    if (!titulo || !id_mentor || !id_profesor) {
+    if (!titulo || !id_mentor || !id_profesor || !fecha_inicio || !fecha_termino) {
       return res.status(400).json({
-        message: "Título, mentor y profesor son obligatorios."
+        message: "Todos los campos son obligatorios."
       });
     }
 
     const [result] = await db.execute(
-      `INSERT INTO mentorias (titulo, id_mentor, id_profesor)
-       VALUES (?, ?, ?)`,
-      [titulo, id_mentor, id_profesor]
+      `INSERT INTO mentorias (titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino)
+       VALUES (?, ?, ?, ?, ?)`,
+      [titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino]
     );
 
     res.status(201).json({
