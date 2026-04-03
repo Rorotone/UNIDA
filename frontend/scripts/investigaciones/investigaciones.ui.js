@@ -1,3 +1,4 @@
+
 const InvestigacionesUI = (() => {
   function poblarSelect(selectId, items, valueKey, textKey, placeholder) {
     const select = document.getElementById(selectId);
@@ -11,49 +12,6 @@ const InvestigacionesUI = (() => {
       option.textContent = item[textKey];
       select.appendChild(option);
     });
-  }
-
-  function abrirModal() {
-    document.getElementById("modal-investigacion")?.classList.add("is-open");
-  }
-
-  function cerrarModal() {
-    document.getElementById("modal-investigacion")?.classList.remove("is-open");
-  }
-
-  function resetFormulario() {
-    document.getElementById("crear-investigacion-form")?.reset();
-    const hiddenId = document.getElementById("investigacion-id");
-    if (hiddenId) hiddenId.value = "";
-
-    const submitBtn = document.querySelector("#crear-investigacion-form button[type='submit']");
-    if (submitBtn) submitBtn.textContent = "Guardar Investigación";
-
-    const title = document.querySelector("#crear-investigacion-form h2");
-    if (title) title.textContent = "Nueva Investigación";
-  }
-
-  function setModoEdicion(investigacion) {
-    const hiddenId = document.getElementById("investigacion-id");
-    if (hiddenId) hiddenId.value = investigacion.id ?? "";
-
-    const title = document.querySelector("#crear-investigacion-form h2");
-    if (title) title.textContent = "Editar Investigación";
-
-    const submitBtn = document.querySelector("#crear-investigacion-form button[type='submit']");
-    if (submitBtn) submitBtn.textContent = "Actualizar Investigación";
-
-    document.getElementById("titulo").value = investigacion.titulo || "";
-    document.getElementById("area").value = investigacion.area || "";
-    document.getElementById("fecha_inicio").value = normalizarFechaInput(investigacion.fecha_inicio);
-    document.getElementById("fecha_fin").value = normalizarFechaInput(investigacion.fecha_fin);
-    document.getElementById("profesor-select").value = investigacion.id_profesor || "";
-    document.getElementById("mentor-select").value = investigacion.id_mentor || "";
-  }
-
-  function obtenerFormData() {
-    const form = document.getElementById("crear-investigacion-form");
-    return form ? new FormData(form) : null;
   }
 
   function obtenerFiltros() {
@@ -72,65 +30,103 @@ const InvestigacionesUI = (() => {
     });
   }
 
-  function renderTabla(investigaciones, onEdit, onDelete) {
-    const tbody = document.querySelector("#tabla-investigaciones tbody") || document.getElementById("investigaciones-body");
+  function obtenerFormData() {
+    const form = document.getElementById("crear-investigacion-form");
+    return form ? new FormData(form) : null;
+  }
+
+  function limpiarFormulario() {
+    document.getElementById("crear-investigacion-form")?.reset();
+  }
+
+  function renderTabla(investigaciones) {
+    const tbody = document.getElementById("investigaciones-body");
     if (!tbody) return;
 
     tbody.innerHTML = "";
 
     if (!Array.isArray(investigaciones) || investigaciones.length === 0) {
       const row = document.createElement("tr");
-      row.innerHTML = `<td colspan="8" style="text-align:center;">No hay investigaciones registradas.</td>`;
+      row.innerHTML = `<td colspan="8">No hay investigaciones para mostrar.</td>`;
       tbody.appendChild(row);
       return;
     }
 
-    investigaciones.forEach((item) => {
-      const row = document.createElement("tr");
-      const archivoHtml = item.archivo_url
-        ? `<a href="${item.archivo_url}" target="_blank" rel="noopener">Ver archivo</a>`
-        : (item.archivo_ruta ? `<a href="${item.archivo_ruta}" target="_blank" rel="noopener">Ver archivo</a>` : "Sin archivo");
+    investigaciones.forEach((inv) => {
+      const tr = document.createElement("tr");
 
-      row.innerHTML = `
-        <td>${escapeHtml(item.titulo || "")}</td>
-        <td>${escapeHtml(item.area || "")}</td>
-        <td>${formatearFecha(item.fecha_inicio)}</td>
-        <td>${formatearFecha(item.fecha_fin)}</td>
-        <td>${escapeHtml(item.profesor || item.profesor_nombre || "")}</td>
-        <td>${escapeHtml(item.mentor || item.username || item.mentor_nombre || "")}</td>
-        <td>${archivoHtml}</td>
+      const archivoHTML = inv.archivo_ruta
+        ? `<a href="${inv.archivo_ruta}" target="_blank" rel="noopener">Ver archivo</a>`
+        : "Sin archivo";
+
+      tr.innerHTML = `
+        <td>${escapeHTML(inv.titulo || "")}</td>
+        <td>${escapeHTML(inv.area || "")}</td>
+        <td>${formatearFecha(inv.fecha_inicio)}</td>
+        <td>${formatearFecha(inv.fecha_fin)}</td>
+        <td>${escapeHTML(inv.profesor || "")}</td>
+        <td>${escapeHTML(inv.mentor || "")}</td>
+        <td>${archivoHTML}</td>
         <td>
-          <div class="actions">
-            <button type="button" class="btn-secondary btn-editar">Editar</button>
-            <button type="button" class="btn-danger btn-eliminar">Eliminar</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn-editar" data-id="${inv.id}">Editar</button>
+            <button type="button" class="btn-eliminar btn-danger" data-id="${inv.id}">Eliminar</button>
           </div>
         </td>
       `;
-
-      row.querySelector(".btn-editar")?.addEventListener("click", () => onEdit(item));
-      row.querySelector(".btn-eliminar")?.addEventListener("click", () => onDelete(item));
-      tbody.appendChild(row);
+      tbody.appendChild(tr);
     });
+  }
+
+  function aplicarFiltros(data) {
+    const filtros = obtenerFiltros();
+
+    return (Array.isArray(data) ? data : []).filter((inv) => {
+      const titulo = String(inv.titulo || "").toLowerCase();
+      const area = String(inv.area || "").toLowerCase();
+      const profesor = String(inv.profesor || "").toLowerCase();
+      const mentor = String(inv.mentor || "").toLowerCase();
+
+      return (
+        titulo.includes(filtros.titulo) &&
+        area.includes(filtros.area) &&
+        profesor.includes(filtros.profesor) &&
+        mentor.includes(filtros.mentor)
+      );
+    });
+  }
+
+  function llenarFormulario(inv) {
+    const setValue = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.value = value ?? "";
+    };
+
+    setValue("titulo", inv.titulo);
+    setValue("area", inv.area);
+    setValue("fecha_inicio", inv.fecha_inicio ? normalizarFechaInput(inv.fecha_inicio) : "");
+    setValue("fecha_fin", inv.fecha_fin ? normalizarFechaInput(inv.fecha_fin) : "");
+    setValue("profesor-select", inv.id_profesor);
+    setValue("mentor-select", inv.id_mentor);
   }
 
   function formatearFecha(valor) {
     if (!valor) return "";
-    const fecha = new Date(valor);
-    if (Number.isNaN(fecha.getTime())) return valor;
-    return fecha.toLocaleDateString("es-CL");
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return valor;
+    return d.toLocaleDateString("es-CL");
   }
 
   function normalizarFechaInput(valor) {
-    if (!valor) return "";
-    const fecha = new Date(valor);
-    if (Number.isNaN(fecha.getTime())) return valor;
-    const y = fecha.getFullYear();
-    const m = String(fecha.getMonth() + 1).padStart(2, "0");
-    const d = String(fecha.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   }
 
-  function escapeHtml(text) {
+  function escapeHTML(text) {
     return String(text)
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
@@ -141,13 +137,12 @@ const InvestigacionesUI = (() => {
 
   return {
     poblarSelect,
-    abrirModal,
-    cerrarModal,
-    resetFormulario,
-    setModoEdicion,
-    obtenerFormData,
     obtenerFiltros,
     limpiarFiltros,
-    renderTabla
+    obtenerFormData,
+    limpiarFormulario,
+    renderTabla,
+    aplicarFiltros,
+    llenarFormulario
   };
 })();

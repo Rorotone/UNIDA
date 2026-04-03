@@ -1,3 +1,4 @@
+
 const InvestigacionesAPI = (() => {
   const BASE_URL = "/api/investigaciones";
   const PROFESORES_URL = "/api/profesores";
@@ -11,7 +12,7 @@ const InvestigacionesAPI = (() => {
     };
   }
 
-  function handleUnauthorized() {
+  function manejarNoAutorizado() {
     alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
     localStorage.removeItem("token");
     window.location.href = "/login.html";
@@ -25,7 +26,7 @@ const InvestigacionesAPI = (() => {
     });
 
     if (response.status === 401) {
-      handleUnauthorized();
+      manejarNoAutorizado();
       throw new Error("No autorizado");
     }
 
