@@ -1,10 +1,24 @@
-
 import db from "../config/database.js";
 
-/**
- * GET /api/investigaciones
- * Lista investigaciones con nombre de profesor y mentor.
- */
+async function cargarArchivosPorInvestigacion(ids = []) {
+  if (!ids.length) return {};
+
+  const placeholders = ids.map(() => "?").join(",");
+  const [rows] = await db.execute(
+    `SELECT id, id_investigacion, archivo_nombre, archivo_ruta, fecha_subida
+     FROM investigaciones_archivos
+     WHERE id_investigacion IN (${placeholders})
+     ORDER BY id ASC`,
+    ids
+  );
+
+  return rows.reduce((acc, row) => {
+    if (!acc[row.id_investigacion]) acc[row.id_investigacion] = [];
+    acc[row.id_investigacion].push(row);
+    return acc;
+  }, {});
+}
+
 export const obtenerInvestigaciones = async (req, res) => {
   try {
     const query = `
@@ -18,8 +32,6 @@ export const obtenerInvestigaciones = async (req, res) => {
         i.id_mentor,
         p.nombre AS profesor,
         u.username AS mentor,
-        i.archivo_nombre,
-        i.archivo_ruta,
         i.fecha_registro
       FROM investigaciones i
       JOIN profesores p ON i.id_profesor = p.id_profesor
@@ -28,16 +40,21 @@ export const obtenerInvestigaciones = async (req, res) => {
     `;
 
     const [rows] = await db.execute(query);
-    res.status(200).json(rows);
+    const ids = rows.map((r) => r.id);
+    const archivosPorInvestigacion = await cargarArchivosPorInvestigacion(ids);
+
+    const resultado = rows.map((row) => ({
+      ...row,
+      archivos: archivosPorInvestigacion[row.id] || []
+    }));
+
+    res.status(200).json(resultado);
   } catch (error) {
     console.error("Error al obtener investigaciones:", error);
     res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
-/**
- * GET /api/investigaciones/:id
- */
 export const obtenerInvestigacionPorId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,8 +70,6 @@ export const obtenerInvestigacionPorId = async (req, res) => {
         i.id_mentor,
         p.nombre AS profesor,
         u.username AS mentor,
-        i.archivo_nombre,
-        i.archivo_ruta,
         i.fecha_registro
       FROM investigaciones i
       JOIN profesores p ON i.id_profesor = p.id_profesor
@@ -69,142 +84,112 @@ export const obtenerInvestigacionPorId = async (req, res) => {
       return res.status(404).json({ message: "Investigación no encontrada." });
     }
 
-    res.status(200).json(rows[0]);
+    const investigacion = rows[0];
+    const archivosPorInvestigacion = await cargarArchivosPorInvestigacion([Number(id)]);
+
+    res.status(200).json({
+      ...investigacion,
+      archivos: archivosPorInvestigacion[investigacion.id] || []
+    });
   } catch (error) {
     console.error("Error al obtener investigación:", error);
     res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
-/**
- * POST /api/investigaciones
- * Recibe multipart/form-data con archivo opcional.
- */
 export const crearInvestigacion = async (req, res) => {
+  const conn = await db.getConnection();
   try {
+    await conn.beginTransaction();
+
     const { titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor } = req.body;
 
     if (!titulo || !area || !fecha_inicio || !fecha_fin || !id_profesor || !id_mentor) {
+      await conn.rollback();
       return res.status(400).json({
         message: "Título, área, fechas, profesor y mentor son obligatorios."
       });
     }
 
-    let archivo_nombre = null;
-    let archivo_ruta = null;
+    const [result] = await conn.execute(
+      `INSERT INTO investigaciones (
+        titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor]
+    );
 
-    if (req.file) {
-      archivo_nombre = req.file.originalname;
-      archivo_ruta = `/uploads/${req.file.filename}`;
+    const idInvestigacion = result.insertId;
+    const archivos = Array.isArray(req.files) ? req.files : [];
+
+    for (const file of archivos) {
+      await conn.execute(
+        `INSERT INTO investigaciones_archivos (
+          id_investigacion, archivo_nombre, archivo_ruta
+        ) VALUES (?, ?, ?)`,
+        [idInvestigacion, file.originalname, `/uploads/${file.filename}`]
+      );
     }
 
-    const query = `
-      INSERT INTO investigaciones (
-        titulo,
-        area,
-        fecha_inicio,
-        fecha_fin,
-        id_profesor,
-        id_mentor,
-        archivo_nombre,
-        archivo_ruta
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const [result] = await db.execute(query, [
-      titulo,
-      area,
-      fecha_inicio,
-      fecha_fin,
-      id_profesor,
-      id_mentor,
-      archivo_nombre,
-      archivo_ruta
-    ]);
-
+    await conn.commit();
     res.status(201).json({
       message: "Investigación creada exitosamente.",
-      id: result.insertId,
-      archivo_nombre,
-      archivo_ruta
+      id: idInvestigacion
     });
   } catch (error) {
+    await conn.rollback();
     console.error("Error al crear investigación:", error);
     res.status(500).json({ message: "Error interno del servidor." });
+  } finally {
+    conn.release();
   }
 };
 
-/**
- * PUT /api/investigaciones/:id
- * Permite reemplazar el archivo si se envía uno nuevo.
- */
 export const actualizarInvestigacion = async (req, res) => {
+  const conn = await db.getConnection();
   try {
+    await conn.beginTransaction();
+
     const { id } = req.params;
     const { titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor } = req.body;
 
-    const [actual] = await db.execute(
-      "SELECT id, archivo_nombre, archivo_ruta FROM investigaciones WHERE id = ?",
+    const [actual] = await conn.execute(
+      "SELECT id FROM investigaciones WHERE id = ?",
       [id]
     );
 
     if (actual.length === 0) {
+      await conn.rollback();
       return res.status(404).json({ message: "Investigación no encontrada." });
     }
 
-    let archivo_nombre = actual[0].archivo_nombre;
-    let archivo_ruta = actual[0].archivo_ruta;
+    await conn.execute(
+      `UPDATE investigaciones
+       SET titulo = ?, area = ?, fecha_inicio = ?, fecha_fin = ?, id_profesor = ?, id_mentor = ?
+       WHERE id = ?`,
+      [titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor, id]
+    );
 
-    if (req.file) {
-      archivo_nombre = req.file.originalname;
-      archivo_ruta = `/uploads/${req.file.filename}`;
+    const archivos = Array.isArray(req.files) ? req.files : [];
+    for (const file of archivos) {
+      await conn.execute(
+        `INSERT INTO investigaciones_archivos (
+          id_investigacion, archivo_nombre, archivo_ruta
+        ) VALUES (?, ?, ?)`,
+        [id, file.originalname, `/uploads/${file.filename}`]
+      );
     }
 
-    const query = `
-      UPDATE investigaciones
-      SET
-        titulo = ?,
-        area = ?,
-        fecha_inicio = ?,
-        fecha_fin = ?,
-        id_profesor = ?,
-        id_mentor = ?,
-        archivo_nombre = ?,
-        archivo_ruta = ?
-      WHERE id = ?
-    `;
-
-    const [result] = await db.execute(query, [
-      titulo,
-      area,
-      fecha_inicio,
-      fecha_fin,
-      id_profesor,
-      id_mentor,
-      archivo_nombre,
-      archivo_ruta,
-      id
-    ]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Investigación no encontrada." });
-    }
-
-    res.status(200).json({
-      message: "Investigación actualizada exitosamente.",
-      archivo_nombre,
-      archivo_ruta
-    });
+    await conn.commit();
+    res.status(200).json({ message: "Investigación actualizada exitosamente." });
   } catch (error) {
+    await conn.rollback();
     console.error("Error al actualizar investigación:", error);
     res.status(500).json({ message: "Error interno del servidor." });
+  } finally {
+    conn.release();
   }
 };
 
-/**
- * DELETE /api/investigaciones/:id
- */
 export const eliminarInvestigacion = async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,6 +206,26 @@ export const eliminarInvestigacion = async (req, res) => {
     res.status(200).json({ message: "Investigación eliminada exitosamente." });
   } catch (error) {
     console.error("Error al eliminar investigación:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+export const eliminarArchivoInvestigacion = async (req, res) => {
+  try {
+    const { idArchivo } = req.params;
+
+    const [result] = await db.execute(
+      "DELETE FROM investigaciones_archivos WHERE id = ?",
+      [idArchivo]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Archivo no encontrado." });
+    }
+
+    res.status(200).json({ message: "Archivo eliminado exitosamente." });
+  } catch (error) {
+    console.error("Error al eliminar archivo de investigación:", error);
     res.status(500).json({ message: "Error interno del servidor." });
   }
 };

@@ -1,4 +1,3 @@
-
 const InvestigacionesAPI = (() => {
   const BASE_URL = "/api/investigaciones";
   const PROFESORES_URL = "/api/profesores";
@@ -25,7 +24,7 @@ const InvestigacionesAPI = (() => {
       headers: getAuthHeaders(options.headers || {})
     });
 
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       manejarNoAutorizado();
       throw new Error("No autorizado");
     }
@@ -75,6 +74,12 @@ const InvestigacionesAPI = (() => {
     });
   }
 
+  async function eliminarArchivoInvestigacion(idArchivo) {
+    return request(`${BASE_URL}/archivos/${idArchivo}`, {
+      method: "DELETE"
+    });
+  }
+
   async function obtenerProfesores() {
     return request(PROFESORES_URL);
   }
@@ -89,6 +94,7 @@ const InvestigacionesAPI = (() => {
     crearInvestigacion,
     actualizarInvestigacion,
     eliminarInvestigacion,
+    eliminarArchivoInvestigacion,
     obtenerProfesores,
     obtenerMentores
   };

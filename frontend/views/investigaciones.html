@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Investigaciones</title>
   <link rel="stylesheet" href="/styles/styles.css">
+  <link rel="stylesheet" href="/styles/investigaciones.css">
 </head>
 <body>
   <header>
@@ -15,107 +16,160 @@
   </header>
 
   <main class="container">
-    <section class="section">
-      <h1>Investigaciones</h1>
-    </section>
+    <section class="section page-header">
+      <div>
+        <h1>Investigaciones</h1>
+        <p class="inline-note">Administra investigaciones, archivos asociados y filtros de búsqueda.</p>
+      </div>
 
-    <section class="section">
-      <form id="crear-investigacion-form" enctype="multipart/form-data">
-        <h2>Nueva Investigación</h2>
-        <div class="search-container">
-          <div>
-            <label for="titulo">Título</label>
-            <input type="text" id="titulo" name="titulo" required>
-          </div>
-          <div>
-            <label for="area">Área</label>
-            <input type="text" id="area" name="area" required>
-          </div>
-          <div>
-            <label for="fecha_inicio">Fecha de inicio</label>
-            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-          </div>
-          <div>
-            <label for="fecha_fin">Fecha de fin</label>
-            <input type="date" id="fecha_fin" name="fecha_fin" required>
-          </div>
-          <div>
-            <label for="profesor-select">Profesor</label>
-            <select id="profesor-select" name="id_profesor" required>
-              <option value="">Seleccione un profesor</option>
-            </select>
-          </div>
-          <div>
-            <label for="mentor-select">Mentor</label>
-            <select id="mentor-select" name="id_mentor" required>
-              <option value="">Seleccione un mentor</option>
-            </select>
-          </div>
-          <div>
-            <label for="archivo">Archivo</label>
-            <input type="file" id="archivo" name="archivo">
-          </div>
-        </div>
-        <button type="submit">Crear Investigación</button>
-      </form>
+      <div class="page-header-actions">
+        <button id="btn-nueva-investigacion" type="button">Nueva investigación</button>
+      </div>
     </section>
 
     <section class="investigaciones-layout">
       <aside class="sidebar-filtros">
         <div class="sidebar-card">
-          <h2>Filtros</h2>
+          <div class="sidebar-card-header">
+            <h2>Filtros</h2>
+            <button id="limpiar-filtros" type="button" class="btn-secondary btn-sm">Limpiar</button>
+          </div>
 
           <div class="sidebar-form-group">
             <label for="filtro-titulo">Título</label>
-            <input type="text" id="filtro-titulo" placeholder="Filtrar por título">
+            <input type="text" id="filtro-titulo" placeholder="Buscar por título">
           </div>
 
           <div class="sidebar-form-group">
             <label for="filtro-area">Área</label>
-            <input type="text" id="filtro-area" placeholder="Filtrar por área">
+            <input type="text" id="filtro-area" placeholder="Buscar por área">
           </div>
 
           <div class="sidebar-form-group">
             <label for="filtro-profesor">Profesor</label>
-            <input type="text" id="filtro-profesor" placeholder="Filtrar por profesor">
+            <input type="text" id="filtro-profesor" placeholder="Buscar por profesor">
           </div>
 
           <div class="sidebar-form-group">
             <label for="filtro-mentor">Mentor</label>
-            <input type="text" id="filtro-mentor" placeholder="Filtrar por mentor">
+            <input type="text" id="filtro-mentor" placeholder="Buscar por mentor">
           </div>
 
           <div class="sidebar-actions">
             <button id="aplicar-filtros" type="button">Aplicar filtros</button>
-            <button id="limpiar-filtros" type="button" class="btn-secondary">Limpiar filtros</button>
           </div>
         </div>
       </aside>
 
-      <div class="investigaciones-content">
-        <section class="section">
-          <h2>Lista de Investigaciones</h2>
-          <div class="table-wrap">
-            <table id="tabla-investigaciones">
-              <thead>
-                <tr>
-                  <th>Título</th>
-                  <th>Área</th>
-                  <th>Fecha de inicio</th>
-                  <th>Fecha de fin</th>
-                  <th>Profesor</th>
-                  <th>Mentor</th>
-                  <th>Archivo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="investigaciones-body"></tbody>
-            </table>
+      <section class="investigaciones-content section">
+        <div class="content-toolbar">
+          <div>
+            <h2>Listado</h2>
+            <p id="investigaciones-resumen" class="inline-note">0 investigaciones</p>
           </div>
-        </section>
-      </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="tabla-investigaciones">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Área</th>
+                <th>Fechas</th>
+                <th>Profesor</th>
+                <th>Mentor</th>
+                <th>Archivos</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="investigaciones-body"></tbody>
+          </table>
+        </div>
+      </section>
     </section>
   </main>
+
+  <div id="modal-investigacion" class="modal" aria-hidden="true">
+    <div class="modal-content modal-investigacion">
+      <span id="cerrar-modal-investigacion" class="close" role="button" tabindex="0" aria-label="Cerrar modal">&times;</span>
+
+      <form id="crear-investigacion-form" enctype="multipart/form-data">
+        <div class="modal-head">
+          <div>
+            <h2 id="titulo-modal-investigacion">Nueva investigación</h2>
+            <p id="investigacion-editando-label" class="inline-note"></p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="titulo">Título</label>
+            <input type="text" id="titulo" name="titulo" required>
+          </div>
+
+          <div class="form-group">
+            <label for="area">Área</label>
+            <input type="text" id="area" name="area" required>
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_inicio">Fecha de inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_fin">Fecha de fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profesor-select">Profesor</label>
+            <select id="profesor-select" name="id_profesor" required>
+              <option value="">Seleccione un profesor</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="mentor-select">Mentor</label>
+            <select id="mentor-select" name="id_mentor" required>
+              <option value="">Seleccione un mentor</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="archivos">Archivos</label>
+
+            <div class="upload-panel" id="upload-panel">
+              <input type="file" id="archivos" name="archivos" multiple hidden>
+              <button id="btn-seleccionar-archivos" type="button" class="btn-secondary">Seleccionar archivos</button>
+              <p class="inline-note">Puedes agregar varios archivos. Se irán adjuntando a la investigación.</p>
+              <div id="lista-archivos-seleccionados" class="lista-archivos-seleccionados"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="btn-guardar-investigacion">Guardar investigación</button>
+          <button type="button" id="btn-cancelar-modal-investigacion" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-archivos-investigacion" class="modal" aria-hidden="true">
+    <div class="modal-content modal-archivos">
+      <span id="cerrar-modal-archivos" class="close" role="button" tabindex="0" aria-label="Cerrar modal">&times;</span>
+
+      <div class="modal-head">
+        <div>
+          <h2>Archivos de la investigación</h2>
+          <p id="archivos-investigacion-subtitle" class="inline-note"></p>
+        </div>
+      </div>
+
+      <div id="lista-archivos-investigacion" class="lista-archivos-investigacion"></div>
+    </div>
+  </div>
 
   <script src="/scripts/core/nav.js"></script>
   <script src="/scripts/investigaciones/investigaciones.api.js"></script>

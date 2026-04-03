@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   initInvestigaciones();
 });
@@ -8,29 +7,58 @@ let investigacionEditandoId = null;
 
 async function initInvestigaciones() {
   bindEventos();
+  InvestigacionesUI.renderArchivosSeleccionados();
   await cargarSelects();
   await cargarInvestigaciones();
 }
 
 function bindEventos() {
-  document
-    .getElementById("crear-investigacion-form")
-    ?.addEventListener("submit", handleSubmitInvestigacion);
+  document.getElementById("btn-nueva-investigacion")?.addEventListener("click", () => {
+    investigacionEditandoId = null;
+    InvestigacionesUI.limpiarFormulario();
+    InvestigacionesUI.abrirModal();
+  });
 
-  document
-    .getElementById("aplicar-filtros")
-    ?.addEventListener("click", renderFiltradas);
+  document.getElementById("cerrar-modal-investigacion")?.addEventListener("click", InvestigacionesUI.cerrarModal);
+  document.getElementById("btn-cancelar-modal-investigacion")?.addEventListener("click", InvestigacionesUI.cerrarModal);
 
-  document
-    .getElementById("limpiar-filtros")
-    ?.addEventListener("click", () => {
-      InvestigacionesUI.limpiarFiltros();
-      InvestigacionesUI.renderTabla(investigacionesCache);
-    });
+  document.getElementById("modal-investigacion")?.addEventListener("click", (e) => {
+    if (e.target.id === "modal-investigacion") {
+      InvestigacionesUI.cerrarModal();
+    }
+  });
 
-  document
-    .getElementById("tabla-investigaciones")
-    ?.addEventListener("click", handleClickTabla);
+  document.getElementById("cerrar-modal-archivos")?.addEventListener("click", InvestigacionesUI.cerrarModalArchivos);
+  document.getElementById("modal-archivos-investigacion")?.addEventListener("click", (e) => {
+    if (e.target.id === "modal-archivos-investigacion") {
+      InvestigacionesUI.cerrarModalArchivos();
+    }
+  });
+
+  document.getElementById("btn-seleccionar-archivos")?.addEventListener("click", () => {
+    document.getElementById("archivos")?.click();
+  });
+
+  document.getElementById("archivos")?.addEventListener("change", (e) => {
+    InvestigacionesUI.agregarArchivosSeleccionados(e.target.files);
+    e.target.value = "";
+  });
+
+  document.getElementById("lista-archivos-seleccionados")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-remove-file");
+    if (!btn) return;
+    InvestigacionesUI.eliminarArchivoTemporal(Number(btn.dataset.index));
+  });
+
+  document.getElementById("crear-investigacion-form")?.addEventListener("submit", handleSubmitInvestigacion);
+  document.getElementById("aplicar-filtros")?.addEventListener("click", renderFiltradas);
+  document.getElementById("limpiar-filtros")?.addEventListener("click", () => {
+    InvestigacionesUI.limpiarFiltros();
+    InvestigacionesUI.renderTabla(investigacionesCache);
+  });
+
+  document.getElementById("tabla-investigaciones")?.addEventListener("click", handleClickTabla);
+  document.getElementById("lista-archivos-investigacion")?.addEventListener("click", handleClickModalArchivos);
 }
 
 async function cargarSelects() {
@@ -48,7 +76,6 @@ async function cargarSelects() {
       "Seleccione un profesor"
     );
 
-    // Mentor = users(id, username)
     InvestigacionesUI.poblarSelect(
       "mentor-select",
       Array.isArray(mentores) ? mentores : [],
@@ -82,7 +109,7 @@ async function handleSubmitInvestigacion(e) {
   e.preventDefault();
 
   try {
-    const formData = InvestigacionesUI.obtenerFormData();
+    const formData = InvestigacionesUI.construirFormData();
     if (!formData) return;
 
     if (investigacionEditandoId) {
@@ -95,6 +122,7 @@ async function handleSubmitInvestigacion(e) {
 
     investigacionEditandoId = null;
     InvestigacionesUI.limpiarFormulario();
+    InvestigacionesUI.cerrarModal();
     await cargarInvestigaciones();
   } catch (error) {
     console.error("Error al guardar investigación:", error);
@@ -105,6 +133,17 @@ async function handleSubmitInvestigacion(e) {
 async function handleClickTabla(e) {
   const btnEliminar = e.target.closest(".btn-eliminar");
   const btnEditar = e.target.closest(".btn-editar");
+  const btnVerArchivos = e.target.closest(".btn-ver-archivos");
+
+  if (btnVerArchivos) {
+    const id = btnVerArchivos.dataset.id;
+    const investigacion = investigacionesCache.find((item) => String(item.id) === String(id));
+    if (!investigacion) return;
+
+    InvestigacionesUI.renderModalArchivos(investigacion);
+    InvestigacionesUI.abrirModalArchivos();
+    return;
+  }
 
   if (btnEliminar) {
     const id = btnEliminar.dataset.id;
@@ -130,11 +169,33 @@ async function handleClickTabla(e) {
     try {
       const data = await InvestigacionesAPI.obtenerInvestigacionPorId(id);
       investigacionEditandoId = id;
+      InvestigacionesUI.limpiarFormulario();
       InvestigacionesUI.llenarFormulario(data);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      InvestigacionesUI.mostrarModoEdicion(id);
+      InvestigacionesUI.abrirModal();
     } catch (error) {
       console.error("Error al cargar investigación para edición:", error);
       alert(error.message || "No se pudo cargar la investigación.");
     }
+  }
+}
+
+async function handleClickModalArchivos(e) {
+  const btnEliminarArchivo = e.target.closest(".btn-eliminar-archivo-modal");
+  if (!btnEliminarArchivo) return;
+
+  const idArchivo = btnEliminarArchivo.dataset.id;
+  if (!idArchivo) return;
+
+  const confirmar = confirm("¿Deseas eliminar este archivo?");
+  if (!confirmar) return;
+
+  try {
+    await InvestigacionesAPI.eliminarArchivoInvestigacion(idArchivo);
+    await cargarInvestigaciones();
+    InvestigacionesUI.cerrarModalArchivos();
+  } catch (error) {
+    console.error("Error al eliminar archivo:", error);
+    alert(error.message || "No se pudo eliminar el archivo.");
   }
 }
