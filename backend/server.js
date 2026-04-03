@@ -10,6 +10,7 @@ import profesoresRoutes from './routes/profesoresRoutes.js';
 import mentoriasRoutes from './routes/mentoriasRoutes.js';
 import { authenticateToken } from './middleware/authMiddleware.js';
 import investigacionesRoutes from './routes/investigacionesRoutes.js';
+import { obtenerMentores } from './controllers/mentoriasController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,6 +58,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profesores', authenticateToken, profesoresRoutes);
 app.use('/api/mentorias', authenticateToken, mentoriasRoutes);
 app.use('/api/investigaciones', authenticateToken, investigacionesRoutes);
+app.get('/api/mentores', authenticateToken, obtenerMentores);
 app.get('/', (req, res) => {
   res.sendFile(path.join(viewsPath, 'index.html'));
 });

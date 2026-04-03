@@ -41,11 +41,15 @@
           </div>
           <div>
             <label for="profesor-select">Profesor</label>
-            <select id="profesor-select" name="id_profesor" required></select>
+            <select id="profesor-select" name="id_profesor" required>
+              <option value="">Seleccione un profesor</option>
+            </select>
           </div>
           <div>
             <label for="mentor-select">Mentor</label>
-            <select id="mentor-select" name="id_mentor" required></select>
+            <select id="mentor-select" name="id_mentor" required>
+              <option value="">Seleccione un mentor</option>
+            </select>
           </div>
           <div>
             <label for="archivo">Archivo</label>
@@ -105,7 +109,7 @@
                   <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody id="investigaciones-body"></tbody>
             </table>
           </div>
         </section>
@@ -114,6 +118,8 @@
   </main>
 
   <script src="/scripts/core/nav.js"></script>
+  <script src="/scripts/investigaciones/investigaciones.api.js"></script>
+  <script src="/scripts/investigaciones/investigaciones.ui.js"></script>
   <script src="/scripts/investigaciones/investigaciones.js"></script>
 </body>
 </html>
