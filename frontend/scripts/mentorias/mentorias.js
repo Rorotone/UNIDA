@@ -236,6 +236,20 @@ async function handleSubmitTarea(e) {
     return;
   }
 
+  // Validar que la fecha esté dentro del período de la mentoría
+  if (data.fecha) {
+    const fechaTarea = new Date(data.fecha);
+    const inicio = MentoriasUI.parsearFechaMs(card.dataset.fechaInicio);
+    const termino = MentoriasUI.parsearFechaMs(card.dataset.fechaTermino);
+ 
+    if (inicio && termino && (fechaTarea < inicio || fechaTarea > termino)) {
+      const inicioStr = card.dataset.fechaInicio.slice(0, 10);
+      const terminoStr = card.dataset.fechaTermino.slice(0, 10);
+      alert(`La fecha debe estar dentro del período de la mentoría (${inicioStr} → ${terminoStr}).`);
+      return;
+    }
+  }
+
   try {
     await MentoriasAPI.crearTarea(idMentoria, data);
     MentoriasUI.limpiarFormularioTarea(form);

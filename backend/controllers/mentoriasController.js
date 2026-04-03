@@ -85,28 +85,47 @@ export const crearTarea = async (req, res) => {
   try {
     const { id_mentoria } = req.params;
     const { titulo, descripcion, fecha } = req.body;
-
+ 
     if (!titulo || !descripcion) {
       return res.status(400).json({
         message: "Título y descripción son obligatorios."
       });
     }
-
+ 
     const [mentoria] = await db.execute(
-      "SELECT id FROM mentorias WHERE id = ?",
+      "SELECT id, fecha_inicio, fecha_termino FROM mentorias WHERE id = ?",
       [id_mentoria]
     );
-
+ 
     if (mentoria.length === 0) {
       return res.status(404).json({ message: "Mentoría no encontrada." });
     }
-
+ 
+    // Validar que la fecha de la tarea esté dentro del período de la mentoría
+    if (fecha) {
+      const fechaTarea = new Date(fecha);
+      const fechaInicio = new Date(mentoria[0].fecha_inicio);
+      const fechaTermino = new Date(mentoria[0].fecha_termino);
+ 
+      // Normalizar a solo fecha sin hora
+      fechaInicio.setHours(0, 0, 0, 0);
+      fechaTermino.setHours(23, 59, 59, 999);
+ 
+      if (fechaTarea < fechaInicio || fechaTarea > fechaTermino) {
+        const inicio = mentoria[0].fecha_inicio.toISOString().slice(0, 10);
+        const termino = mentoria[0].fecha_termino.toISOString().slice(0, 10);
+        return res.status(400).json({
+          message: `La fecha de la tarea debe estar dentro del período de la mentoría (${inicio} → ${termino}).`
+        });
+      }
+    }
+ 
     const [result] = await db.execute(
       `INSERT INTO tareas (id_mentoria, titulo, descripcion, fecha)
        VALUES (?, ?, ?, ?)`,
       [id_mentoria, titulo, descripcion, fecha || null]
     );
-
+ 
     res.status(201).json({
       message: "Tarea creada exitosamente",
       id: result.insertId

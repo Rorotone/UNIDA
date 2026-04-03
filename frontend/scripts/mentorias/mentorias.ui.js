@@ -56,6 +56,8 @@ const MentoriasUI = (() => {
 
       const idMentoria = mentoria.id_mentoria || mentoria.id || mentoria.idMentoria;
       card.dataset.mentoriaId = idMentoria;
+      card.dataset.fechaInicio = mentoria.fecha_inicio || "";
+      card.dataset.fechaTermino = mentoria.fecha_termino || "";
 
       clone.querySelector(".mentoria-titulo").textContent = mentoria.titulo || "Sin título";
       clone.querySelector(".mentor").textContent = `Mentor: ${mentoria.mentor || mentoria.nombre_mentor || "-"}`;
@@ -295,6 +297,7 @@ const MentoriasUI = (() => {
     estaFormularioTareaVisible,
     renderCalendarioSemanal,
     filtrarTareasPorFecha,
-    obtenerFechaSeleccionada
+    obtenerFechaSeleccionada,
+    parsearFechaMs
   };
 })();
