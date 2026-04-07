@@ -2,6 +2,15 @@ const MentoriasUI = (() => {
   let fechaSeleccionada = new Date();
   let semanaOffset = 0;
 
+  function escapeHTML(text) {
+    return String(text ?? '')
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   function abrirModal() {
     document.getElementById("modal-mentoria")?.classList.add("is-open");
   }
@@ -113,8 +122,8 @@ const MentoriasUI = (() => {
           <label style="display:flex; gap:8px; align-items:flex-start;">
             <input type="checkbox" class="tarea-check" ${completada ? "checked" : ""}>
             <div>
-              <strong>${tarea.titulo || "Sin título"}</strong>
-              <div>${tarea.descripcion || ""}</div>
+              <strong>${escapeHTML(tarea.titulo || "Sin título")}</strong>
+              <div>${escapeHTML(tarea.descripcion || "")}</div>
               ${tarea.fecha ? `<small>Fecha: ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
             </div>
           </label>

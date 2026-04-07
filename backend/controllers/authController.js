@@ -8,10 +8,21 @@ export const register = async (req, res) => {
   try {
     const { username, password } = req.body;
     
+    // Validar presencia y longitud
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Usuario y contraseña son obligatorios.' });
+    }
+    if (username.trim().length < 3 || username.trim().length > 30) {
+      return res.status(400).json({ message: 'El username debe tener entre 3 y 30 caracteres.' });
+    }
+    if (password.length < 6 || password.length > 72) {
+      return res.status(400).json({ message: 'La contraseña debe tener entre 6 y 72 caracteres.' });
+    }
+
     // Check if user already exists
     const [existingUsers] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
     if (existingUsers.length > 0) {
-      return res.status(400).json({ message: 'Username already exists' });
+      return res.status(400).json({ message: 'El usuario ya existe.' });
     }
     
     // Hash password
@@ -20,10 +31,10 @@ export const register = async (req, res) => {
     // Insert new user
     const [result] = await db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
     
-    res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
+    res.status(201).json({ message: 'Usuario registrado exitosamente', userId: result.insertId });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Error registering user' });
+    console.error('Error al registrar el usuario:', error);
+    res.status(500).json({ message: 'Error al registrar el usuario' });
   }
 };
 
@@ -34,7 +45,7 @@ export const login = async (req, res) => {
     // Find user
     const [users] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
     if (users.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
     
     const user = users[0];
@@ -42,17 +53,17 @@ export const login = async (req, res) => {
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
     
     // Generate JWT
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });   
     
-    res.json({ message: 'Login successful', token });
+    res.json({ message: 'Inicio de sesión exitoso', token });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Error logging in' });
+    console.error('Error al iniciar sesión:', error);
+    res.status(500).json({ message: 'Error al iniciar sesión' });
   }
   
 };
@@ -74,7 +85,7 @@ export const changePassword = async (req, res) => {
     // Find user
     const [users] = await db.execute('SELECT * FROM users WHERE id = ?', [userId]);
     if (users.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
     const user = users[0];
@@ -82,13 +93,13 @@ export const changePassword = async (req, res) => {
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+      return res.status(400).json({ message: 'La contraseña actual es incorrecta' });
     }
 
     // Check if new password is different from current password
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
-      return res.status(400).json({ message: 'New password must be different from current password' });
+      return res.status(400).json({ message: 'La nueva contraseña debe ser diferente de la contraseña actual' });
     }
 
     // Hash new password
@@ -97,10 +108,10 @@ export const changePassword = async (req, res) => {
     // Update password in database
     await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId]);
 
-    res.json({ message: 'Password changed successfully' });
+    res.json({ message: 'Contraseña cambiada exitosamente' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ message: 'Error changing password' });
+    res.status(500).json({ message: 'Error al cambiar la contraseña' });
   }  
   
 };
@@ -113,7 +124,7 @@ export const getUserProfile = async (req, res) => {
   const [users] = await db.execute('SELECT id, username FROM users WHERE id = ?', [userId]);
     
   if (users.length === 0) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(404).json({ message: 'Usuario no encontrado' });
   }
 
     const userProfile = users[0];
@@ -123,7 +134,7 @@ export const getUserProfile = async (req, res) => {
       username: userProfile.username
     });
   } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({ message: 'Error retrieving user profile' });
+    console.error('Error al obtener el perfil del usuario:', error);
+    res.status(500).json({ message: 'Error al obtener el perfil del usuario' });
   }
 };

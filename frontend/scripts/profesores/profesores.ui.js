@@ -1,5 +1,14 @@
 let profesoresCache = [];
 
+function escapeHTML(text) {
+  return String(text ?? '')
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function normalizeProfesor(p) {
   return {
     ...p,
@@ -28,18 +37,18 @@ function renderRows(data) {
   data.forEach((p) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${p.nombre}</td>
-      <td>${p.departamento}</td>
-      <td>${p.sede}</td>
-      <td>${p.sede_actual}</td>
-      <td>${p.talleres}</td>
+      <td>${escapeHTML(p.nombre)}</td>
+      <td>${escapeHTML(p.departamento)}</td>
+      <td>${escapeHTML(p.sede)}</td>
+      <td>${escapeHTML(p.sede_actual)}</td>
+      <td>${escapeHTML(p.talleres)}</td>
       <td>${p.formacion === 1 ? 'Sí' : 'No'}</td>
       <td>${p.estado_I === 1 ? 'Sí' : 'No'}</td>
       <td>${p.magister === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.otro_i || ''}</td>
+      <td>${escapeHTML(p.otro_i || '')}</td>
       <td>
-        <button onclick="editarProfesor(${p.id_profesor})">Editar</button>
-        <button onclick="eliminarProfesor(${p.id_profesor})">Eliminar</button>
+        <button onclick="editarProfesor(${Number(p.id_profesor)})">Editar</button>
+        <button onclick="eliminarProfesor(${Number(p.id_profesor)})">Eliminar</button>
       </td>
     `;
     tbody.appendChild(row);
