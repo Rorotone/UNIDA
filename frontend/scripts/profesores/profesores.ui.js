@@ -47,8 +47,10 @@ function renderRows(data) {
       <td>${p.magister === 1 ? 'Sí' : 'No'}</td>
       <td>${escapeHTML(p.otro_i || '')}</td>
       <td>
-        <button onclick="editarProfesor(${Number(p.id_profesor)})">Editar</button>
-        <button onclick="eliminarProfesor(${Number(p.id_profesor)})">Eliminar</button>
+        <div class="action-buttons">
+          <button class="btn-secondary btn-sm" onclick="editarProfesor(${Number(p.id_profesor)})">Editar</button>
+          <button class="btn-danger btn-sm" onclick="eliminarProfesor(${Number(p.id_profesor)})">Eliminar</button>
+        </div>
       </td>
     `;
     tbody.appendChild(row);

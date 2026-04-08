@@ -318,30 +318,36 @@ tbody tr:hover { background: #f4f6ff; }
 
 .modal.is-open { display: flex; }
 
+/* Reemplaza desde .modal-content hasta .close:hover */
+
 .modal-content {
   width: min(100%, 560px);
   max-height: 90vh;
   overflow: auto;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 28px; /* Aumentamos el padding para dar aire a la X */
   position: relative;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
+  /* Eliminamos el border: 1px solid var(--border); */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra de modal moderna */
 }
 
 .close {
   position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 1.75rem;
+  top: 16px;   /* Lo bajamos un poco del techo */
+  right: 20px; /* Lo separamos del borde derecho */
+  font-size: 1.5rem;
   line-height: 1;
   color: var(--text-soft);
   cursor: pointer;
+  transition: all 0.2s ease; /* Transición suave */
+  z-index: 10; /* Aseguramos que siempre esté por encima del contenido */
 }
 
-.close:hover { color: var(--text); }
-
+.close:hover { 
+  color: var(--danger); /* Se pone rojo al pasar el mouse (feedback visual) */
+  transform: scale(1.1); /* Crece un poquito */
+}
 #calendario-semanal {
   display: flex;
   flex-wrap: wrap;

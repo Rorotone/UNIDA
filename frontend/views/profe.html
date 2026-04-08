@@ -23,39 +23,76 @@
           <h2 id="form-title">Agregar Profesor</h2>
           <input type="hidden" id="id_profesor">
 
-          <div class="form-group"><label for="nombre">Nombre</label><input type="text" id="nombre" required></div>
-          <div class="form-group"><label for="departamento">Departamento</label><input type="text" id="departamento" required></div>
-          <div class="form-group"><label for="sede">Sede</label>
-            <select id="sede" required>
-              <option value="">Seleccionar sede</option>
-              <option value="Casona Las Condes">Casona Las Condes</option>
-              <option value="Los Leones">Los Leones</option>
-              <option value="Antonio Varas">Antonio Varas</option>
-              <option value="Campus Creativo">Campus Creativo</option>
-              <option value="Bellavista">Bellavista</option>
-              <option value="Republica">República</option>
-              <option value="Concepción">Concepción</option>
-              <option value="Viña del Mar">Viña del Mar</option></select>
+          <div class="modal-form-grid">
+            
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" required>
+            </div>
+            <div class="form-group">
+              <label for="departamento">Departamento</label>
+              <input type="text" id="departamento" required>
+            </div>
+
+            <div class="form-group">
+              <label for="sede">Sede</label>
+              <select id="sede" required>
+                <option value="">Seleccionar sede</option>
+                <option value="Casona Las Condes">Casona Las Condes</option>
+                <option value="Los Leones">Los Leones</option>
+                <option value="Antonio Varas">Antonio Varas</option>
+                <option value="Campus Creativo">Campus Creativo</option>
+                <option value="Bellavista">Bellavista</option>
+                <option value="Republica">República</option>
+                <option value="Concepción">Concepción</option>
+                <option value="Viña del Mar">Viña del Mar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="sede_actual">Sede Actual</label>
+              <select id="sede_actual" required>
+                <option value="">Seleccionar sede actual</option>
+                <option value="Casona Las Condes">Casona Las Condes</option>
+                <option value="Los Leones">Los Leones</option>
+                <option value="Antonio Varas">Antonio Varas</option>
+                <option value="Campus Creativo">Campus Creativo</option>
+                <option value="Bellavista">Bellavista</option>
+                <option value="Republica">República</option>
+                <option value="Concepción">Concepción</option>
+                <option value="Viña del Mar">Viña del Mar</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="talleres">Talleres</label>
+              <input type="text" id="talleres">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Atributos del Profesor</label>
+              <div class="checkbox-group">
+                <label class="checkbox-item">
+                  <input type="checkbox" id="formacion"> Formación
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" id="estado_I"> Estado
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" id="magister"> ¿Magíster?
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="otro_i">Información adicional</label>
+              <input type="text" id="otro_i">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="sede_actual">Sede Actual</label>
-            <select id="sede_actual" required>
-              <option value="">Seleccionar sede actual</option>
-              <option value="Casona Las Condes">Casona Las Condes</option>
-              <option value="Los Leones">Los Leones</option>
-              <option value="Antonio Varas">Antonio Varas</option>
-              <option value="Campus Creativo">Campus Creativo</option>
-              <option value="Bellavista">Bellavista</option>
-              <option value="Republica">República</option>
-              <option value="Concepción">Concepción</option>
-              <option value="Viña del Mar">Viña del Mar</option></select>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn-success">Guardar</button>
           </div>
-          <div class="form-group"><label for="talleres">Talleres</label><input type="text" id="talleres"></div>
-          <div class="form-group"><label for="formacion">Formación</label><input type="checkbox" id="formacion"></div>
-          <div class="form-group"><label for="estado_I">Estado</label><input type="checkbox" id="estado_I"></div>
-          <div class="form-group"><label for="magister">¿Magíster?</label><input type="checkbox" id="magister"></div>
-          <div class="form-group"><label for="otro_i">Información adicional</label><input type="text" id="otro_i"></div>
-          <button type="submit">Guardar</button>
         </form>
       </div>
     </div>
@@ -75,7 +112,7 @@
         <div><label for="search-talleres-vra">Talleres VRA</label><select id="search-talleres-vra"></select></div>
         <div class="form-actions" style="align-items:end;">
           <button id="search-btn">Buscar</button> 
-          <button id="reset-btn" type="button">Limpiar filtros</button>
+          <button id="reset-btn" type="button" class="btn-secondary">Limpiar filtros</button>
         </div>
       </div>
 
