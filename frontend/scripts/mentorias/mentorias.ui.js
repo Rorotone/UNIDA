@@ -99,43 +99,55 @@ const MentoriasUI = (() => {
   }
 
   function renderTareas(card, tareas) {
-    const lista = card.querySelector(".lista-tareas");
-    if (!lista) return;
-
-    lista.innerHTML = "";
-
-    if (!Array.isArray(tareas) || tareas.length === 0) {
-      lista.innerHTML = `<li>No hay tareas registradas.</li>`;
-      return;
-    }
-
-    tareas.forEach((tarea) => {
-      const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
-      const completada = Boolean(tarea.completada || tarea.estado === "completada");
-
-      const li = document.createElement("li");
-      li.className = "tarea-item";
-      li.dataset.tareaId = idTarea;
-
-      li.innerHTML = `
-        <div class="tarea-item-main">
-          <label style="display:flex; gap:8px; align-items:flex-start;">
-            <input type="checkbox" class="tarea-check" ${completada ? "checked" : ""}>
-            <div>
-              <strong>${escapeHTML(tarea.titulo || "Sin título")}</strong>
-              <div>${escapeHTML(tarea.descripcion || "")}</div>
-              ${tarea.fecha ? `<small>Fecha: ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
+      const lista = card.querySelector(".lista-tareas");
+      if (!lista) return;
+  
+      lista.innerHTML = "";
+  
+      if (!Array.isArray(tareas) || tareas.length === 0) {
+        lista.innerHTML = `<li>No hay tareas registradas.</li>`;
+        return;
+      }
+  
+      tareas.forEach((tarea) => {
+        const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
+        const estado = Number(tarea.estado ?? 0);
+  
+        const estadoConfig = {
+          0: { label: "Pendiente",   cls: "badge-pendiente"  },
+          1: { label: "En progreso", cls: "badge-progreso"   },
+          2: { label: "Completada",  cls: "badge-completada" },
+        };
+        const { label, cls } = estadoConfig[estado] ?? estadoConfig[0];
+  
+        const li = document.createElement("li");
+        li.className = `tarea-item${estado === 2 ? " tarea-completada" : ""}`;
+        li.dataset.tareaId = idTarea;
+  
+        li.innerHTML = `
+          <div class="tarea-item-content">
+            <div class="tarea-item-info">
+              <div class="tarea-titulo-row">
+                <strong>${escapeHTML(tarea.titulo || "Sin título")}</strong>
+                <span class="tarea-badge ${cls}">${label}</span>
+              </div>
+              <div class="tarea-descripcion">${escapeHTML(tarea.descripcion || "")}</div>
+              ${tarea.fecha ? `<small class="tarea-fecha">📅 ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
             </div>
-          </label>
-        </div>
-        <div class="tarea-item-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn-eliminar-tarea btn-danger">Eliminar</button>
-        </div>
-      `;
-
-      lista.appendChild(li);
-    });
-  }
+            <div class="tarea-item-actions">
+              <select class="select-estado-tarea" data-tarea-id="${idTarea}">
+                <option value="0" ${estado === 0 ? "selected" : ""}>Pendiente</option>
+                <option value="1" ${estado === 1 ? "selected" : ""}>En progreso</option>
+                <option value="2" ${estado === 2 ? "selected" : ""}>Completada</option>
+              </select>
+              <button type="button" class="btn-eliminar-tarea btn-danger">Eliminar</button>
+            </div>
+          </div>
+        `;
+  
+        lista.appendChild(li);
+      });
+    }
 
   function toggleFormularioTarea(card, visible) {
     const form = card.querySelector(".form-nueva-tarea");

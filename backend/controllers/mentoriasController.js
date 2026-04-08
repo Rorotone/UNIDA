@@ -61,6 +61,7 @@ export const obtenerMentorias = async (req, res) => {
         m.id_profesor,
         m.fecha_inicio,
         m.fecha_termino,
+        m.completada,
         u.username AS mentor,
         p.nombre AS profesor
       FROM mentorias m
@@ -142,7 +143,7 @@ export const obtenerTareas = async (req, res) => {
     const { id_mentoria } = req.params;
 
     const [rows] = await db.execute(
-      `SELECT id, id_mentoria, titulo, descripcion, fecha, completada, archivo, created_at
+      `SELECT id, id_mentoria, titulo, descripcion, fecha, estado, archivo, created_at
        FROM tareas
        WHERE id_mentoria = ?
        ORDER BY created_at DESC, id DESC`,
@@ -175,7 +176,12 @@ export const completarMentoria = async (req, res) => {
     }
 
     await db.execute(
-      "UPDATE tareas SET completada = 1 WHERE id_mentoria = ?",
+      "UPDATE tareas SET estado = 2 WHERE id_mentoria = ?",
+      [id_mentoria]
+    );
+
+    await db.execute(
+      "UPDATE mentorias SET completada = 1 WHERE id = ?",
       [id_mentoria]
     );
 
@@ -208,8 +214,15 @@ export const marcarTodasTareas = async (req, res) => {
     }
 
     await db.execute(
-      "UPDATE tareas SET completada = ? WHERE id_mentoria = ?",
-      [completada ? 1 : 0, id_mentoria]
+      "UPDATE tareas SET estado = ? WHERE id_mentoria = ?",
+      [completada, id_mentoria]
+    );
+
+    // Actualizar estado de la mentoría según si todas las tareas quedan completadas
+    const todasCompletadas = Number(completada) === 2;
+    await db.execute(
+      "UPDATE mentorias SET completada = ? WHERE id = ?",
+      [todasCompletadas ? 1 : 0, id_mentoria]
     );
 
     res.status(200).json({
@@ -243,11 +256,25 @@ export const actualizarTarea = async (req, res) => {
     }
 
     await db.execute(
-      "UPDATE tareas SET completada = ? WHERE id = ? AND id_mentoria = ?",
-      [completada ? 1 : 0, id_tarea, id_mentoria]
+      "UPDATE tareas SET estado = ? WHERE id = ? AND id_mentoria = ?",
+      [Number(completada), id_tarea, id_mentoria]
     );
 
-    res.status(200).json({ message: "Tarea actualizada." });
+    // Verificar si todas las tareas de la mentoría están completadas (estado = 2)
+    const [tareas] = await db.execute(
+      "SELECT COUNT(*) as total, SUM(estado = 2) as completadas FROM tareas WHERE id_mentoria = ?",
+      [id_mentoria]
+    );
+
+    const { total, completadas } = tareas[0];
+    const todasCompletadas = total > 0 && Number(completadas) === Number(total);
+
+    await db.execute(
+      "UPDATE mentorias SET completada = ? WHERE id = ?",
+      [todasCompletadas ? 1 : 0, id_mentoria]
+    );
+
+    res.status(200).json({ message: "Tarea actualizada.", mentoriaCompletada: todasCompletadas });
   } catch (error) {
     console.error("Error al actualizar tarea:", error);
     res.status(500).json({ message: "Error interno del servidor." });

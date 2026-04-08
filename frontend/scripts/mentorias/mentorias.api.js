@@ -83,11 +83,11 @@ const MentoriasAPI = (() => {
     });
   }
 
-  async function actualizarEstadoTarea(idMentoria, idTarea, completada) {
+  async function actualizarEstadoTarea(idMentoria, idTarea, estado) {
     return request(`${BASE_URL}/${idMentoria}/tareas/${idTarea}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completada })
+      body: JSON.stringify({ completada: estado })
     });
   }
 

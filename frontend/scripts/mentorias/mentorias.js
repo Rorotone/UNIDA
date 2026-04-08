@@ -84,9 +84,29 @@ async function cargarSelects() {
 
 async function recargarMentorias() {
   try {
+    // Guardar qué mentorías tienen las tareas abiertas antes de recargar
+    const tareasAbiertas = new Map();
+    document.querySelectorAll(".mentoria-card").forEach((card) => {
+      if (MentoriasUI.estaTareasVisible(card)) {
+        tareasAbiertas.set(card.dataset.mentoriaId, true);
+      }
+    });
+
     const mentorias = await MentoriasAPI.obtenerMentorias();
     mentoriasCache = Array.isArray(mentorias) ? mentorias : [];
     aplicarFiltroCalendario(MentoriasUI.obtenerFechaSeleccionada());
+
+    // Reabrir las tareas que estaban abiertas y recargarlas
+    if (tareasAbiertas.size > 0) {
+      const promesas = [];
+      document.querySelectorAll(".mentoria-card").forEach((card) => {
+        const idMentoria = card.dataset.mentoriaId;
+        if (tareasAbiertas.has(idMentoria)) {
+          promesas.push(recargarTareas(card, idMentoria));
+        }
+      });
+      await Promise.all(promesas);
+    }
   } catch (error) {
     console.error("Error al cargar mentorías:", error);
     alert(error.message || "No se pudieron cargar las mentorías.");
@@ -181,8 +201,8 @@ async function handleClickListaMentorias(e) {
 
   if (e.target.closest(".btn-marcar-todas")) {
     try {
-      await MentoriasAPI.marcarTodasTareas(idMentoria, true);
-      await recargarTareas(card, idMentoria);
+      await MentoriasAPI.marcarTodasTareas(idMentoria, 2);
+      await recargarMentorias();
     } catch (error) {
       console.error("Error al marcar todas las tareas:", error);
       alert(error.message || "No se pudieron marcar todas las tareas.");
@@ -192,8 +212,8 @@ async function handleClickListaMentorias(e) {
 
   if (e.target.closest(".btn-desmarcar-todas")) {
     try {
-      await MentoriasAPI.marcarTodasTareas(idMentoria, false);
-      await recargarTareas(card, idMentoria);
+      await MentoriasAPI.marcarTodasTareas(idMentoria, 0);
+      await recargarMentorias();
     } catch (error) {
       console.error("Error al desmarcar todas las tareas:", error);
       alert(error.message || "No se pudieron desmarcar todas las tareas.");
@@ -266,23 +286,23 @@ async function handleSubmitTarea(e) {
 }
 
 async function handleChangeListaMentorias(e) {
-  const checkbox = e.target.closest(".tarea-check");
-  if (!checkbox) return;
+  const select = e.target.closest(".select-estado-tarea");
+  if (!select) return;
 
-  const tareaItem = checkbox.closest(".tarea-item");
-  const card = checkbox.closest(".mentoria-card");
+  const tareaItem = select.closest(".tarea-item");
+  const card = select.closest(".mentoria-card");
 
   const idMentoria = card?.dataset.mentoriaId;
   const idTarea = tareaItem?.dataset.tareaId;
-  const completada = checkbox.checked;
+  const nuevoEstado = Number(select.value);
 
   if (!idMentoria || !idTarea) return;
 
   try {
-    await MentoriasAPI.actualizarEstadoTarea(idMentoria, idTarea, completada);
+    await MentoriasAPI.actualizarEstadoTarea(idMentoria, idTarea, nuevoEstado);
+    await recargarMentorias();
   } catch (error) {
     console.error("Error al actualizar estado de tarea:", error);
-    checkbox.checked = !completada;
     alert(error.message || "No se pudo actualizar la tarea.");
   }
 }
