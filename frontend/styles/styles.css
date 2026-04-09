@@ -1,3 +1,8 @@
+/* =========================================
+   UNIDA - ESTILOS GLOBALES OPTIMIZADOS
+   Base compartida para páginas principales.
+   ========================================= */
+
 :root {
   --primary: #5a4bf6;
   --primary-dark: #4739c1;
@@ -21,6 +26,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -36,7 +42,6 @@ a {
 }
 
 a:hover { text-decoration: underline; }
-
 img { max-width: 100%; display: block; }
 
 header {
@@ -199,50 +204,112 @@ button,
 input[type="submit"],
 input[type="button"] {
   appearance: none;
-  border: none;
-  border-radius: 10px;
-  min-height: 42px;
-  padding: 0 16px;
-  background: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0.6rem 1.4rem;
+  background: #4F46E5;
   color: #fff;
-  font: inherit;
-  font-weight: 700;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: transform .08s ease, filter .2s ease, box-shadow .2s ease;
-  box-shadow: 0 8px 20px rgba(90, 75, 246, 0.18);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -2px rgba(79, 70, 229, 0.2);
 }
 
 button:hover,
 .btn:hover,
 input[type="submit"]:hover,
 input[type="button"]:hover {
-  filter: brightness(0.96);
+  background: #4338CA;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 10px -1px rgba(79, 70, 229, 0.3), 0 2px 4px -2px rgba(79, 70, 229, 0.3);
 }
 
 button:active,
 .btn:active,
 input[type="submit"]:active,
 input[type="button"]:active {
-  transform: translateY(1px);
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(79, 70, 229, 0.2);
+}
+
+button:focus-visible,
+.btn:focus-visible,
+input[type="submit"]:focus-visible,
+input[type="button"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px #E0E7FF, 0 0 0 2px #4F46E5;
 }
 
 .btn-secondary,
 .btn-ghost {
   background: #fff;
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: none;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover,
+.btn-ghost:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .btn-danger {
-  background: var(--danger);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.16);
+  background: #E11D48;
+  box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2);
 }
 
-.btn-success { background: var(--success); box-shadow: 0 8px 20px rgba(34, 197, 94, 0.16); }
-.btn-warning { background: var(--warning); color: #222; box-shadow: none; }
+.btn-danger:hover {
+  background: #BE123C;
+  box-shadow: 0 6px 10px -1px rgba(225, 29, 72, 0.3);
+}
+
+.btn-danger:focus-visible {
+  box-shadow: 0 0 0 4px #FFE4E6, 0 0 0 2px #E11D48;
+}
+
+.btn-success {
+  background: #10B981;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.btn-success:hover {
+  background: #059669;
+  box-shadow: 0 6px 10px -1px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:focus-visible {
+  box-shadow: 0 0 0 4px #D1FAE5, 0 0 0 2px #10B981;
+}
+
+.btn-warning {
+  background: #EA580C;
+  color: #fff;
+  box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);
+}
+
+.btn-warning:hover {
+  background: #C2410C;
+  box-shadow: 0 6px 10px -1px rgba(234, 88, 12, 0.3);
+}
+
+.btn-warning:focus-visible {
+  box-shadow: 0 0 0 4px #FFEDD5, 0 0 0 2px #EA580C;
+}
 
 .form-group { margin-bottom: 16px; }
+
 .form-actions,
 .actions,
 .mentoria-actions,
@@ -318,70 +385,43 @@ tbody tr:hover { background: #f4f6ff; }
 
 .modal.is-open { display: flex; }
 
-/* Reemplaza desde .modal-content hasta .close:hover */
-
 .modal-content {
   width: min(100%, 560px);
   max-height: 90vh;
   overflow: auto;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 28px; /* Aumentamos el padding para dar aire a la X */
+  padding: 28px;
   position: relative;
-  /* Eliminamos el border: 1px solid var(--border); */
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra de modal moderna */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .close {
   position: absolute;
-  top: 16px;   /* Lo bajamos un poco del techo */
-  right: 20px; /* Lo separamos del borde derecho */
+  top: 16px;
+  right: 20px;
   font-size: 1.5rem;
   line-height: 1;
   color: var(--text-soft);
   cursor: pointer;
-  transition: all 0.2s ease; /* Transición suave */
-  z-index: 10; /* Aseguramos que siempre esté por encima del contenido */
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
-.close:hover { 
-  color: var(--danger); /* Se pone rojo al pasar el mouse (feedback visual) */
-  transform: scale(1.1); /* Crece un poquito */
-}
-#calendario-semanal {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 18px;
+.close:hover {
+  color: var(--danger);
+  transform: scale(1.1);
 }
 
-.btn-semana-nav,
-.btn-dia-semana {
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-}
-
-.btn-dia-semana {
-  background: #fff;
-  color: var(--text);
-  border: 1px solid var(--border);
+.modal-content form {
+  background: transparent;
+  border: none;
   box-shadow: none;
+  padding: 0;
 }
 
-.btn-dia-semana.seleccionado,
-.btn-completar.completada {
-  background: var(--success);
-  color: #fff;
-}
-
-.btn-completar {
-  background: var(--warning);
-  color: #222;
-  box-shadow: none;
-}
+.hidden { display: none !important; }
+.hidden-block { display: none !important; }
 
 .error-message {
   color: #b91c1c;
@@ -405,91 +445,4 @@ tbody tr:hover { background: #f4f6ff; }
   main, .container { padding: 20px 14px 34px; }
   .auth-card, .login-container, .register-container { padding: 22px; }
   thead th, tbody td { padding: 10px; font-size: .92rem; }
-}
-/* ===== Layout investigaciones con sidebar sin afectar tabla ===== */
-.investigaciones-layout {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  width: 100%;
-}
-
-.sidebar-filtros {
-  width: 100%;
-}
-
-.sidebar-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-.sidebar-card h2 {
-  margin-top: 0;
-  margin-bottom: 18px;
-  font-size: 1.15rem;
-  color: #5a4bf6;
-}
-
-.sidebar-form-group {
-  margin-bottom: 14px;
-}
-
-.sidebar-form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.sidebar-form-group input,
-.sidebar-form-group select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-
-.sidebar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.sidebar-actions button {
-  width: 100%;
-}
-
-/* Contenido derecho */
-.investigaciones-content {
-  min-width: 0;
-  width: 100%;
-}
-
-/* La tabla no se rompe ni se monta */
-.investigaciones-content .table-wrap {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.investigaciones-content table {
-  width: 100%;
-  min-width: 900px; /* ajusta según tus columnas */
-  border-collapse: collapse;
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-  .investigaciones-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .investigaciones-content table {
-    min-width: 800px;
-  }
 }
