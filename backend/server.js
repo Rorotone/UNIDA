@@ -11,6 +11,7 @@ import mentoriasRoutes from './routes/mentoriasRoutes.js';
 import investigacionesRoutes from './routes/investigacionesRoutes.js';
 import { authenticateToken } from './middleware/authMiddleware.js';
 import { obtenerMentores } from './controllers/mentoriasController.js';
+import { iniciarCronVencimientos } from './jobs/vencimientoJob.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,4 +63,5 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://127.0.0.1:${PORT}`);
+  iniciarCronVencimientos();
 });

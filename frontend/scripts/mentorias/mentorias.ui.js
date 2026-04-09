@@ -81,11 +81,26 @@ const MentoriasUI = (() => {
 
       const badge = clone.querySelector(".mentoria-badge-estado");
       const btnCompletar = clone.querySelector(".btn-completar");
-      if (mentoria.completada) {
-        badge.textContent = "✓ Completada";
-        badge.classList.add("completada");
-        btnCompletar.classList.add("completada");
-        btnCompletar.textContent = "✓ Completada";
+
+      const estadoMentoria = Number(mentoria.completada ?? 0);
+      if (estadoMentoria === 1) {
+        badge.textContent = "✓ Finalizada";
+        badge.classList.add("finalizada");
+        btnCompletar.classList.add("finalizada");
+        btnCompletar.textContent = "✓ Finalizada";
+      } else if (estadoMentoria === 2) {
+        badge.textContent = "⏰ Vencida";
+        badge.classList.add("vencida");
+        btnCompletar.disabled = true;
+        btnCompletar.textContent = "Vencida";
+        btnCompletar.classList.add("vencida");
+
+        const btnEliminar = clone.querySelector(".btn-eliminar");
+        if (btnEliminar) {
+          btnEliminar.disabled = true;
+          btnEliminar.style.opacity = "0.4";
+          btnEliminar.style.cursor = "not-allowed";
+        }
       }
 
       lista.appendChild(clone);
@@ -99,55 +114,79 @@ const MentoriasUI = (() => {
   }
 
   function renderTareas(card, tareas) {
-      const lista = card.querySelector(".lista-tareas");
-      if (!lista) return;
-  
-      lista.innerHTML = "";
-  
-      if (!Array.isArray(tareas) || tareas.length === 0) {
-        lista.innerHTML = `<li>No hay tareas registradas.</li>`;
-        return;
-      }
-  
-      tareas.forEach((tarea) => {
-        const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
-        const estado = Number(tarea.estado ?? 0);
-  
-        const estadoConfig = {
-          0: { label: "Pendiente",   cls: "badge-pendiente"  },
-          1: { label: "En progreso", cls: "badge-progreso"   },
-          2: { label: "Completada",  cls: "badge-completada" },
-        };
-        const { label, cls } = estadoConfig[estado] ?? estadoConfig[0];
-  
-        const li = document.createElement("li");
-        li.className = `tarea-item${estado === 2 ? " tarea-completada" : ""}`;
-        li.dataset.tareaId = idTarea;
-  
-        li.innerHTML = `
-          <div class="tarea-item-content">
-            <div class="tarea-item-info">
-              <div class="tarea-titulo-row">
-                <strong>${escapeHTML(tarea.titulo || "Sin título")}</strong>
-                <span class="tarea-badge ${cls}">${label}</span>
-              </div>
-              <div class="tarea-descripcion">${escapeHTML(tarea.descripcion || "")}</div>
-              ${tarea.fecha ? `<small class="tarea-fecha">📅 ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
-            </div>
-            <div class="tarea-item-actions">
-              <select class="select-estado-tarea" data-tarea-id="${idTarea}">
-                <option value="0" ${estado === 0 ? "selected" : ""}>Pendiente</option>
-                <option value="1" ${estado === 1 ? "selected" : ""}>En progreso</option>
-                <option value="2" ${estado === 2 ? "selected" : ""}>Completada</option>
-              </select>
-              <button type="button" class="btn-eliminar-tarea btn-danger">Eliminar</button>
-            </div>
-          </div>
-        `;
-  
-        lista.appendChild(li);
-      });
+    const lista = card.querySelector(".lista-tareas");
+    if (!lista) return;
+
+    lista.innerHTML = "";
+
+    if (!Array.isArray(tareas) || tareas.length === 0) {
+      lista.innerHTML = `<li>No hay tareas registradas.</li>`;
+      actualizarBotonesMarcar(card, []);
+      return;
     }
+
+    tareas.forEach((tarea) => {
+      const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
+      const estado = Number(tarea.estado ?? 0);
+
+      const estadoConfig = {
+        0: { label: "Pendiente",   cls: "badge-pendiente"  },
+        1: { label: "En progreso", cls: "badge-progreso"   },
+        2: { label: "Finalizada",  cls: "badge-finalizada" },
+        3: { label: "Vencida",     cls: "badge-vencida"    },
+      };
+      const { label, cls } = estadoConfig[estado] ?? estadoConfig[0];
+
+      const li = document.createElement("li");
+      li.className = `tarea-item${estado === 2 ? " tarea-finalizada" : ""}${estado === 3 ? " tarea-vencida" : ""}`;
+      li.dataset.tareaId = idTarea;
+
+      li.innerHTML = `
+        <div class="tarea-item-content">
+          <div class="tarea-item-info">
+            <div class="tarea-titulo-row">
+              <strong>${escapeHTML(tarea.titulo || "Sin título")}</strong>
+              <span class="tarea-badge ${cls}">${label}</span>
+            </div>
+            <div class="tarea-descripcion">${escapeHTML(tarea.descripcion || "")}</div>
+            ${tarea.fecha ? `<small class="tarea-fecha">📅 ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
+          </div>
+          <div class="tarea-item-actions">
+            <select class="select-estado-tarea" data-tarea-id="${idTarea}" ${estado === 3 ? "disabled" : ""}>
+              <option value="0" ${estado === 0 ? "selected" : ""}>Pendiente</option>
+              <option value="1" ${estado === 1 ? "selected" : ""}>En progreso</option>
+              <option value="2" ${estado === 2 ? "selected" : ""}>Finalizada</option>
+              <option value="3" ${estado === 3 ? "selected" : ""}>Vencida</option>
+            </select>
+            <button type="button" class="btn-eliminar-tarea btn-danger">Eliminar</button>
+          </div>
+        </div>
+      `;
+
+      lista.appendChild(li);
+    });
+
+    // Deshabilitar botones marcar/desmarcar si no hay tareas modificables
+    actualizarBotonesMarcar(card, tareas);
+  }
+
+  function actualizarBotonesMarcar(card, tareas) {
+    const hayModificables = tareas.some(t => Number(t.estado ?? 0) !== 3);
+    const btnMarcar    = card.querySelector(".btn-marcar-todas");
+    const btnDesmarcar = card.querySelector(".btn-desmarcar-todas");
+    const btnAgregar   = card.querySelector(".btn-mostrar-form-tarea");
+
+    [
+      [btnMarcar,    hayModificables],
+      [btnDesmarcar, hayModificables],
+      [btnAgregar,   hayModificables],
+    ].forEach(([btn, habilitado]) => {
+      if (!btn) return;
+      btn.disabled = !habilitado;
+      btn.style.opacity = habilitado ? "" : "0.4";
+      btn.style.cursor  = habilitado ? "" : "not-allowed";
+    });
+  }
 
   function toggleFormularioTarea(card, visible) {
     const form = card.querySelector(".form-nueva-tarea");
@@ -278,15 +317,13 @@ const MentoriasUI = (() => {
 
   function parsearFechaMs(valor) {
     if (!valor) return null;
- 
-    // Si es objeto Date, extraer año/mes/día en hora local
+
     if (valor instanceof Date) {
       if (isNaN(valor.getTime())) return null;
       return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate()).getTime();
     }
- 
-    // Si es string ISO "2026-03-31T00:48:45.000Z" o "2026-03-31 21:48:45"
-    const soloFecha = String(valor).slice(0, 10); // "2026-03-31"
+
+    const soloFecha = String(valor).slice(0, 10);
     const partes = soloFecha.split("-");
     if (partes.length !== 3) return null;
     const d = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));

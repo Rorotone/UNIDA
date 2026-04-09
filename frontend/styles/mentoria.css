@@ -1,3 +1,6 @@
+/* ===== Utilidades ===== */
+.hidden-block { display: none !important; }
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -12,6 +15,7 @@
   font-size: 0.95rem;
 }
 
+/* ===== Calendario ===== */
 #calendario-semanal {
   display: flex;
   flex-wrap: wrap;
@@ -43,10 +47,7 @@
   box-shadow: none;
 }
 
-.btn-semana-nav:hover {
-  background: var(--primary);
-  color: #fff;
-}
+.btn-semana-nav:hover { background: var(--primary); color: #fff; }
 
 .btn-dia-semana {
   min-height: 64px;
@@ -77,7 +78,7 @@
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-  box-shadow: 0 4px 14px rgba(90, 75, 246, 0.3);
+  box-shadow: 0 4px 14px rgba(90,75,246,0.3);
 }
 
 #btn-ver-todas {
@@ -86,10 +87,8 @@
   padding: 0 14px;
 }
 
-#lista-mentorias {
-  display: grid;
-  gap: 16px;
-}
+/* ===== Lista de mentorías ===== */
+#lista-mentorias { display: grid; gap: 16px; }
 
 .empty-state {
   text-align: center;
@@ -101,6 +100,7 @@
   font-size: 0.95rem;
 }
 
+/* ===== Card ===== */
 .mentoria-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -143,14 +143,12 @@
   white-space: nowrap;
 }
 
-.mentoria-badge-estado.completada {
+.mentoria-badge-estado.finalizada {
   background: var(--success);
   border-color: var(--success);
 }
 
-.mentoria-card-body {
-  padding: 16px 20px 20px;
-}
+.mentoria-card-body { padding: 16px 20px 20px; }
 
 .mentoria-meta {
   display: grid;
@@ -159,11 +157,7 @@
   margin-bottom: 14px;
 }
 
-.mentoria-meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
+.mentoria-meta-item { display: flex; flex-direction: column; gap: 3px; }
 
 .mentoria-meta-label {
   font-size: 0.72rem;
@@ -192,11 +186,7 @@
   margin-bottom: 14px;
 }
 
-.mentoria-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.mentoria-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .mentoria-actions button {
   font-size: 0.85rem;
@@ -204,19 +194,11 @@
   padding: 0 14px;
 }
 
-.btn-completar {
-  background: var(--warning);
-  color: #222;
-  box-shadow: none;
-}
-
+.btn-completar { background: var(--warning); color: #222; box-shadow: none; }
 .btn-completar:hover { filter: brightness(0.95); }
+.btn-completar.finalizada { background: var(--success); color: #fff; }
 
-.btn-completar.completada {
-  background: var(--success);
-  color: #fff;
-}
-
+/* ===== Tareas ===== */
 .tareas-container {
   border-top: 1px solid var(--border);
   background: var(--surface-muted);
@@ -241,24 +223,10 @@
   letter-spacing: 0.04em;
 }
 
-.tareas-masivo-actions {
-  display: flex;
-  gap: 6px;
-}
+.tareas-masivo-actions { display: flex; gap: 6px; }
+.tareas-masivo-actions button { font-size: 0.78rem; min-height: 30px; padding: 0 10px; }
 
-.tareas-masivo-actions button {
-  font-size: 0.78rem;
-  min-height: 30px;
-  padding: 0 10px;
-}
-
-.lista-tareas {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 14px;
-  display: grid;
-  gap: 10px;
-}
+.lista-tareas { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 10px; }
 
 .tarea-item {
   background: var(--surface);
@@ -273,34 +241,12 @@
   background: #f0fdf4;
 }
 
-.tarea-item strong {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 0.92rem;
-}
+.tarea-item strong { display: block; margin-bottom: 2px; font-size: 0.92rem; }
+.tarea-item small { color: var(--text-soft); font-size: 0.8rem; }
+.tarea-item-actions { margin-top: 8px; display: flex; gap: 8px; }
+.tarea-item-actions button { font-size: 0.78rem; min-height: 28px; padding: 0 10px; }
 
-.tarea-item small {
-  color: var(--text-soft);
-  font-size: 0.8rem;
-}
-
-.tarea-item-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-}
-
-.tarea-item-actions button {
-  font-size: 0.78rem;
-  min-height: 28px;
-  padding: 0 10px;
-}
-
-.btn-mostrar-form-tarea {
-  font-size: 0.85rem;
-  min-height: 34px;
-  padding: 0 14px;
-}
+.btn-mostrar-form-tarea { font-size: 0.85rem; min-height: 34px; padding: 0 14px; }
 
 .form-nueva-tarea {
   margin-top: 14px;
@@ -310,37 +256,149 @@
   border-radius: var(--radius-md);
 }
 
-#modal-mentoria .modal-content {
-  width: min(100%, 520px);
-}
+.form-group { margin-bottom: 14px; }
 
-#modal-mentoria h2 {
-  margin-top: 0;
-  margin-bottom: 18px;
-  color: var(--primary);
-}
+#modal-mentoria .modal-content { width: min(100%, 520px); }
+#modal-mentoria h2 { margin-top: 0; margin-bottom: 18px; color: var(--primary); }
 
 @media (max-width: 600px) {
-  .mentoria-meta {
-    grid-template-columns: 1fr;
-  }
+  .mentoria-meta { grid-template-columns: 1fr; }
+  .mentoria-actions { flex-direction: column; }
+  .mentoria-actions button { width: 100%; }
+  .tareas-header { flex-direction: column; align-items: flex-start; }
+  .btn-dia-semana { width: 44px; min-height: 60px; font-size: 0.75rem; }
+}
+/* ===== Tarea item - nuevo layout ===== */
+.tarea-item-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-  .mentoria-actions {
-    flex-direction: column;
-  }
+.tarea-item-info {
+  flex: 1;
+  min-width: 0;
+}
 
-  .mentoria-actions button {
-    width: 100%;
-  }
+.tarea-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
 
-  .tareas-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.tarea-titulo-row strong {
+  font-size: 0.92rem;
+}
 
-  .btn-dia-semana {
-    width: 44px;
-    min-height: 60px;
-    font-size: 0.78rem;
-  }
+.tarea-descripcion {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+
+.tarea-fecha {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+/* Badge de estado */
+.tarea-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.badge-progreso {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-finalizada {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+/* Tarea Finalizada */
+.tarea-finalizada {
+  opacity: 0.7;
+}
+
+.tarea-finalizada .tarea-titulo-row strong {
+  text-decoration: line-through;
+}
+
+/* Acciones a la derecha */
+.tarea-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.select-estado-tarea {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  width: 120px;
+}
+
+.btn-eliminar-tarea {
+  font-size: 0.78rem;
+  min-height: 28px;
+  padding: 0 10px;
+  width: 120px;
+}
+
+@media (max-width: 500px) {
+  .tarea-item-content { flex-direction: column; }
+  .tarea-item-actions { flex-direction: row; align-items: center; width: 100%; }
+  .select-estado-tarea, .btn-eliminar-tarea { width: auto; flex: 1; }
+}
+/* ===== Estado vencida ===== */
+.badge-vencida {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.mentoria-badge-estado.vencida {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-completar.vencida {
+  background: #9ca3af;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.tarea-vencida {
+  opacity: 0.75;
+  border-color: #fecaca !important;
+  background: #fff5f5;
+}
+
+.tarea-vencida .tarea-titulo-row strong {
+  color: #991b1b;
 }
