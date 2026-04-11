@@ -65,6 +65,63 @@
   border-top: 1px solid var(--border);
 }
 
+/* Centrar modal profesores */
+#modal-profesor {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#modal-profesor.is-open {
+  display: flex;
+}
+
+/* tamaño modal profesores */
+#modal-profesor .modal-content {
+  width: min(720px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 0 auto;
+}
+
+/* acciones superiores */
+.top-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* importador CSV */
+.csv-import-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.csv-file-name {
+  min-width: 220px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-muted, var(--text));
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+/* bloque de acciones de filtros */
+.search-actions {
+  align-items: end;
+}
+
 @media (max-width: 768px) {
   .modal-form-grid {
     grid-template-columns: 1fr;
@@ -81,27 +138,19 @@
   .modal-actions button {
     flex: 1 1 100%;
   }
-}
-/* Centrar modal profesores */
-#modal-profesor {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
 
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+  .top-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-#modal-profesor.is-open {
-  display: flex;
-}
+  .csv-import-container {
+    width: 100%;
+    align-items: stretch;
+  }
 
-/* tamaño modal profesores */
-#modal-profesor .modal-content {
-  width: min(720px, 95vw);
-  max-height: 90vh;
-  overflow-y: auto;
-  margin: 0 auto;
+  .csv-import-container button,
+  .csv-file-name {
+    width: 100%;
+  }
 }

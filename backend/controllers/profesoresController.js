@@ -185,3 +185,102 @@ export const deleteProfesor = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 };
+export const uploadProfesoresCSV = async (req, res) => {
+    const fs = req.app.locals.fs;
+    const csv = req.app.locals.csvParser;
+
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No se envió ningún archivo CSV.' });
+        }
+
+        const filePath = req.file.path;
+        const profesores = [];
+
+        await new Promise((resolve, reject) => {
+            fs.createReadStream(filePath)
+                .pipe(csv())
+                .on('data', (row) => {
+                    const nombre = (row.nombre ?? row.Nombre ?? '').toString().trim();
+                    const departamento = (row.departamento ?? row.Departamento ?? '').toString().trim();
+                    const sede = (row.Sede ?? row.sede ?? '').toString().trim();
+                    const sedeActual = (row.Sede_actual ?? row.sede_actual ?? '').toString().trim();
+                    const talleres = (row.Talleres ?? row.talleres ?? '').toString().trim();
+                    const formacion = row.Formacion ?? row.formacion ?? 0;
+                    const estadoI = row.Estado_I ?? row.estado_I ?? 0;
+                    const magister = row.Magister ?? row.magister ?? 0;
+                    const otroI = (row.Otro_I ?? row.otro_i ?? row.Otro_i ?? '').toString().trim();
+
+                    if (!nombre || !departamento) {
+                        return;
+                    }
+
+                    profesores.push([
+                        nombre,
+                        departamento,
+                        sede,
+                        sedeActual,
+                        talleres,
+                        formacion === '' ? 0 : formacion,
+                        estadoI === '' ? 0 : estadoI,
+                        magister === '' ? 0 : magister,
+                        otroI
+                    ]);
+                })
+                .on('end', resolve)
+                .on('error', reject);
+        });
+
+        if (profesores.length === 0) {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            return res.status(400).json({
+                message: 'El archivo CSV no contiene registros válidos.'
+            });
+        }
+
+        const connection = await db.getConnection();
+
+        try {
+            await connection.beginTransaction();
+
+            const insertQuery = `
+                INSERT INTO profesores
+                (nombre, departamento, Sede, Sede_actual, Talleres, Formacion, Estado_I, Magister, Otro_I)
+                VALUES ?
+            `;
+
+            const [result] = await connection.query(insertQuery, [profesores]);
+
+            await connection.commit();
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            return res.status(201).json({
+                message: 'Carga masiva de profesores realizada exitosamente.',
+                registros_insertados: result.affectedRows
+            });
+        } catch (dbError) {
+            await connection.rollback();
+            throw dbError;
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Error en carga masiva de profesores:', error);
+
+        try {
+            if (req.file?.path && req.app.locals.fs.existsSync(req.file.path)) {
+                req.app.locals.fs.unlinkSync(req.file.path);
+            }
+        } catch (cleanupError) {
+            console.error('Error al eliminar archivo temporal:', cleanupError);
+        }
+
+        res.status(500).json({ message: 'Error interno del servidor.' });
+    }
+};

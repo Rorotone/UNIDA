@@ -15,9 +15,9 @@ function normalizeProfesor(p) {
     sede: p.Sede ?? p.sede ?? '',
     sede_actual: p.Sede_actual ?? p.sede_actual ?? '',
     talleres: p.Talleres ?? p.talleres ?? '',
-    formacion: p.Formacion ?? p.formacion ?? 0,
-    estado_I: p.Estado_I ?? p.estado_I ?? 0,
-    magister: p.Magister ?? p.magister ?? 0,
+    formacion: Number(p.Formacion ?? p.formacion ?? 0),
+    estado_I: Number(p.Estado_I ?? p.estado_I ?? 0),
+    magister: Number(p.Magister ?? p.magister ?? 0),
     otro_i: p.Otro_I ?? p.Otro_i ?? p.otro_i ?? '',
   };
 }
@@ -32,6 +32,8 @@ function getProfesoresCache() {
 
 function renderRows(data) {
   const tbody = document.getElementById('profesores-body');
+  if (!tbody) return;
+
   tbody.innerHTML = '';
 
   data.forEach((p) => {
@@ -42,9 +44,9 @@ function renderRows(data) {
       <td>${escapeHTML(p.sede)}</td>
       <td>${escapeHTML(p.sede_actual)}</td>
       <td>${escapeHTML(p.talleres)}</td>
-      <td>${p.formacion === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.estado_I === 1 ? 'Sí' : 'No'}</td>
-      <td>${p.magister === 1 ? 'Sí' : 'No'}</td>
+      <td>${Number(p.formacion) === 1 ? 'Sí' : 'No'}</td>
+      <td>${Number(p.estado_I) === 1 ? 'Sí' : 'No'}</td>
+      <td>${Number(p.magister) === 1 ? 'Sí' : 'No'}</td>
       <td>${escapeHTML(p.otro_i || '')}</td>
       <td>
         <div class="action-buttons">
@@ -58,13 +60,15 @@ function renderRows(data) {
 }
 
 function uniqueValues(arr, key) {
-  return [...new Set(arr.map(x => (x?.[key] ?? '').trim()).filter(Boolean))].sort();
+  return [...new Set(arr.map(x => String(x?.[key] ?? '').trim()).filter(Boolean))].sort();
 }
 
 function populateSelect(selectEl, values) {
+  if (!selectEl) return;
+
   selectEl.innerHTML =
     `<option value="">Todos</option>` +
-    values.map(v => `<option value="${v}">${v}</option>`).join('');
+    values.map(v => `<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join('');
 }
 
 function renderFiltros() {
@@ -76,10 +80,10 @@ function renderFiltros() {
 
 function applyFilters() {
   const qNombre = document.getElementById('search-nombre')?.value.toLowerCase() || '';
-  const depto = document.getElementById('search-departamento').value;
-  const sede = document.getElementById('search-sede').value;
-  const sedeCls = document.getElementById('search-sede-clases').value;
-  const talleres = document.getElementById('search-talleres-vra').value;
+  const depto = document.getElementById('search-departamento')?.value || '';
+  const sede = document.getElementById('search-sede')?.value || '';
+  const sedeCls = document.getElementById('search-sede-clases')?.value || '';
+  const talleres = document.getElementById('search-talleres-vra')?.value || '';
 
   const filtrados = profesoresCache.filter(p => {
     const byNombre = !qNombre || (p.nombre || '').toLowerCase().includes(qNombre);
@@ -105,43 +109,58 @@ function actualizarFiltrosEnCascada(filtrados, seleccionActual) {
   populateSelect(selectSedeClases, uniqueValues(filtrados, 'sede_actual'));
   populateSelect(selectTalleres, uniqueValues(filtrados, 'talleres'));
 
-  // Restaurar la selección actual si el valor todavía existe
-  selectDepto.value = seleccionActual.depto;
-  selectSede.value = seleccionActual.sede;
-  selectSedeClases.value = seleccionActual.sedeCls;
-  selectTalleres.value = seleccionActual.talleres;
+  if (selectDepto) selectDepto.value = seleccionActual.depto;
+  if (selectSede) selectSede.value = seleccionActual.sede;
+  if (selectSedeClases) selectSedeClases.value = seleccionActual.sedeCls;
+  if (selectTalleres) selectTalleres.value = seleccionActual.talleres;
 }
 
 function toggleFiltros() {
   const container = document.getElementById('search-container');
   const btn = document.getElementById('toggle-filtros-btn');
+  if (!container || !btn) return;
+
   const visible = !container.classList.contains('hidden');
   container.classList.toggle('hidden');
   btn.textContent = visible ? 'Filtrar' : 'Ocultar filtros';
 }
 
 function resetFiltros() {
-  document.getElementById('search-nombre').value = '';
-  document.getElementById('search-departamento').value = '';
-  document.getElementById('search-sede').value = '';
-  document.getElementById('search-sede-clases').value = '';
-  document.getElementById('search-talleres-vra').value = '';
+  const nombre = document.getElementById('search-nombre');
+  const departamento = document.getElementById('search-departamento');
+  const sede = document.getElementById('search-sede');
+  const sedeClases = document.getElementById('search-sede-clases');
+  const talleres = document.getElementById('search-talleres-vra');
+
+  if (nombre) nombre.value = '';
+  if (departamento) departamento.value = '';
+  if (sede) sede.value = '';
+  if (sedeClases) sedeClases.value = '';
+  if (talleres) talleres.value = '';
+
   renderRows(profesoresCache);
   renderFiltros();
 }
 
 function abrirModal() {
-  document.getElementById('modal-profesor').style.display = 'block';
+  const modal = document.getElementById('modal-profesor');
+  if (modal) modal.style.display = 'block';
 }
 
 function cerrarModal() {
-  document.getElementById('modal-profesor').style.display = 'none';
+  const modal = document.getElementById('modal-profesor');
+  if (modal) modal.style.display = 'none';
 }
 
 function resetFormUI() {
-  document.getElementById('profesor-form').reset();
-  document.getElementById('id_profesor').value = '';
-  document.getElementById('form-title').textContent = 'Agregar Profesor';
+  const form = document.getElementById('profesor-form');
+  if (form) form.reset();
+
+  const id = document.getElementById('id_profesor');
+  const title = document.getElementById('form-title');
+
+  if (id) id.value = '';
+  if (title) title.textContent = 'Agregar Profesor';
 }
 
 function fillForm(profesor) {
@@ -151,23 +170,65 @@ function fillForm(profesor) {
   document.getElementById('sede').value = profesor.sede;
   document.getElementById('sede_actual').value = profesor.sede_actual;
   document.getElementById('talleres').value = profesor.talleres;
-  document.getElementById('formacion').checked = profesor.formacion === 1;
-  document.getElementById('estado_I').checked = profesor.estado_I === 1;
-  document.getElementById('magister').checked = profesor.magister === 1;
+  document.getElementById('formacion').checked = Number(profesor.formacion) === 1;
+  document.getElementById('estado_I').checked = Number(profesor.estado_I) === 1;
+  document.getElementById('magister').checked = Number(profesor.magister) === 1;
   document.getElementById('otro_i').value = profesor.otro_i;
   document.getElementById('form-title').textContent = 'Editar Profesor';
 }
 
 function getFormData() {
   return {
-    nombre: document.getElementById('nombre').value,
-    departamento: document.getElementById('departamento').value,
-    sede: document.getElementById('sede').value,
-    sede_actual: document.getElementById('sede_actual').value,
-    talleres: document.getElementById('talleres').value,
+    nombre: document.getElementById('nombre').value.trim(),
+    departamento: document.getElementById('departamento').value.trim(),
+    sede: document.getElementById('sede').value.trim(),
+    sede_actual: document.getElementById('sede_actual').value.trim(),
+    talleres: document.getElementById('talleres').value.trim(),
     formacion: document.getElementById('formacion').checked ? 1 : 0,
     estado_I: document.getElementById('estado_I').checked ? 1 : 0,
     magister: document.getElementById('magister').checked ? 1 : 0,
-    otro_i: document.getElementById('otro_i').value,
+    otro_i: document.getElementById('otro_i').value.trim(),
   };
+}
+
+function resetImportUI() {
+  const input = document.getElementById('csv-file-input');
+  const filename = document.getElementById('csv-file-name');
+  const importBtn = document.getElementById('import-csv-btn');
+
+  if (input) input.value = '';
+  if (filename) filename.textContent = 'Ningún archivo seleccionado';
+  if (importBtn) importBtn.disabled = true;
+}
+
+function setImportLoading(isLoading) {
+  const importBtn = document.getElementById('import-csv-btn');
+  const selectBtn = document.getElementById('select-csv-btn');
+  const input = document.getElementById('csv-file-input');
+
+  if (importBtn) {
+    importBtn.disabled = isLoading || !(input?.files?.length);
+    importBtn.textContent = isLoading ? 'Importando...' : 'Importar CSV';
+  }
+
+  if (selectBtn) {
+    selectBtn.disabled = isLoading;
+  }
+
+  if (input) {
+    input.disabled = isLoading;
+  }
+}
+
+function updateSelectedCSVName(file) {
+  const filename = document.getElementById('csv-file-name');
+  const importBtn = document.getElementById('import-csv-btn');
+
+  if (filename) {
+    filename.textContent = file ? file.name : 'Ningún archivo seleccionado';
+  }
+
+  if (importBtn) {
+    importBtn.disabled = !file;
+  }
 }

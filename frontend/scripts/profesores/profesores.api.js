@@ -71,3 +71,26 @@ async function deleteProfesor(id) {
   if (!response.ok) throw new Error('Error al eliminar profesor');
   return true;
 }
+
+async function importarProfesoresCSV(file) {
+  const formData = new FormData();
+  formData.append('archivo', file);
+
+  const response = await fetch('/api/profesores/carga-masiva', {
+    method: 'POST',
+    headers: {
+      ...getAuthHeader()
+    },
+    body: formData
+  });
+
+  if (handleUnauthorized(response)) return null;
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Error al importar CSV');
+  }
+
+  return data;
+}
