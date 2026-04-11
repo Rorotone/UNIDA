@@ -67,6 +67,7 @@ const MentoriasUI = (() => {
       card.dataset.mentoriaId = idMentoria;
       card.dataset.fechaInicio = mentoria.fecha_inicio || "";
       card.dataset.fechaTermino = mentoria.fecha_termino || "";
+      card.dataset.completada = mentoria.completada ?? 0;
 
       clone.querySelector(".mentoria-titulo").textContent = mentoria.titulo || "Sin título";
       clone.querySelector(".mentor").textContent = mentoria.mentor || mentoria.nombre_mentor || "-";
@@ -171,20 +172,22 @@ const MentoriasUI = (() => {
   }
 
   function actualizarBotonesMarcar(card, tareas) {
-    const hayModificables = tareas.some(t => Number(t.estado ?? 0) !== 3);
+    const estadoMentoria = Number(card.dataset.completada ?? 0);
+    const mentoriaInactiva = estadoMentoria === 1 || estadoMentoria === 2;
+
+    const hayTareas = tareas.length > 0;
+    const todasVencidas = hayTareas && tareas.every(t => Number(t.estado ?? 0) === 3);
+    const deshabilitar = mentoriaInactiva || todasVencidas;
+
     const btnMarcar    = card.querySelector(".btn-marcar-todas");
     const btnDesmarcar = card.querySelector(".btn-desmarcar-todas");
     const btnAgregar   = card.querySelector(".btn-mostrar-form-tarea");
 
-    [
-      [btnMarcar,    hayModificables],
-      [btnDesmarcar, hayModificables],
-      [btnAgregar,   hayModificables],
-    ].forEach(([btn, habilitado]) => {
+    [btnMarcar, btnDesmarcar, btnAgregar].forEach((btn) => {
       if (!btn) return;
-      btn.disabled = !habilitado;
-      btn.style.opacity = habilitado ? "" : "0.4";
-      btn.style.cursor  = habilitado ? "" : "not-allowed";
+      btn.disabled = deshabilitar;
+      btn.style.opacity = deshabilitar ? "0.4" : "";
+      btn.style.cursor  = deshabilitar ? "not-allowed" : "";
     });
   }
 
@@ -192,6 +195,14 @@ const MentoriasUI = (() => {
     const form = card.querySelector(".form-nueva-tarea");
     if (!form) return;
     form.classList.toggle("hidden-block", !visible);
+
+    if (visible) {
+      const inputFecha = form.querySelector('[name="fecha"]');
+      if (inputFecha) {
+        inputFecha.min = card.dataset.fechaInicio || "";
+        inputFecha.max = card.dataset.fechaTermino || "";
+      }
+    }
   }
 
   function limpiarFormularioTarea(form) {
