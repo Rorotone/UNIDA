@@ -15,8 +15,16 @@ function bindModalEvents() {
   const openBtn = document.getElementById('open-modal-btn');
   const closeBtn = document.getElementById('close-modal');
 
-  if (openBtn) openBtn.addEventListener('click', abrirModal);
-  if (closeBtn) closeBtn.addEventListener('click', cerrarModal);
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      resetFormUI();
+      abrirModal();
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', cerrarModal);
+  }
 
   window.addEventListener('click', (event) => {
     if (event.target === modal) cerrarModal();
@@ -55,6 +63,7 @@ function bindCSVImportEvents() {
     input.addEventListener('change', () => {
       const file = input.files?.[0] || null;
       updateSelectedCSVName(file);
+      clearImportSummary();
     });
   }
 
@@ -75,14 +84,14 @@ async function cargarProfesores() {
     renderFiltros();
   } catch (error) {
     console.error('Error al cargar profesores:', error);
-    alert('Error al cargar los profesores.');
+    alert(error.message || 'Error al cargar profesores.');
   }
 }
 
-async function handleFormSubmit(e) {
-  e.preventDefault();
+async function handleFormSubmit(event) {
+  event.preventDefault();
 
-  const id = document.getElementById('id_profesor').value;
+  const id = document.getElementById('id_profesor')?.value;
   const data = getFormData();
 
   try {
@@ -94,12 +103,12 @@ async function handleFormSubmit(e) {
       alert('Profesor creado exitosamente.');
     }
 
-    resetFormUI();
     cerrarModal();
+    resetFormUI();
     await cargarProfesores();
   } catch (error) {
     console.error('Error al guardar profesor:', error);
-    alert(error.message || 'Error al guardar el profesor.');
+    alert(error.message || 'Error al guardar profesor.');
   }
 }
 
@@ -120,13 +129,28 @@ async function handleImportCSV() {
 
   try {
     setImportLoading(true);
+    clearImportSummary();
 
     const result = await importarProfesoresCSV(file);
     if (!result) return;
 
-    alert(result.message || 'Carga masiva realizada exitosamente.');
+    renderImportSummary(result);
+
+    if (Number(result.insertados || 0) > 0) {
+      await cargarProfesores();
+    }
+
     resetImportUI();
-    await cargarProfesores();
+
+    const mensaje = [
+      result.message || 'Carga masiva procesada.',
+      `Insertados: ${Number(result.insertados || 0)}`,
+      `Duplicados archivo: ${Number(result.duplicados_archivo || 0)}`,
+      `Duplicados BD: ${Number(result.duplicados_bd || 0)}`,
+      `Errores: ${Array.isArray(result.detalle_errores) ? result.detalle_errores.length : 0}`
+    ].join('\n');
+
+    alert(mensaje);
   } catch (error) {
     console.error('Error al importar CSV:', error);
     alert(error.message || 'Error al importar el archivo CSV.');
@@ -143,13 +167,14 @@ async function editarProfesor(id) {
     fillForm(normalizeProfesor(profesor));
     abrirModal();
   } catch (error) {
-    console.error('Error al cargar la información del profesor:', error);
-    alert('Error al cargar la información del profesor.');
+    console.error('Error al cargar profesor:', error);
+    alert(error.message || 'Error al cargar profesor.');
   }
 }
 
 async function eliminarProfesor(id) {
-  if (!confirm('¿Estás seguro de que deseas eliminar este profesor?')) return;
+  const confirmacion = confirm('¿Seguro que deseas eliminar este profesor?');
+  if (!confirmacion) return;
 
   try {
     await deleteProfesor(id);
@@ -157,9 +182,10 @@ async function eliminarProfesor(id) {
     await cargarProfesores();
   } catch (error) {
     console.error('Error al eliminar profesor:', error);
-    alert('Error al eliminar el profesor.');
+    alert(error.message || 'Error al eliminar profesor.');
   }
 }
 
 window.editarProfesor = editarProfesor;
 window.eliminarProfesor = eliminarProfesor;
+window.cerrarModal = cerrarModal;

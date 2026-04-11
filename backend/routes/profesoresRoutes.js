@@ -24,15 +24,8 @@ const uploadProfesoresCSV = (req, res, next) => {
     });
 };
 
-// Carga masiva CSV
-router.post(
-    '/carga-masiva',
-    authenticateToken,
-    uploadProfesoresCSV,
-    profesoresController.uploadProfesoresCSV
-);
+router.post('/carga-masiva', authenticateToken, uploadProfesoresCSV, profesoresController.uploadProfesoresCSV);
 
-// Rutas CRUD
 router.post('/', authenticateToken, profesoresController.createProfesor);
 router.get('/', authenticateToken, profesoresController.getProfesores);
 router.get('/:id_profesor', authenticateToken, profesoresController.getProfesorById);
