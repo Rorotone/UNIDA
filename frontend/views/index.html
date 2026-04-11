@@ -1,10 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNIDA - Inicio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/styles.css">
-  <title>UNIDA</title>
+  <link rel="stylesheet" href="/styles/index.css">
 </head>
 <body>
   <header>
@@ -13,13 +18,89 @@
       <div id="nav-placeholder"></div>
     </div>
   </header>
-  <main>
-    <section class="section">
-      <h2>Bienvenido a UNIDA</h2>
-      <p class="inline-note">Accede a profesores, mentorías, investigaciones y perfil desde la navegación superior.</p>
-    </section>
-  </main>
+
+  <div class="home-hero">
+    <div class="home-hero-inner">
+      <h1 class="home-greeting">Bienvenido, <span id="hero-username">...</span> 👋</h1>
+      <p class="home-subtitle">Aquí tienes un resumen de tu actividad en UNIDA.</p>
+    </div>
+  </div>
+
+  <div class="home-body">
+
+    <nav class="nav-cards" aria-label="Acceso rápido">
+      <a href="/profe.html" class="nav-card card-profesores">
+        <div class="nav-card-icon">🎓</div>
+        <h2 class="nav-card-title">Profesores</h2>
+        <p class="nav-card-desc">Consulta y gestiona el registro de profesores de la institución.</p>
+        <span class="nav-card-arrow">Ver profesores →</span>
+      </a>
+      <a href="/mentorias.html" class="nav-card card-mentorias">
+        <div class="nav-card-icon">🤝</div>
+        <h2 class="nav-card-title">Mentorías</h2>
+        <p class="nav-card-desc">Administra mentorías activas, tareas y seguimiento de avance.</p>
+        <span class="nav-card-arrow">Ver mentorías →</span>
+      </a>
+      <a href="/investigaciones.html" class="nav-card card-investigaciones">
+        <div class="nav-card-icon">🔬</div>
+        <h2 class="nav-card-title">Investigaciones</h2>
+        <p class="nav-card-desc">Registra y consulta proyectos de investigación en curso.</p>
+        <span class="nav-card-arrow">Ver investigaciones →</span>
+      </a>
+      <a href="/perfil.html" class="nav-card card-perfil">
+        <div class="nav-card-icon">👤</div>
+        <h2 class="nav-card-title">Mi Perfil</h2>
+        <p class="nav-card-desc">Revisa tu información y cambia tu contraseña.</p>
+        <span class="nav-card-arrow">Ver perfil →</span>
+      </a>
+    </nav>
+
+    <div class="home-grid">
+
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <h3 class="summary-card-title">Resumen de mentorías</h3>
+          <a href="/mentorias.html" class="summary-card-link">Ver todas</a>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number" id="stat-activas">—</div>
+            <div class="stat-label">Activas</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="stat-finalizadas">—</div>
+            <div class="stat-label">Finalizadas</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="stat-vencidas">—</div>
+            <div class="stat-label">Vencidas</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <h3 class="summary-card-title">Mentorías recientes</h3>
+          <a href="/mentorias.html" class="summary-card-link">Ver todas</a>
+        </div>
+        <div class="mentoria-list" id="mentorias-recientes">
+          <p class="loading-text">Cargando...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="quick-tip">
+      <span class="quick-tip-icon">💡</span>
+      <p class="quick-tip-text">
+        Las mentorías y tareas se marcan automáticamente como <strong>vencidas</strong> cuando su fecha límite ha pasado. Revisa el calendario en la sección de mentorías para ver las activas del día.
+      </p>
+    </div>
+
+  </div>
+
   <script src="/scripts/auth.js"></script>
   <script src="/scripts/core/nav.js"></script>
+  <script src="/scripts/index/index.js"></script>
 </body>
 </html>

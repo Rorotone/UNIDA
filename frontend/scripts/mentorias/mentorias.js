@@ -139,6 +139,11 @@ async function handleCrearMentoria(e) {
     return;
   }
 
+  if (data.fecha_termino <= data.fecha_inicio) {
+    alert("La fecha de término debe ser posterior a la fecha de inicio.");
+    return;
+  }
+
   try {
     await MentoriasAPI.crearMentoria(data);
     MentoriasUI.limpiarFormularioMentoria();

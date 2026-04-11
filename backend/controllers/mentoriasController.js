@@ -35,6 +35,12 @@ export const crearMentoria = async (req, res) => {
       });
     }
 
+    if (fecha_termino <= fecha_inicio) {
+      return res.status(400).json({
+        message: "La fecha de término debe ser posterior a la fecha de inicio."
+      });
+    }
+
     const [result] = await db.execute(
       `INSERT INTO mentorias (titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino)
        VALUES (?, ?, ?, ?, ?)`,
