@@ -30,7 +30,7 @@ function checkAuth() {
     const token = localStorage.getItem('token');
     if (!token) {
         // Si no hay token, redirigir al login
-        window.location.href = '/login.html';
+        window.location.href = '/index.html';
         
     }
 }
@@ -38,5 +38,5 @@ function checkAuth() {
 function handleLogout(e) {
     e.preventDefault();
     localStorage.removeItem('token');
-    window.location.href = '/login.html';
+    window.location.href = '/index.html';
 }

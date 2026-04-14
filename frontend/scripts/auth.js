@@ -30,7 +30,7 @@ async function handleLogin(e) {
 
         if (response.ok) {
             localStorage.setItem('token', data.token);
-            window.location.href = 'index.html';
+            window.location.href = 'home.html';
         } else {
             alert(data.message);
         }
