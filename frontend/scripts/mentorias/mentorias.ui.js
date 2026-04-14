@@ -102,6 +102,12 @@ const MentoriasUI = (() => {
           btnEliminar.style.opacity = "0.4";
           btnEliminar.style.cursor = "not-allowed";
         }
+      } else if (estadoMentoria === 3) {
+        badge.textContent = "🕐 Próxima";
+        badge.classList.add("proxima");
+        btnCompletar.disabled = true;
+        btnCompletar.textContent = "Próxima";
+        btnCompletar.classList.add("proxima");
       }
 
       lista.appendChild(clone);
@@ -174,21 +180,31 @@ const MentoriasUI = (() => {
   function actualizarBotonesMarcar(card, tareas) {
     const estadoMentoria = Number(card.dataset.completada ?? 0);
     const mentoriaInactiva = estadoMentoria === 1 || estadoMentoria === 2;
+    const esProxima = estadoMentoria === 3;
 
     const hayTareas = tareas.length > 0;
     const todasVencidas = hayTareas && tareas.every(t => Number(t.estado ?? 0) === 3);
-    const deshabilitar = mentoriaInactiva || todasVencidas;
 
     const btnMarcar    = card.querySelector(".btn-marcar-todas");
     const btnDesmarcar = card.querySelector(".btn-desmarcar-todas");
     const btnAgregar   = card.querySelector(".btn-mostrar-form-tarea");
 
-    [btnMarcar, btnDesmarcar, btnAgregar].forEach((btn) => {
+    // Marcar/desmarcar: bloqueado si inactiva, próxima o todas vencidas
+    const deshabilitarMasivo = mentoriaInactiva || esProxima || todasVencidas;
+    [btnMarcar, btnDesmarcar].forEach((btn) => {
       if (!btn) return;
-      btn.disabled = deshabilitar;
-      btn.style.opacity = deshabilitar ? "0.4" : "";
-      btn.style.cursor  = deshabilitar ? "not-allowed" : "";
+      btn.disabled = deshabilitarMasivo;
+      btn.style.opacity = deshabilitarMasivo ? "0.4" : "";
+      btn.style.cursor  = deshabilitarMasivo ? "not-allowed" : "";
     });
+
+    // Agregar tarea: bloqueado solo si inactiva o todas vencidas (NO si es próxima)
+    const deshabilitarAgregar = mentoriaInactiva || todasVencidas;
+    if (btnAgregar) {
+      btnAgregar.disabled = deshabilitarAgregar;
+      btnAgregar.style.opacity = deshabilitarAgregar ? "0.4" : "";
+      btnAgregar.style.cursor  = deshabilitarAgregar ? "not-allowed" : "";
+    }
   }
 
   function toggleFormularioTarea(card, visible) {
@@ -374,12 +390,13 @@ const MentoriasUI = (() => {
 
     contenedor.innerHTML = mentorias.map(m => {
       const estado = Number(m.completada ?? 0);
-      const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : "Activa";
+      const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : estado === 3 ? "🕐 Próxima" : "Activa";
       const badgeStyle = estado === 2
         ? "background:#fee2e2;color:#991b1b;"
         : estado === 1 ? "background:#d1fae5;color:#065f46;"
+        : estado === 3 ? "background:#ede9fe;color:#5b21b6;"
         : "background:#eef0ff;color:#5a4bf6;";
-      const borderColor = estado === 2 ? "#ef4444" : estado === 1 ? "#22c55e" : "var(--primary)";
+      const borderColor = estado === 2 ? "#ef4444" : estado === 1 ? "#22c55e" : estado === 3 ? "#7c3aed" : "var(--primary)";
       const inicio  = m.fecha_inicio  ? String(m.fecha_inicio).slice(0, 10)  : "-";
       const termino = m.fecha_termino ? String(m.fecha_termino).slice(0, 10) : "-";
       const idMentoria = m.id_mentoria || m.id;
@@ -410,10 +427,11 @@ const MentoriasUI = (() => {
     if (!mentoria) return;
 
     const estado = Number(mentoria.completada ?? 0);
-    const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : "Activa";
+    const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : estado === 3 ? "🕐 Próxima" : "Activa";
     const badgeStyle = estado === 2
       ? "background:#fee2e2;color:#991b1b;"
       : estado === 1 ? "background:#d1fae5;color:#065f46;"
+      : estado === 3 ? "background:#ede9fe;color:#5b21b6;"
       : "background:#eef0ff;color:#5a4bf6;";
 
     document.getElementById("detalle-titulo").textContent   = mentoria.titulo || "Sin título";

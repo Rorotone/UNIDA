@@ -41,10 +41,13 @@ export const crearMentoria = async (req, res) => {
       });
     }
 
+    const hoy = new Date().toISOString().slice(0, 10);
+    const estadoInicial = fecha_inicio > hoy ? 3 : 0;
+ 
     const [result] = await db.execute(
-      `INSERT INTO mentorias (titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino)
-       VALUES (?, ?, ?, ?, ?)`,
-      [titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino]
+      `INSERT INTO mentorias (titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino, completada)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [titulo, id_mentor, id_profesor, fecha_inicio, fecha_termino, estadoInicial]
     );
 
     res.status(201).json({

@@ -9,8 +9,7 @@ async function verificarVencimientos() {
   try {
     // =====================================================
     // 1. Marcar tareas vencidas
-    //    - Tienen fecha definida
-    //    - La fecha ya pasó
+    //    - Tienen fecha definida, la fecha ya pasó
     //    - No están completadas (estado != 2) ni ya vencidas (estado != 3)
     // =====================================================
     const [tareasResult] = await db.execute(
@@ -25,9 +24,9 @@ async function verificarVencimientos() {
     // =====================================================
     // 2. Marcar mentorías vencidas
     //    - fecha_termino ya pasó
-    //    - No están completadas (completada != 1) ni ya vencidas (completada != 2)
+    //    - No están completadas (1) ni ya vencidas (2)
     // =====================================================
-    const [mentoriasResult] = await db.execute(
+    const [mentoriasVencidas] = await db.execute(
       `UPDATE mentorias
        SET completada = 2
        WHERE fecha_termino < ?
@@ -35,19 +34,44 @@ async function verificarVencimientos() {
       [hoyStr]
     );
 
-    console.log(`[Cron ${new Date().toLocaleString('es-CL')}] Vencimientos procesados — Tareas: ${tareasResult.affectedRows}, Mentorías: ${mentoriasResult.affectedRows}`);
+    // =====================================================
+    // 3. Marcar mentorías próximas
+    //    - fecha_inicio es futura (todavía no ha comenzado)
+    //    - No están completadas (1), vencidas (2), ni ya próximas (3)
+    // =====================================================
+    const [mentoriasProximas] = await db.execute(
+      `UPDATE mentorias
+       SET completada = 3
+       WHERE fecha_inicio > ?
+         AND completada NOT IN (1, 2, 3)`,
+      [hoyStr]
+    );
+
+    // =====================================================
+    // 4. Reactivar mentorías próximas cuya fecha_inicio ya llegó
+    //    - Estaban como próximas (3) pero hoy ya empezaron
+    // =====================================================
+    const [mentoriasActivadas] = await db.execute(
+      `UPDATE mentorias
+       SET completada = 0
+       WHERE fecha_inicio <= ?
+         AND fecha_termino >= ?
+         AND completada = 3`,
+      [hoyStr, hoyStr]
+    );
+
+    console.log(`[Cron ${new Date().toLocaleString('es-CL')}] Procesado — Tareas vencidas: ${tareasResult.affectedRows}, Mentorías vencidas: ${mentoriasVencidas.affectedRows}, Próximas: ${mentoriasProximas.affectedRows}, Activadas: ${mentoriasActivadas.affectedRows}`);
   } catch (error) {
     console.error('[Cron] Error al verificar vencimientos:', error);
   }
 }
 
 export function iniciarCronVencimientos() {
-  // Ejecutar todos los días a las 00:00
   cron.schedule('0 0 * * *', verificarVencimientos, {
     timezone: 'America/Santiago'
   });
 
-  // Ejecutar también al iniciar el servidor por si el servidor estuvo apagado
+  // Ejecutar también al iniciar el servidor por si estuvo apagado
   verificarVencimientos();
 
   console.log('[Cron] Job de vencimientos iniciado — corre diariamente a las 00:00 (America/Santiago)');
