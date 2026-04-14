@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>if(!localStorage.getItem('token')){document.documentElement.style.visibility='hidden';window.location.replace('/login.html');}else{document.documentElement.style.visibility='hidden';}</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Perfil de Usuario</title>
   <link rel="stylesheet" href="/styles/styles.css">
+  <script src="/scripts/core/nav.js"></script>
 </head>
 <body>
   <header>
@@ -48,7 +50,6 @@
     </div>
   </main>
 
-  <script src="/scripts/core/nav.js"></script>
   <script src="/scripts/perfil/perfil.js"></script>
 </body>
 </html>

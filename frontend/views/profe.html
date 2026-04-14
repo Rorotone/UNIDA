@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>if(!localStorage.getItem('token')){document.documentElement.style.visibility='hidden';window.location.replace('/login.html');}else{document.documentElement.style.visibility='hidden';}</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UNIDA - Profesores</title>
   <link rel="stylesheet" href="/styles/styles.css">
   <link rel="stylesheet" href="/styles/profe.css">
+  <script src="/scripts/core/nav.js"></script>
 </head>
 <body>
   <header>
@@ -174,6 +176,5 @@
   <script src="/scripts/profesores/profesores.api.js"></script>
   <script src="/scripts/profesores/profesores.ui.js"></script>
   <script src="/scripts/profesores/profesores.js"></script>
-  <script src="/scripts/core/nav.js"></script>
 </body>
 </html>

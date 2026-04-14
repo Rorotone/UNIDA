@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>if(!localStorage.getItem('token')){document.documentElement.style.visibility='hidden';window.location.replace('/login.html');}else{document.documentElement.style.visibility='hidden';}</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mentorías - UNIDA</title>
   <link rel="stylesheet" href="/styles/styles.css">
   <link rel="stylesheet" href="/styles/mentoria.css">
+  <script src="/scripts/core/nav.js"></script>
 </head>
 <body>
   <header>
@@ -157,7 +159,6 @@
     </div>
   </template>
 
-  <script src="/scripts/core/nav.js"></script>
   <script src="/scripts/mentorias/mentorias.api.js"></script>
   <script src="/scripts/mentorias/mentorias.ui.js"></script>
   <script src="/scripts/mentorias/mentorias.js"></script>
