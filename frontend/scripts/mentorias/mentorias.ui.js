@@ -356,12 +356,144 @@ const MentoriasUI = (() => {
     return fecha.toLocaleDateString("es-CL");
   }
 
+  function poblarSelectBusqueda(selectId, items, valueKey, textKey) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.innerHTML = `<option value="">Todos</option>` +
+      items.map(i => `<option value="${escapeHTML(i[textKey])}">${escapeHTML(i[textKey])}</option>`).join("");
+  }
+
+  function renderResultadosBusqueda(mentorias) {
+    const contenedor = document.getElementById("resultados-busqueda-mentorias");
+    if (!contenedor) return;
+
+    if (mentorias.length === 0) {
+      contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:20px 0;">No se encontraron mentorías.</p>`;
+      return;
+    }
+
+    contenedor.innerHTML = mentorias.map(m => {
+      const estado = Number(m.completada ?? 0);
+      const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : "Activa";
+      const badgeStyle = estado === 2
+        ? "background:#fee2e2;color:#991b1b;"
+        : estado === 1 ? "background:#d1fae5;color:#065f46;"
+        : "background:#eef0ff;color:#5a4bf6;";
+      const borderColor = estado === 2 ? "#ef4444" : estado === 1 ? "#22c55e" : "var(--primary)";
+      const inicio  = m.fecha_inicio  ? String(m.fecha_inicio).slice(0, 10)  : "-";
+      const termino = m.fecha_termino ? String(m.fecha_termino).slice(0, 10) : "-";
+      const idMentoria = m.id_mentoria || m.id;
+
+      return `
+        <div style="padding:12px 14px;background:var(--surface-muted);border-radius:var(--radius-sm);
+          border-left:3px solid ${borderColor};display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="min-width:0;flex:1;">
+            <div style="font-weight:600;font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${escapeHTML(m.titulo || "Sin título")}
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-soft);margin-top:2px;">
+              👤 ${escapeHTML(m.mentor || "-")} &nbsp;·&nbsp; 🎓 ${escapeHTML(m.profesor || "-")}
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-soft);margin-top:2px;">📅 ${inicio} → ${termino}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:999px;${badgeStyle}">${badgeLabel}</span>
+            <button type="button" style="font-size:0.78rem;min-height:28px;padding:0 10px;"
+              onclick="abrirModalDetalle(${idMentoria})">Ver tareas</button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  async function abrirModalDetalle(idMentoria, cache) {
+    const mentoria = cache.find(m => (m.id_mentoria || m.id) === idMentoria);
+    if (!mentoria) return;
+
+    const estado = Number(mentoria.completada ?? 0);
+    const badgeLabel = estado === 1 ? "✓ Finalizada" : estado === 2 ? "⏰ Vencida" : "Activa";
+    const badgeStyle = estado === 2
+      ? "background:#fee2e2;color:#991b1b;"
+      : estado === 1 ? "background:#d1fae5;color:#065f46;"
+      : "background:#eef0ff;color:#5a4bf6;";
+
+    document.getElementById("detalle-titulo").textContent   = mentoria.titulo || "Sin título";
+    document.getElementById("detalle-mentor").textContent   = mentoria.mentor || "-";
+    document.getElementById("detalle-profesor").textContent = mentoria.profesor || "-";
+    document.getElementById("detalle-periodo").textContent  =
+      `${String(mentoria.fecha_inicio || "").slice(0,10)} → ${String(mentoria.fecha_termino || "").slice(0,10)}`;
+
+    const badge = document.getElementById("detalle-badge");
+    badge.textContent = badgeLabel;
+    badge.setAttribute("style", `font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:999px;${badgeStyle}`);
+
+    document.getElementById("modal-detalle-mentoria")?.classList.add("is-open");
+
+    const contenedor = document.getElementById("detalle-tareas-lista");
+    contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">Cargando tareas...</p>`;
+
+    try {
+      const tareas = await MentoriasAPI.obtenerTareas(idMentoria);
+      renderDetalleTareas(contenedor, tareas);
+    } catch (_) {
+      contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">No se pudieron cargar las tareas.</p>`;
+    }
+  }
+
+  function renderDetalleTareas(contenedor, tareas) {
+    if (!Array.isArray(tareas) || tareas.length === 0) {
+      contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">No hay tareas registradas.</p>`;
+      return;
+    }
+
+    const estadoConfig = {
+      0: { label: "Pendiente",   color: "#92400e", bg: "#fef3c7", border: "#fde68a" },
+      1: { label: "En progreso", color: "#1e40af", bg: "#dbeafe", border: "#bfdbfe" },
+      2: { label: "Finalizada",  color: "#065f46", bg: "#d1fae5", border: "#a7f3d0" },
+      3: { label: "Vencida",     color: "#991b1b", bg: "#fee2e2", border: "#fecaca" },
+    };
+
+    contenedor.innerHTML = tareas.map(t => {
+      const est = estadoConfig[Number(t.estado ?? 0)] ?? estadoConfig[0];
+      const fecha = t.fecha
+        ? `<div style="font-size:0.75rem;color:var(--text-soft);margin-top:2px;">📅 ${String(t.fecha).slice(0,10)}</div>`
+        : "";
+      return `
+        <div style="padding:10px 14px;background:var(--surface);border:1px solid var(--border);
+          border-radius:var(--radius-sm);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="min-width:0;flex:1;">
+            <div style="font-weight:600;font-size:0.88rem;">${escapeHTML(t.titulo || "Sin título")}</div>
+            <div style="font-size:0.82rem;color:var(--text-soft);margin-top:2px;">${escapeHTML(t.descripcion || "")}</div>
+            ${fecha}
+          </div>
+          <span style="flex-shrink:0;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:999px;
+            border:1px solid ${est.border};background:${est.bg};color:${est.color};">${est.label}</span>
+        </div>`;
+    }).join("");
+  }
+
+  function cerrarModalDetalle() {
+    document.getElementById("modal-detalle-mentoria")?.classList.remove("is-open");
+  }
+
+  function toggleBtnVerTodas(mostrandoTodas) {
+    const btn = document.getElementById("btn-ver-todas");
+    if (!btn) return;
+    if (mostrandoTodas) {
+      btn.textContent = "Ocultar todas las mentorías";
+      btn.classList.add("btn-active");
+    } else {
+      btn.textContent = "Ver todas las mentorías";
+      btn.classList.remove("btn-active");
+    }
+  }
+
   return {
     abrirModal,
     cerrarModal,
     limpiarFormularioMentoria,
     obtenerDatosMentoria,
     poblarSelect,
+    poblarSelectBusqueda,
     renderMentorias,
     toggleTareas,
     renderTareas,
@@ -374,6 +506,10 @@ const MentoriasUI = (() => {
     filtrarTareasPorFecha,
     obtenerFechaSeleccionada,
     parsearFechaMs,
-    formatearFechaTexto
+    formatearFechaTexto,
+    renderResultadosBusqueda,
+    abrirModalDetalle,
+    cerrarModalDetalle,
+    toggleBtnVerTodas,
   };
 })();

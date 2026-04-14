@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
-    
     const navPlaceholder = document.getElementById('nav-placeholder');
     
     if (navPlaceholder) {

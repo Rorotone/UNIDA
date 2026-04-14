@@ -12,10 +12,18 @@ async function initMentorias() {
 }
 
 function bindEventosBase() {
+let mostrandoTodas = false;
+
   document
     .getElementById("btn-ver-todas")
     ?.addEventListener("click", () => {
-      MentoriasUI.renderMentorias(mentoriasCache);
+      mostrandoTodas = !mostrandoTodas;
+      MentoriasUI.toggleBtnVerTodas(mostrandoTodas);
+      if (mostrandoTodas) {
+        MentoriasUI.renderMentorias(mentoriasCache);
+      } else {
+        aplicarFiltroCalendario(MentoriasUI.obtenerFechaSeleccionada());
+      }
     });
   
   document
@@ -114,6 +122,8 @@ async function recargarMentorias() {
 }
 
 function aplicarFiltroCalendario(fechaSeleccionada) {
+  mostrandoTodas = false;
+  MentoriasUI.toggleBtnVerTodas(false);
   const filtradas = MentoriasUI.filtrarTareasPorFecha(mentoriasCache, fechaSeleccionada);
   MentoriasUI.renderMentorias(filtradas);
 }
