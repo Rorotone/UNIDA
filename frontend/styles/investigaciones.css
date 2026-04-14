@@ -70,16 +70,77 @@
   margin-bottom: 12px;
 }
 
+/* wrapper sin scroll horizontal */
 .investigaciones-content .table-wrap {
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
+/* tabla adaptable */
 .investigaciones-content table {
   width: 100%;
-  min-width: 900px;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* celdas adaptables */
+#tabla-investigaciones th,
+#tabla-investigaciones td {
+  word-break: break-word;
+  white-space: normal;
+  vertical-align: top;
+  padding: 12px 10px;
+}
+
+/* columna archivos más delgada */
+#tabla-investigaciones th:nth-child(6),
+#tabla-investigaciones td:nth-child(6) {
+  width: 160px;
+  max-width: 160px;
+}
+
+/* columna acciones compacta */
+#tabla-investigaciones th:nth-child(7),
+#tabla-investigaciones td:nth-child(7) {
+  width: 120px;
+}
+
+/* acciones verticales */
+#tabla-investigaciones td:last-child button {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+/* ARCHIVOS compacto */
+.archivos-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.archivos-resumen-main {
+  font-size: 0.8rem;
+}
+
+.archivo-preview {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #f4f6ff;
+  border: 1px solid #dde5ff;
+  font-size: 0.75rem;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archivo-preview-more {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .modal-investigacion {
@@ -141,34 +202,6 @@
   background: #fff;
   color: #333;
   border: 1px solid #d1d5db;
-}
-
-.archivos-resumen {
-  display: grid;
-  gap: 6px;
-  min-width: 180px;
-}
-
-.archivos-resumen-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.archivo-preview {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #f4f6ff;
-  border: 1px solid #dde5ff;
-  font-size: 0.85rem;
-}
-
-.archivo-preview-more {
-  font-size: 0.85rem;
-  color: #6b7280;
 }
 
 .lista-archivos-investigacion {
@@ -239,10 +272,6 @@
 @media (max-width: 992px) {
   .investigaciones-layout {
     grid-template-columns: 1fr;
-  }
-
-  .investigaciones-content table {
-    min-width: 800px;
   }
 }
 
