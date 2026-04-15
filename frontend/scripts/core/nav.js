@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function renderAppAlert(message, type = 'info', options = {}) {
+    if (typeof showAppAlert === 'function') {
+        showAppAlert(message, type, options);
+        return;
+    }
+    alert(message);
+}
+
 function checkAuth() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -39,5 +47,6 @@ function checkAuth() {
 function handleLogout(e) {
     e.preventDefault();
     localStorage.removeItem('token');
+    renderAppAlert('Has cerrado la sesión correctamente.', 'success');
     window.location.replace('/login.html');
 }

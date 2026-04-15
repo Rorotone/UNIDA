@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function renderAppAlert(message, type = 'info', options = {}) {
+    if (typeof showAppAlert === 'function') {
+        showAppAlert(message, type, options);
+        return;
+    }
+    alert(message);
+}
+
 async function fetchUserProfile() {
     try {
         const token = localStorage.getItem('token');
@@ -31,7 +39,7 @@ async function fetchUserProfile() {
         document.getElementById('user-id-display').textContent = userData.id;
     } catch (error) {
         console.error('Error fetching user profile:', error);
-        alert('Error al cargar el perfil de usuario');
+        renderAppAlert('Error al cargar el perfil de usuario', 'error');
     }
 }
 
@@ -42,7 +50,7 @@ async function handleChangePassword(e) {
     const confirmPassword = document.getElementById('confirm-password').value;
 
     if (newPassword !== confirmPassword) {
-        alert('Las nuevas contraseñas no coinciden');
+        renderAppAlert('Las nuevas contraseñas no coinciden', 'warning');
         return;
     }
 
@@ -60,13 +68,13 @@ async function handleChangePassword(e) {
         const data = await response.json();
 
         if (response.ok) {
-            alert('Contraseña cambiada exitosamente');
+            renderAppAlert('Contraseña cambiada exitosamente', 'success');
             document.getElementById('change-password-form').reset();
         } else {
-            alert(data.message || 'Error al cambiar la contraseña');
+            renderAppAlert(data.message || 'Error al cambiar la contraseña', 'error');
         }
     } catch (error) {
         console.error('Error changing password:', error);
-        alert('Error al cambiar la contraseña');
+        renderAppAlert('Error al cambiar la contraseña', 'error');
     }
 }

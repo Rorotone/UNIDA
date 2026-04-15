@@ -5,7 +5,13 @@ function getAuthHeader() {
 
 function handleUnauthorized(response) {
   if (response.status === 401) {
-    alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    if (typeof showAppAlert === 'function') {
+      showAppAlert('Sesión expirada. Por favor, inicie sesión nuevamente.', 'warning', {
+        title: 'Sesión finalizada'
+      });
+    } else {
+      alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
     window.location.href = '/login.html';
     return true;
   }

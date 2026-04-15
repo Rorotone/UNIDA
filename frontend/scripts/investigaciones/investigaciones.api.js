@@ -12,9 +12,18 @@ const InvestigacionesAPI = (() => {
   }
 
   function manejarNoAutorizado() {
-    alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
+    if (typeof showAppAlert === "function") {
+      showAppAlert("Sesión expirada. Por favor, inicia sesión nuevamente.", "warning", {
+        title: "Sesión finalizada",
+        duration: 1800
+      });
+    }
+
     localStorage.removeItem("token");
-    window.location.href = "/login.html";
+
+    window.setTimeout(() => {
+      window.location.href = "/login.html";
+    }, 900);
   }
 
   async function request(url, options = {}) {

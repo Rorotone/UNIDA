@@ -13,7 +13,13 @@ const MentoriasAPI = (() => {
   }
 
   function manejarNoAutorizado() {
-    alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
+    if (typeof showAppAlert === "function") {
+      showAppAlert("Sesión expirada. Por favor, inicia sesión nuevamente.", "warning", {
+        title: "Sesión finalizada"
+      });
+    } else {
+      alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
+    }
     localStorage.removeItem("token");
     window.location.href = "/login.html";
   }

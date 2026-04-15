@@ -85,7 +85,9 @@ async function cargarSelects() {
     );
   } catch (error) {
     console.error("Error al cargar profesores/mentores:", error);
-    alert(error.message || "No se pudieron cargar profesores y mentores.");
+    showAppAlert(error.message || "No se pudieron cargar profesores y mentores.", "error", {
+      title: "Error de carga"
+    });
   }
 }
 
@@ -96,7 +98,9 @@ async function cargarInvestigaciones() {
     InvestigacionesUI.renderTabla(investigacionesCache);
   } catch (error) {
     console.error("Error al cargar investigaciones:", error);
-    alert(error.message || "No se pudieron cargar las investigaciones.");
+    showAppAlert(error.message || "No se pudieron cargar las investigaciones.", "error", {
+      title: "Error de carga"
+    });
   }
 }
 
@@ -114,10 +118,14 @@ async function handleSubmitInvestigacion(e) {
 
     if (investigacionEditandoId) {
       await InvestigacionesAPI.actualizarInvestigacion(investigacionEditandoId, formData);
-      alert("Investigación actualizada exitosamente.");
+      showAppAlert("Investigación actualizada exitosamente.", "success", {
+        title: "Cambios guardados"
+      });
     } else {
       await InvestigacionesAPI.crearInvestigacion(formData);
-      alert("Investigación creada exitosamente.");
+      showAppAlert("Investigación creada exitosamente.", "success", {
+        title: "Registro creado"
+      });
     }
 
     investigacionEditandoId = null;
@@ -126,7 +134,9 @@ async function handleSubmitInvestigacion(e) {
     await cargarInvestigaciones();
   } catch (error) {
     console.error("Error al guardar investigación:", error);
-    alert(error.message || "No se pudo guardar la investigación.");
+    showAppAlert(error.message || "No se pudo guardar la investigación.", "error", {
+      title: "Error al guardar"
+    });
   }
 }
 
@@ -154,10 +164,15 @@ async function handleClickTabla(e) {
 
     try {
       await InvestigacionesAPI.eliminarInvestigacion(id);
+      showAppAlert("Investigación eliminada correctamente.", "success", {
+        title: "Registro eliminado"
+      });
       await cargarInvestigaciones();
     } catch (error) {
       console.error("Error al eliminar investigación:", error);
-      alert(error.message || "No se pudo eliminar la investigación.");
+      showAppAlert(error.message || "No se pudo eliminar la investigación.", "error", {
+        title: "Error al eliminar"
+      });
     }
     return;
   }
@@ -175,7 +190,9 @@ async function handleClickTabla(e) {
       InvestigacionesUI.abrirModal();
     } catch (error) {
       console.error("Error al cargar investigación para edición:", error);
-      alert(error.message || "No se pudo cargar la investigación.");
+      showAppAlert(error.message || "No se pudo cargar la investigación.", "error", {
+        title: "Error al editar"
+      });
     }
   }
 }
@@ -192,10 +209,15 @@ async function handleClickModalArchivos(e) {
 
   try {
     await InvestigacionesAPI.eliminarArchivoInvestigacion(idArchivo);
+    showAppAlert("Archivo eliminado correctamente.", "success", {
+      title: "Archivo eliminado"
+    });
     await cargarInvestigaciones();
     InvestigacionesUI.cerrarModalArchivos();
   } catch (error) {
     console.error("Error al eliminar archivo:", error);
-    alert(error.message || "No se pudo eliminar el archivo.");
+    showAppAlert(error.message || "No se pudo eliminar el archivo.", "error", {
+      title: "Error al eliminar"
+    });
   }
 }

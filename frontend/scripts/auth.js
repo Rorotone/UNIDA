@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function renderAppAlert(message, type = 'info', options = {}) {
+    if (typeof showAppAlert === 'function') {
+        showAppAlert(message, type, options);
+        return;
+    }
+    alert(message);
+}
+
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('username').value;
@@ -32,11 +40,11 @@ async function handleLogin(e) {
             localStorage.setItem('token', data.token);
             window.location.href = 'index.html';
         } else {
-            alert(data.message);
+            renderAppAlert(data.message || 'Error al iniciar sesión.', 'error');
         }
     } catch (error) {
         console.error('Error during login:', error);
-        alert('An error occurred during login');
+        renderAppAlert('Ocurrió un error durante el inicio de sesión.', 'error');
     }
 }
 
@@ -58,14 +66,14 @@ async function handleRegister(e) {
         const data = await response.json();
 
         if (response.ok) {
-            alert('Registration successful. Please log in.');
+            renderAppAlert('Registro exitoso. Por favor, inicia sesión.', 'success');
             window.location.href = 'login.html';
         } else {
-            alert(data.message);
+            renderAppAlert(data.message || 'Error en el registro.', 'error');
         }
     } catch (error) {
         console.error('Error during registration:', error);
-        alert('An error occurred during registration');
+        renderAppAlert('Ocurrió un error durante el registro.', 'error');
     }
 }
 
