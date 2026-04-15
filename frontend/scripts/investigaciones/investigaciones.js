@@ -159,9 +159,14 @@ async function handleClickTabla(e) {
     const id = btnEliminar.dataset.id;
     if (!id) return;
 
-    const confirmar = confirm("¿Deseas eliminar esta investigación?");
-    if (!confirmar) return;
-
+    const confirmar = await showAppConfirm({
+  title: "Eliminar investigación",
+  message: "¿Deseas eliminar esta investigación? Esta acción no se puede deshacer.",
+  confirmText: "Eliminar",
+  cancelText: "Cancelar",
+  danger: true
+});
+if (!confirmar) return;
     try {
       await InvestigacionesAPI.eliminarInvestigacion(id);
       showAppAlert("Investigación eliminada correctamente.", "success", {
@@ -204,8 +209,14 @@ async function handleClickModalArchivos(e) {
   const idArchivo = btnEliminarArchivo.dataset.id;
   if (!idArchivo) return;
 
-  const confirmar = confirm("¿Deseas eliminar este archivo?");
-  if (!confirmar) return;
+const confirmar = await showAppConfirm({
+  title: "Eliminar archivo",
+  message: "¿Deseas eliminar este archivo de la investigación? Esta acción no se puede deshacer.",
+  confirmText: "Eliminar",
+  cancelText: "Cancelar",
+  danger: true
+});
+if (!confirmar) return;
 
   try {
     await InvestigacionesAPI.eliminarArchivoInvestigacion(idArchivo);

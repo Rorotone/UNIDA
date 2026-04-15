@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 let mentoriasCache = [];
+let mostrandoTodas = false;
 
 async function initMentorias() {
   bindEventosBase();
@@ -12,20 +13,19 @@ async function initMentorias() {
 }
 
 function bindEventosBase() {
-let mostrandoTodas = false;
-
   document
     .getElementById("btn-ver-todas")
     ?.addEventListener("click", () => {
       mostrandoTodas = !mostrandoTodas;
       MentoriasUI.toggleBtnVerTodas(mostrandoTodas);
+
       if (mostrandoTodas) {
         MentoriasUI.renderMentorias(mentoriasCache);
       } else {
         aplicarFiltroCalendario(MentoriasUI.obtenerFechaSeleccionada());
       }
     });
-  
+
   document
     .getElementById("btn-abrir-modal-mentoria")
     ?.addEventListener("click", MentoriasUI.abrirModal);
@@ -87,13 +87,16 @@ async function cargarSelects() {
     );
   } catch (error) {
     console.error("Error al cargar mentores/profesores:", error);
+    showAppAlert(error.message || "No se pudieron cargar mentores y profesores.", "error", {
+      title: "Error de carga"
+    });
   }
 }
 
 async function recargarMentorias() {
   try {
-    // Guardar qué mentorías tienen las tareas abiertas antes de recargar
     const tareasAbiertas = new Map();
+
     document.querySelectorAll(".mentoria-card").forEach((card) => {
       if (MentoriasUI.estaTareasVisible(card)) {
         tareasAbiertas.set(card.dataset.mentoriaId, true);
@@ -104,27 +107,35 @@ async function recargarMentorias() {
     mentoriasCache = Array.isArray(mentorias) ? mentorias : [];
     aplicarFiltroCalendario(MentoriasUI.obtenerFechaSeleccionada());
 
-    // Reabrir las tareas que estaban abiertas y recargarlas
     if (tareasAbiertas.size > 0) {
       const promesas = [];
+
       document.querySelectorAll(".mentoria-card").forEach((card) => {
         const idMentoria = card.dataset.mentoriaId;
         if (tareasAbiertas.has(idMentoria)) {
           promesas.push(recargarTareas(card, idMentoria));
         }
       });
+
       await Promise.all(promesas);
     }
   } catch (error) {
     console.error("Error al cargar mentorías:", error);
-    alert(error.message || "No se pudieron cargar las mentorías.");
+    showAppAlert(error.message || "No se pudieron cargar las mentorías.", "error", {
+      title: "Error de carga"
+    });
   }
 }
 
 function aplicarFiltroCalendario(fechaSeleccionada) {
   mostrandoTodas = false;
   MentoriasUI.toggleBtnVerTodas(false);
-  const filtradas = MentoriasUI.filtrarTareasPorFecha(mentoriasCache, fechaSeleccionada);
+
+  const filtradas = MentoriasUI.filtrarTareasPorFecha(
+    mentoriasCache,
+    fechaSeleccionada
+  );
+
   MentoriasUI.renderMentorias(filtradas);
 }
 
@@ -135,7 +146,9 @@ async function recargarTareas(card, idMentoria) {
     MentoriasUI.toggleTareas(card, true);
   } catch (error) {
     console.error("Error al cargar tareas:", error);
-    alert(error.message || "No se pudieron cargar las tareas.");
+    showAppAlert(error.message || "No se pudieron cargar las tareas.", "error", {
+      title: "Error de carga"
+    });
   }
 }
 
@@ -144,13 +157,23 @@ async function handleCrearMentoria(e) {
 
   const data = MentoriasUI.obtenerDatosMentoria();
 
-  if (!data.titulo || !data.id_mentor || !data.id_profesor || !data.fecha_inicio || !data.fecha_termino) {
-    alert("Completa todos los campos de la mentoría.");
+  if (
+    !data.titulo ||
+    !data.id_mentor ||
+    !data.id_profesor ||
+    !data.fecha_inicio ||
+    !data.fecha_termino
+  ) {
+    showAppAlert("Completa todos los campos de la mentoría.", "warning", {
+      title: "Formulario incompleto"
+    });
     return;
   }
 
   if (data.fecha_termino <= data.fecha_inicio) {
-    alert("La fecha de término debe ser posterior a la fecha de inicio.");
+    showAppAlert("La fecha de término debe ser posterior a la fecha de inicio.", "warning", {
+      title: "Validación de fechas"
+    });
     return;
   }
 
@@ -159,9 +182,15 @@ async function handleCrearMentoria(e) {
     MentoriasUI.limpiarFormularioMentoria();
     MentoriasUI.cerrarModal();
     await recargarMentorias();
+
+    showAppAlert("Mentoría creada correctamente.", "success", {
+      title: "Registro creado"
+    });
   } catch (error) {
     console.error("Error al crear mentoría:", error);
-    alert(error.message || "No se pudo crear la mentoría.");
+    showAppAlert(error.message || "No se pudo crear la mentoría.", "error", {
+      title: "Error al crear"
+    });
   }
 }
 
@@ -173,26 +202,54 @@ async function handleClickListaMentorias(e) {
   if (!idMentoria) return;
 
   if (e.target.closest(".btn-eliminar")) {
-    const confirmar = confirm("¿Deseas eliminar esta mentoría?");
+    const confirmar = await showAppConfirm({
+      title: "Eliminar mentoría",
+      message: "¿Deseas eliminar esta mentoría? Esta acción no se puede deshacer.",
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      danger: true
+    });
+
     if (!confirmar) return;
 
     try {
       await MentoriasAPI.eliminarMentoria(idMentoria);
       await recargarMentorias();
+
+      showAppAlert("Mentoría eliminada correctamente.", "success", {
+        title: "Registro eliminado"
+      });
     } catch (error) {
       console.error("Error al eliminar mentoría:", error);
-      alert(error.message || "No se pudo eliminar la mentoría.");
+      showAppAlert(error.message || "No se pudo eliminar la mentoría.", "error", {
+        title: "Error al eliminar"
+      });
     }
     return;
   }
 
   if (e.target.closest(".btn-completar")) {
+    const confirmar = await showAppConfirm({
+      title: "Completar mentoría",
+      message: "¿Deseas marcar esta mentoría como completada?",
+      confirmText: "Completar",
+      cancelText: "Cancelar"
+    });
+
+    if (!confirmar) return;
+
     try {
       await MentoriasAPI.completarMentoria(idMentoria);
       await recargarMentorias();
+
+      showAppAlert("Mentoría completada correctamente.", "success", {
+        title: "Estado actualizado"
+      });
     } catch (error) {
       console.error("Error al completar mentoría:", error);
-      alert(error.message || "No se pudo completar la mentoría.");
+      showAppAlert(error.message || "No se pudo completar la mentoría.", "error", {
+        title: "Error al completar"
+      });
     }
     return;
   }
@@ -218,9 +275,15 @@ async function handleClickListaMentorias(e) {
     try {
       await MentoriasAPI.marcarTodasTareas(idMentoria, 2);
       await recargarMentorias();
+
+      showAppAlert("Todas las tareas se marcaron como finalizadas.", "success", {
+        title: "Tareas actualizadas"
+      });
     } catch (error) {
       console.error("Error al marcar todas las tareas:", error);
-      alert(error.message || "No se pudieron marcar todas las tareas.");
+      showAppAlert(error.message || "No se pudieron marcar todas las tareas.", "error", {
+        title: "Error al actualizar"
+      });
     }
     return;
   }
@@ -229,9 +292,15 @@ async function handleClickListaMentorias(e) {
     try {
       await MentoriasAPI.marcarTodasTareas(idMentoria, 0);
       await recargarMentorias();
+
+      showAppAlert("Las tareas volvieron a estado pendiente.", "success", {
+        title: "Tareas actualizadas"
+      });
     } catch (error) {
       console.error("Error al desmarcar todas las tareas:", error);
-      alert(error.message || "No se pudieron desmarcar todas las tareas.");
+      showAppAlert(error.message || "No se pudieron desmarcar todas las tareas.", "error", {
+        title: "Error al actualizar"
+      });
     }
     return;
   }
@@ -241,15 +310,28 @@ async function handleClickListaMentorias(e) {
     const idTarea = tareaItem?.dataset.tareaId;
     if (!idTarea) return;
 
-    const confirmar = confirm("¿Deseas eliminar esta tarea?");
+    const confirmar = await showAppConfirm({
+      title: "Eliminar tarea",
+      message: "¿Deseas eliminar esta tarea? Esta acción no se puede deshacer.",
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      danger: true
+    });
+
     if (!confirmar) return;
 
     try {
       await MentoriasAPI.eliminarTarea(idMentoria, idTarea);
       await recargarTareas(card, idMentoria);
+
+      showAppAlert("Tarea eliminada correctamente.", "success", {
+        title: "Tarea eliminada"
+      });
     } catch (error) {
       console.error("Error al eliminar tarea:", error);
-      alert(error.message || "No se pudo eliminar la tarea.");
+      showAppAlert(error.message || "No se pudo eliminar la tarea.", "error", {
+        title: "Error al eliminar"
+      });
     }
   }
 }
@@ -267,11 +349,12 @@ async function handleSubmitTarea(e) {
   const data = MentoriasUI.obtenerDatosTarea(form);
 
   if (!data.titulo || !data.descripcion) {
-    alert("Completa al menos título y descripción de la tarea.");
+    showAppAlert("Completa al menos título y descripción de la tarea.", "warning", {
+      title: "Formulario incompleto"
+    });
     return;
   }
 
-  // Validar que la fecha esté dentro del período de la mentoría
   if (data.fecha) {
     const fechaTarea = MentoriasUI.parsearFechaMs(data.fecha);
     const inicio = MentoriasUI.parsearFechaMs(card.dataset.fechaInicio);
@@ -280,7 +363,12 @@ async function handleSubmitTarea(e) {
     if (inicio && termino && (fechaTarea < inicio || fechaTarea > termino)) {
       const inicioStr = card.dataset.fechaInicio.slice(0, 10);
       const terminoStr = card.dataset.fechaTermino.slice(0, 10);
-      alert(`La fecha debe estar dentro del período de la mentoría (${inicioStr} → ${terminoStr}).`);
+
+      showAppAlert(
+        `La fecha debe estar dentro del período de la mentoría (${inicioStr} → ${terminoStr}).`,
+        "warning",
+        { title: "Fecha inválida" }
+      );
       return;
     }
   }
@@ -290,9 +378,15 @@ async function handleSubmitTarea(e) {
     MentoriasUI.limpiarFormularioTarea(form);
     MentoriasUI.toggleFormularioTarea(card, false);
     await recargarTareas(card, idMentoria);
+
+    showAppAlert("Tarea creada correctamente.", "success", {
+      title: "Tarea creada"
+    });
   } catch (error) {
     console.error("Error al crear tarea:", error);
-    alert(error.message || "No se pudo crear la tarea.");
+    showAppAlert(error.message || "No se pudo crear la tarea.", "error", {
+      title: "Error al crear"
+    });
   }
 }
 
@@ -312,8 +406,14 @@ async function handleChangeListaMentorias(e) {
   try {
     await MentoriasAPI.actualizarEstadoTarea(idMentoria, idTarea, nuevoEstado);
     await recargarMentorias();
+
+    showAppAlert("Estado de tarea actualizado correctamente.", "success", {
+      title: "Tarea actualizada"
+    });
   } catch (error) {
     console.error("Error al actualizar estado de tarea:", error);
-    alert(error.message || "No se pudo actualizar la tarea.");
+    showAppAlert(error.message || "No se pudo actualizar la tarea.", "error", {
+      title: "Error al actualizar"
+    });
   }
 }

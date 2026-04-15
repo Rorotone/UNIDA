@@ -84,7 +84,9 @@ async function cargarProfesores() {
     renderFiltros();
   } catch (error) {
     console.error('Error al cargar profesores:', error);
-    alert(error.message || 'Error al cargar profesores.');
+    showAppAlert(error.message || 'Error al cargar profesores.', 'error', {
+      title: 'Error de carga'
+    });
   }
 }
 
@@ -97,10 +99,14 @@ async function handleFormSubmit(event) {
   try {
     if (id) {
       await updateProfesor(id, data);
-      alert('Profesor actualizado exitosamente.');
+      showAppAlert('Profesor actualizado exitosamente.', 'success', {
+        title: 'Cambios guardados'
+      });
     } else {
       await createProfesor(data);
-      alert('Profesor creado exitosamente.');
+      showAppAlert('Profesor creado exitosamente.', 'success', {
+        title: 'Registro creado'
+      });
     }
 
     cerrarModal();
@@ -108,7 +114,9 @@ async function handleFormSubmit(event) {
     await cargarProfesores();
   } catch (error) {
     console.error('Error al guardar profesor:', error);
-    alert(error.message || 'Error al guardar profesor.');
+    showAppAlert(error.message || 'Error al guardar profesor.', 'error', {
+      title: 'Error al guardar'
+    });
   }
 }
 
@@ -117,13 +125,17 @@ async function handleImportCSV() {
   const file = input?.files?.[0];
 
   if (!file) {
-    alert('Selecciona un archivo CSV.');
+    showAppAlert('Selecciona un archivo CSV.', 'warning', {
+      title: 'Archivo requerido'
+    });
     return;
   }
 
   const extension = file.name.split('.').pop()?.toLowerCase();
   if (extension !== 'csv') {
-    alert('Debes seleccionar un archivo con extensión .csv');
+    showAppAlert('Debes seleccionar un archivo con extensión .csv.', 'warning', {
+      title: 'Formato inválido'
+    });
     return;
   }
 
@@ -140,25 +152,33 @@ async function handleImportCSV() {
       await cargarProfesores();
     }
 
-    resetImportUI();
+    const fileName = document.getElementById('csv-file-name');
+    const importBtn = document.getElementById('import-csv-btn');
+    const csvInput = document.getElementById('csv-file-input');
 
-    const mensaje = [
-      result.message || 'Carga masiva procesada.',
-      `Insertados: ${Number(result.insertados || 0)}`,
-      `Duplicados archivo: ${Number(result.duplicados_archivo || 0)}`,
-      `Duplicados BD: ${Number(result.duplicados_bd || 0)}`,
-      `Errores: ${Array.isArray(result.detalle_errores) ? result.detalle_errores.length : 0}`
-    ].join('\n');
+    if (csvInput) csvInput.value = '';
+    if (fileName) fileName.textContent = 'Ningún archivo seleccionado';
+    if (importBtn) importBtn.disabled = true;
 
-    alert(mensaje);
+    const errores = Array.isArray(result.detalle_errores) ? result.detalle_errores.length : 0;
+
+    showAppAlert(
+      `Insertados: ${Number(result.insertados || 0)} · Duplicados archivo: ${Number(result.duplicados_archivo || 0)} · Duplicados BD: ${Number(result.duplicados_bd || 0)} · Errores: ${errores}`,
+      errores > 0 ? 'warning' : 'success',
+      {
+        title: result.message || 'Carga masiva procesada.',
+        duration: 5500
+      }
+    );
   } catch (error) {
     console.error('Error al importar CSV:', error);
-    alert(error.message || 'Error al importar el archivo CSV.');
+    showAppAlert(error.message || 'Error al importar el archivo CSV.', 'error', {
+      title: 'Error de importación'
+    });
   } finally {
     setImportLoading(false);
   }
 }
-
 async function editarProfesor(id) {
   try {
     const profesor = await fetchProfesorById(id);
@@ -168,21 +188,34 @@ async function editarProfesor(id) {
     abrirModal();
   } catch (error) {
     console.error('Error al cargar profesor:', error);
-    alert(error.message || 'Error al cargar profesor.');
+    showAppAlert(error.message || 'Error al cargar profesor.', 'error', {
+      title: 'Error al editar'
+    });
   }
 }
 
 async function eliminarProfesor(id) {
-  const confirmacion = confirm('¿Seguro que deseas eliminar este profesor?');
+  const confirmacion = await showAppConfirm({
+    title: 'Eliminar profesor',
+    message: '¿Seguro que deseas eliminar este profesor? Esta acción no se puede deshacer.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    danger: true
+  });
+
   if (!confirmacion) return;
 
   try {
     await deleteProfesor(id);
-    alert('Profesor eliminado exitosamente.');
+    showAppAlert('Profesor eliminado exitosamente.', 'success', {
+      title: 'Registro eliminado'
+    });
     await cargarProfesores();
   } catch (error) {
     console.error('Error al eliminar profesor:', error);
-    alert(error.message || 'Error al eliminar profesor.');
+    showAppAlert(error.message || 'Error al eliminar profesor.', 'error', {
+      title: 'Error al eliminar'
+    });
   }
 }
 

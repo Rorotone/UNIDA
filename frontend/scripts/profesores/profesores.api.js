@@ -6,15 +6,21 @@ function getAuthHeader() {
 function handleUnauthorized(response) {
   if (response.status === 401) {
     if (typeof showAppAlert === 'function') {
-      showAppAlert('Sesión expirada. Por favor, inicie sesión nuevamente.', 'warning', {
-        title: 'Sesión finalizada'
+      showAppAlert('Sesión expirada. Por favor, inicia sesión nuevamente.', 'warning', {
+        title: 'Sesión finalizada',
+        duration: 1800
       });
-    } else {
-      alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
     }
-    window.location.href = '/login.html';
+
+    localStorage.removeItem('token');
+
+    window.setTimeout(() => {
+      window.location.href = '/login.html';
+    }, 900);
+
     return true;
   }
+
   return false;
 }
 

@@ -15,13 +15,16 @@ const MentoriasAPI = (() => {
   function manejarNoAutorizado() {
     if (typeof showAppAlert === "function") {
       showAppAlert("Sesión expirada. Por favor, inicia sesión nuevamente.", "warning", {
-        title: "Sesión finalizada"
+        title: "Sesión finalizada",
+        duration: 1800
       });
-    } else {
-      alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
     }
+
     localStorage.removeItem("token");
-    window.location.href = "/login.html";
+
+    window.setTimeout(() => {
+      window.location.href = "/login.html";
+    }, 900);
   }
 
   async function request(url, options = {}) {
