@@ -111,6 +111,13 @@ export const crearInvestigacion = async (req, res) => {
       });
     }
 
+    if (fecha_fin <= fecha_inicio) {
+      await conn.rollback();
+      return res.status(400).json({
+        message: "La fecha de fin debe ser posterior a la fecha de inicio."
+      });
+    }
+
     const [result] = await conn.execute(
       `INSERT INTO investigaciones (
         titulo, area, fecha_inicio, fecha_fin, id_profesor, id_mentor
