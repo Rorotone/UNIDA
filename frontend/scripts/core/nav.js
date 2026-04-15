@@ -1,7 +1,16 @@
+// Ocultar inmediatamente antes de cualquier render
+document.documentElement.style.visibility = 'hidden';
+
+// Si no hay token redirigir de inmediato
+if (!localStorage.getItem('token')) {
+  window.location.replace('/login.html');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
+
     const navPlaceholder = document.getElementById('nav-placeholder');
-    
+
     if (navPlaceholder) {
         fetch('/nav.html')
             .then(response => response.text())
@@ -23,7 +32,6 @@ function checkAuth() {
     if (!token) {
         window.location.replace('/login.html');
     } else {
-        // Token existe — mostrar la página
         document.documentElement.style.visibility = '';
     }
 }
