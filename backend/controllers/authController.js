@@ -29,7 +29,7 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Insert new user
-    const [result] = await db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    const [result] = await db.execute('INSERT INTO users (username, password, rol) VALUES (?, ?, ?)', [username, hashedPassword, 'usuario']);
     
     res.status(201).json({ message: 'Usuario registrado exitosamente', userId: result.insertId });
   } catch (error) {
@@ -58,7 +58,7 @@ export const login = async (req, res) => {
     
     // Generate JWT
     const JWT_SECRET = process.env.JWT_SECRET;
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });   
+    const token = jwt.sign({ userId: user.id, username: user.username, rol: user.rol }, JWT_SECRET, { expiresIn: '1h' });   
     
     res.json({ message: 'Inicio de sesión exitoso', token });
   } catch (error) {
@@ -121,7 +121,7 @@ export const getUserProfile = async (req, res) => {
   const userId = req.user.userId; // From authenticateToken middleware
 
     // Fetch user profile details
-  const [users] = await db.execute('SELECT id, username FROM users WHERE id = ?', [userId]);
+  const [users] = await db.execute('SELECT id, username, rol FROM users WHERE id = ?', [userId]);
     
   if (users.length === 0) {
     return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -131,7 +131,8 @@ export const getUserProfile = async (req, res) => {
     
     res.json({
       id: userProfile.id,
-      username: userProfile.username
+      username: userProfile.username,
+      rol: userProfile.rol
     });
   } catch (error) {
     console.error('Error al obtener el perfil del usuario:', error);

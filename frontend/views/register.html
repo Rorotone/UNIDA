@@ -1,29 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script src="/scripts/core/guest.js"></script>
+  <script src="/scripts/core/nav.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UNIDA - Registrarse</title>
+  <title>UNIDA - Registrar usuario</title>
+  <link rel="stylesheet" href="/styles/styles.css">
   <link rel="stylesheet" href="/styles/register.css">
+  <link rel="stylesheet" href="/styles/nav.css">
 </head>
-<body class="auth-page">
-  <div class="auth-card">
-    <h1>Registrarse</h1>
-    <div id="error-message" class="error-message" style="display:none;"></div>
-    <form id="register-form">
-      <div class="form-group">
-        <label for="username">Usuario</label>
-        <input type="text" id="username" required>
-      </div>
-      <div class="form-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" required>
-      </div>
-      <button type="submit">Crear cuenta</button>
-    </form>
-    <p>¿Ya tienes una cuenta? <a href="/login.html">Inicia sesión aquí</a></p>
-  </div>
+<body>
+  <header>
+    <div class="header-shell">
+      <div class="brand"><h1>UNIDA</h1></div>
+      <div id="nav-placeholder"></div>
+    </div>
+  </header>
+
+  <main class="register-wrapper">
+    <div class="register-card">
+      <h2>Registrar usuario</h2>
+      <p class="subtitle">Solo los administradores pueden crear nuevos usuarios.</p>
+      <div id="error-message" style="display:none;"></div>
+      <form id="register-form">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit">Crear usuario</button>
+      </form>
+      <a href="/index.html" class="back-link">← Volver al inicio</a>
+    </div>
+  </main>
+
   <script src="/scripts/auth.js"></script>
+  <script src="/scripts/register/register.js"></script>
 </body>
 </html>

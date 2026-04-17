@@ -37,6 +37,10 @@ async function fetchUserProfile() {
         const userData = await response.json();
         document.getElementById('username-display').textContent = userData.username;
         document.getElementById('user-id-display').textContent = userData.id;
+
+        if (userData.rol === 'admin') {
+          document.getElementById('admin-section').style.display = 'block';
+        }
     } catch (error) {
         console.error('Error fetching user profile:', error);
         renderAppAlert('Error al cargar el perfil de usuario', 'error');
