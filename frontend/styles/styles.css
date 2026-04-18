@@ -54,6 +54,14 @@ header {
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
 }
 
+#nav-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 16px;
+}
+
 .header-shell {
   width: min(100%, var(--container));
   margin: 0 auto;

@@ -4,7 +4,79 @@
     <li><a href="/profe.html">Profesores</a></li>
     <li><a href="/mentorias.html">Mentorías</a></li>
     <li><a href="/investigaciones.html">Investigaciones</a></li>
-    <li><a href="/perfil.html">Perfil</a></li>
-    <li><a href="#" id="logout-btn">Cerrar sesión</a></li>
   </ul>
 </nav>
+
+<!-- Burbuja de usuario -->
+<div id="user-bubble-wrapper">
+  <button id="user-bubble-btn" aria-label="Menú de usuario">?</button>
+
+  <div id="user-dropdown">
+    <div class="dd-header">
+      <div id="dd-avatar">?</div>
+      <div id="dd-nombre">—</div>
+      <div id="dd-username">—</div>
+      <span id="dd-rol-badge"></span>
+    </div>
+    <div class="dd-actions">
+      <button id="dd-cambiar-password" class="dd-btn">🔒 Cambiar contraseña</button>
+      <button id="dd-agregar-usuario" class="dd-btn" style="display:none;">➕ Agregar usuario</button>
+      <hr class="dd-divider">
+      <button id="dd-logout" class="dd-btn danger">🚪 Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cambiar contraseña -->
+<div id="modal-change-password" class="nav-modal">
+  <div class="nav-modal-content">
+    <h3 class="nav-modal-title">🔒 Cambiar contraseña</h3>
+    <div id="modal-pwd-alert" class="nav-modal-alert"></div>
+    <div class="nav-modal-field">
+      <label>Contraseña actual</label>
+      <input type="password" id="modal-current-password">
+    </div>
+    <div class="nav-modal-field">
+      <label>Nueva contraseña</label>
+      <input type="password" id="modal-new-password">
+    </div>
+    <div class="nav-modal-field">
+      <label>Confirmar nueva contraseña</label>
+      <input type="password" id="modal-confirm-password">
+    </div>
+    <div class="nav-modal-actions">
+      <button id="modal-pwd-cancel" class="btn-cancel">Cancelar</button>
+      <button id="modal-pwd-submit" class="btn-primary">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal agregar usuario -->
+<div id="modal-agregar-usuario" class="nav-modal">
+  <div class="nav-modal-content">
+    <h3 class="nav-modal-title">➕ Agregar usuario</h3>
+    <div id="modal-user-alert" class="nav-modal-alert"></div>
+    <div class="nav-modal-field">
+      <label>Nombre completo</label>
+      <input type="text" id="modal-user-nombre">
+    </div>
+    <div class="nav-modal-field">
+      <label>Usuario</label>
+      <input type="text" id="modal-user-username">
+    </div>
+    <div class="nav-modal-field">
+      <label>Contraseña</label>
+      <input type="password" id="modal-user-password">
+    </div>
+    <div class="nav-modal-field">
+      <label>Rol</label>
+      <select id="modal-user-rol">
+        <option value="">Seleccione un rol...</option>
+      </select>
+    </div>
+    <div class="nav-modal-actions">
+      <button id="modal-user-cancel" class="btn-cancel">Cancelar</button>
+      <button id="modal-user-submit" class="btn-primary">Crear usuario</button>
+    </div>
+  </div>
+</div>
