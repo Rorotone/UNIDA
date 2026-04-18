@@ -37,6 +37,7 @@ async function fetchUserProfile() {
         const userData = await response.json();
         document.getElementById('username-display').textContent = userData.username;
         document.getElementById('user-id-display').textContent = userData.id;
+        document.getElementById('nombre-display').textContent = userData.nombre;
 
         if (userData.rol === 'admin') {
           document.getElementById('admin-section').style.display = 'block';

@@ -24,12 +24,22 @@
       <div id="error-message" style="display:none;"></div>
       <form id="register-form">
         <div class="form-group">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" required>
+        </div>
+        <div class="form-group">
           <label for="username">Usuario</label>
           <input type="text" id="username" required>
         </div>
         <div class="form-group">
           <label for="password">Contraseña</label>
           <input type="password" id="password" required>
+        </div>
+        <div class="form-group">
+          <label for="rol">Rol</label>
+          <select id="rol" required>
+            <option value="">Seleccione un rol...</option>
+          </select>
         </div>
         <button type="submit">Crear usuario</button>
       </form>
@@ -38,6 +48,8 @@
   </main>
 
   <script src="/scripts/auth.js"></script>
+  <script src="/scripts/register/register.api.js"></script>
+  <script src="/scripts/register/register.ui.js"></script>
   <script src="/scripts/register/register.js"></script>
 </body>
 </html>

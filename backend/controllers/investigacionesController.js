@@ -31,7 +31,7 @@ export const obtenerInvestigaciones = async (req, res) => {
         i.id_profesor,
         i.id_mentor,
         p.nombre AS profesor,
-        u.username AS mentor,
+        u.nombre AS mentor,
         i.fecha_registro
       FROM investigaciones i
       JOIN profesores p ON i.id_profesor = p.id_profesor

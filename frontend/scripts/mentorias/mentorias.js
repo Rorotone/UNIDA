@@ -74,7 +74,7 @@ async function cargarSelects() {
       "mentor-select",
       Array.isArray(mentores) ? mentores : [],
       "id",
-      "username",
+      "nombre",
       "Seleccione un mentor"
     );
 

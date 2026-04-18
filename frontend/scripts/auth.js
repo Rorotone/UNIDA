@@ -171,16 +171,30 @@ async function handleRegister(e) {
   e.preventDefault();
   clearFormAlert();
 
+  const nombreInput   = document.getElementById('nombre');
   const usernameInput = document.getElementById('username');
   const passwordInput = document.getElementById('password');
-  const submitButton = e.target.querySelector('button[type="submit"]');
+  const rolInput      = document.getElementById('rol');
+  const submitButton  = e.target.querySelector('button[type="submit"]');
 
+  const nombre   = nombreInput?.value.trim();
   const username = usernameInput.value;
   const password = passwordInput.value;
+  const rol      = rolInput?.value;
+
+  if (!nombre) {
+    renderAppAlert('El nombre completo es obligatorio.', 'warning');
+    return;
+  }
 
   if (!validateCredentials(username, password)) return;
 
-  setButtonLoading(submitButton, true, 'Creando cuenta...');
+  if (!rol) {
+    renderAppAlert('Debes seleccionar un rol.', 'warning');
+    return;
+  }
+
+  setButtonLoading(submitButton, true, 'Creando usuario...');
 
   try {
     const token = localStorage.getItem('token');
@@ -192,8 +206,10 @@ async function handleRegister(e) {
       },
       credentials: 'include',
       body: JSON.stringify({
+        nombre,
         username: username.trim(),
-        password
+        password,
+        rol
       })
     });
 
@@ -205,16 +221,16 @@ async function handleRegister(e) {
     }
 
     if (response.ok) {
-      renderAppAlert('Registro exitoso. Serás redirigido al login.', 'success');
-
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 900);
+      renderAppAlert(`Usuario "${username.trim()}" creado exitosamente.`, 'success');
+      if (nombreInput) nombreInput.value = '';
+      usernameInput.value = '';
+      passwordInput.value = '';
+      if (rolInput) rolInput.value = '';
       return;
     }
 
-    if (response.status === 409) {
-      renderAppAlert(data.message || 'El usuario ya existe.', 'warning');
+    if (response.status === 403) {
+      renderAppAlert('Acceso denegado. Solo administradores pueden registrar usuarios.', 'error');
       return;
     }
 

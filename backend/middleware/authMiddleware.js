@@ -23,7 +23,7 @@ export const authenticateToken = (req, res, next) => {
 };
 
 export const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.rol !== 'admin') {
+  if (!req.user || req.user.rol !== 1) {
     return res.status(403).json({ message: 'Acceso denegado. Se requiere rol de administrador.' });
   }
   next();
