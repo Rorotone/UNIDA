@@ -18,6 +18,7 @@ import {
 } from '../controllers/mentoriasController.js';
 
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { obtenerEstados, obtenerTransiciones, obtenerHistorialTarea } from '../controllers/estadosController.js';
 
 const router = express.Router();
 
@@ -43,6 +44,13 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+// =====================================================
+// Rutas de estados y workflow
+// =====================================================
+router.get('/estados', authenticateToken, obtenerEstados);
+router.get('/estados/:id_estado/transiciones', authenticateToken, obtenerTransiciones);
+router.get('/:id_mentoria/tareas/:id_tarea/historial', authenticateToken, obtenerHistorialTarea);
 
 // =====================================================
 // Rutas de mentorías

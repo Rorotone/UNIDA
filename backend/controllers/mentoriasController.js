@@ -185,7 +185,7 @@ export const completarMentoria = async (req, res) => {
     }
 
     await db.execute(
-      "UPDATE tareas SET estado = 2 WHERE id_mentoria = ?",
+      "UPDATE tareas SET estado = 4 WHERE id_mentoria = ?",
       [id_mentoria]
     );
 
@@ -252,26 +252,50 @@ export const actualizarTarea = async (req, res) => {
   try {
     const { id_mentoria, id_tarea } = req.params;
     const { completada } = req.body;
+    const nuevoEstado = Number(completada);
+    const userId = req.user.userId;
 
+    // Obtener tarea actual
     const [task] = await db.execute(
-      "SELECT id FROM tareas WHERE id = ? AND id_mentoria = ?",
+      "SELECT id, estado FROM tareas WHERE id = ? AND id_mentoria = ?",
       [id_tarea, id_mentoria]
     );
 
     if (task.length === 0) {
-      return res.status(404).json({
-        message: "Tarea no encontrada."
-      });
+      return res.status(404).json({ message: "Tarea no encontrada." });
     }
 
+    const estadoActual = Number(task[0].estado);
+
+    // Verificar que la transición sea válida
+    if (estadoActual !== nuevoEstado) {
+      const [transicion] = await db.execute(
+        "SELECT id FROM transiciones_estado WHERE estado_origen = ? AND estado_destino = ?",
+        [estadoActual, nuevoEstado]
+      );
+
+      if (transicion.length === 0) {
+        return res.status(400).json({
+          message: "Transición de estado no permitida."
+        });
+      }
+    }
+
+    // Actualizar estado
     await db.execute(
       "UPDATE tareas SET estado = ? WHERE id = ? AND id_mentoria = ?",
-      [Number(completada), id_tarea, id_mentoria]
+      [nuevoEstado, id_tarea, id_mentoria]
     );
 
-    // Verificar si todas las tareas de la mentoría están completadas (estado = 2)
+    // Registrar en historial
+    await db.execute(
+      "INSERT INTO historial_tareas (id_tarea, estado_anterior, estado_nuevo, id_usuario) VALUES (?, ?, ?, ?)",
+      [id_tarea, estadoActual, nuevoEstado, userId]
+    );
+
+    // Verificar si todas las tareas están completadas (estado = 4)
     const [tareas] = await db.execute(
-      "SELECT COUNT(*) as total, SUM(estado = 2) as completadas FROM tareas WHERE id_mentoria = ?",
+      "SELECT COUNT(*) as total, SUM(estado = 4) as completadas FROM tareas WHERE id_mentoria = ?",
       [id_mentoria]
     );
 

@@ -14,10 +14,10 @@ async function verificarVencimientos() {
     // =====================================================
     const [tareasResult] = await db.execute(
       `UPDATE tareas 
-       SET estado = 3
+       SET estado = 6
        WHERE fecha IS NOT NULL
          AND fecha < ?
-         AND estado NOT IN (2, 3)`,
+         AND estado NOT IN (4, 6)`,
       [hoyStr]
     );
 

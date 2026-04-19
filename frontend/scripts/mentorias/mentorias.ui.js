@@ -132,20 +132,24 @@ const MentoriasUI = (() => {
       return;
     }
 
+    const estadoConfig = {
+      1: { label: "Pendiente",    cls: "badge-pendiente"   },
+      2: { label: "En progreso",  cls: "badge-progreso"    },
+      3: { label: "En revisión",  cls: "badge-revision"    },
+      4: { label: "Completada",   cls: "badge-finalizada"  },
+      5: { label: "Bloqueada",    cls: "badge-bloqueada"   },
+      6: { label: "Vencida",      cls: "badge-vencida"     },
+    };
+
     tareas.forEach((tarea) => {
       const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
-      const estado = Number(tarea.estado ?? 0);
+      const estado = Number(tarea.estado ?? 1);
+      const esFinal = estado === 4 || estado === 6;
 
-      const estadoConfig = {
-        0: { label: "Pendiente",   cls: "badge-pendiente"  },
-        1: { label: "En progreso", cls: "badge-progreso"   },
-        2: { label: "Finalizada",  cls: "badge-finalizada" },
-        3: { label: "Vencida",     cls: "badge-vencida"    },
-      };
-      const { label, cls } = estadoConfig[estado] ?? estadoConfig[0];
+      const { label, cls } = estadoConfig[estado] ?? estadoConfig[1];
 
       const li = document.createElement("li");
-      li.className = `tarea-item${estado === 2 ? " tarea-finalizada" : ""}${estado === 3 ? " tarea-vencida" : ""}`;
+      li.className = `tarea-item${estado === 4 ? " tarea-finalizada" : ""}${estado === 6 ? " tarea-vencida" : ""}`;
       li.dataset.tareaId = idTarea;
 
       li.innerHTML = `
@@ -159,18 +163,37 @@ const MentoriasUI = (() => {
             ${tarea.fecha ? `<small class="tarea-fecha">📅 ${formatearFechaTexto(tarea.fecha)}</small>` : ""}
           </div>
           <div class="tarea-item-actions">
-            <select class="select-estado-tarea" data-tarea-id="${idTarea}" ${estado === 3 ? "disabled" : ""}>
-              <option value="0" ${estado === 0 ? "selected" : ""}>Pendiente</option>
-              <option value="1" ${estado === 1 ? "selected" : ""}>En progreso</option>
-              <option value="2" ${estado === 2 ? "selected" : ""}>Finalizada</option>
-              <option value="3" ${estado === 3 ? "selected" : ""}>Vencida</option>
+            <select class="select-estado-tarea" data-tarea-id="${idTarea}" data-estado-actual="${estado}" ${esFinal ? "disabled" : ""}>
+              <option value="${estado}" selected>${label}</option>
             </select>
+            <button type="button" class="btn-ver-historial btn-secondary" data-tarea-id="${idTarea}" title="Ver historial">📋</button>
             <button type="button" class="btn-eliminar-tarea btn-danger">Eliminar</button>
           </div>
         </div>
+        <div class="historial-tarea hidden-block" data-historial-tarea-id="${idTarea}"></div>
       `;
 
       lista.appendChild(li);
+    });
+
+    // Cargar transiciones válidas para cada select
+    tareas.forEach(async (tarea) => {
+      const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
+      const estado = Number(tarea.estado ?? 1);
+      const esFinal = estado === 4 || estado === 6;
+      if (esFinal) return;
+
+      try {
+        const transiciones = await MentoriasAPI.obtenerTransiciones(estado);
+        const select = lista.querySelector(`.select-estado-tarea[data-tarea-id="${idTarea}"]`);
+        if (!select) return;
+        transiciones.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = t.nombre;
+          select.appendChild(opt);
+        });
+      } catch (_) {}
     });
 
     // Deshabilitar botones marcar/desmarcar si no hay tareas modificables
@@ -183,7 +206,7 @@ const MentoriasUI = (() => {
     const esProxima = estadoMentoria === 3;
 
     const hayTareas = tareas.length > 0;
-    const todasVencidas = hayTareas && tareas.every(t => Number(t.estado ?? 0) === 3);
+    const todasVencidas = hayTareas && tareas.every(t => Number(t.estado ?? 1) === 6);
 
     const btnMarcar    = card.querySelector(".btn-marcar-todas");
     const btnDesmarcar = card.querySelector(".btn-desmarcar-todas");
@@ -505,6 +528,474 @@ const MentoriasUI = (() => {
     }
   }
 
+  // Configuración visual de estados
+  const ESTADOS = {
+    1: { label: "Pendiente",   color: "#f59e0b", bg: "#fef3c7", text: "#92400e" },
+    2: { label: "En progreso", color: "#3b82f6", bg: "#dbeafe", text: "#1e40af" },
+    3: { label: "En revisión", color: "#8b5cf6", bg: "#ede9fe", text: "#5b21b6" },
+    4: { label: "Completada",  color: "#10b981", bg: "#d1fae5", text: "#065f46" },
+    5: { label: "Bloqueada",   color: "#ef4444", bg: "#fee2e2", text: "#991b1b" },
+    6: { label: "Vencida",     color: "#6b7280", bg: "#f3f4f6", text: "#374151" },
+  };
+
+  // Nodos y conexiones del diagrama
+  const NODOS = [
+    { id: 1, x: 60,  y: 40  },
+    { id: 2, x: 200, y: 40  },
+    { id: 3, x: 340, y: 40  },
+    { id: 4, x: 480, y: 40  },
+    { id: 5, x: 200, y: 120 },
+    { id: 6, x: 340, y: 120 },
+  ];
+
+  const CONEXIONES = [
+    { from: 1, to: 2 }, { from: 1, to: 5 },
+    { from: 2, to: 3 }, { from: 2, to: 5 }, { from: 2, to: 1 },
+    { from: 3, to: 4 }, { from: 3, to: 2 }, { from: 3, to: 5 },
+    { from: 5, to: 1 }, { from: 5, to: 2 },
+  ];
+
+  function generarDiagramaEstado(estadoActual, transicionesValidas) {
+    const W = 560, H = 160;
+    const R = 36; // radio nodo
+    const estadoIds = transicionesValidas.map(t => t.id);
+
+    // Flechas
+    const flechas = CONEXIONES.map(c => {
+      const from = NODOS.find(n => n.id === c.from);
+      const to   = NODOS.find(n => n.id === c.to);
+      if (!from || !to) return "";
+
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const ux = dx/dist, uy = dy/dist;
+
+      const x1 = from.x + ux * R;
+      const y1 = from.y + uy * R;
+      const x2 = to.x   - ux * R;
+      const y2 = to.y   - uy * R;
+
+      const esValida = c.from === estadoActual && estadoIds.includes(c.to);
+      const color = esValida ? "#5a4bf6" : "#d1d5db";
+      const width = esValida ? 2 : 1;
+      const opacity = esValida ? 1 : 0.4;
+
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+        stroke="${color}" stroke-width="${width}" opacity="${opacity}"
+        marker-end="url(#arrow-${esValida ? 'active' : 'inactive'})"/>`;
+    }).join("");
+
+    // Nodos
+    const nodos = NODOS.map(n => {
+      const est = ESTADOS[n.id];
+      if (!est) return "";
+      const esActual   = n.id === estadoActual;
+      const esDestino  = estadoIds.includes(n.id);
+      const esFinal    = n.id === 4 || n.id === 6;
+
+      let strokeColor = "#e5e7eb";
+      let strokeWidth = 1.5;
+      let bgColor     = "#f9fafb";
+      let textColor   = "#9ca3af";
+      let opacity     = 0.5;
+
+      if (esActual) {
+        strokeColor = est.color;
+        strokeWidth = 3;
+        bgColor     = est.bg;
+        textColor   = est.text;
+        opacity     = 1;
+      } else if (esDestino) {
+        strokeColor = est.color;
+        strokeWidth = 1.5;
+        bgColor     = "#fff";
+        textColor   = est.text;
+        opacity     = 0.85;
+      }
+
+      const label = est.label.length > 9 ? est.label.slice(0, 8) + "…" : est.label;
+
+      return `
+        <g class="${esDestino && !esActual ? 'nodo-destino' : ''}"
+           data-estado-id="${n.id}"
+           style="cursor:${esDestino && !esActual ? 'pointer' : 'default'};"
+           opacity="${opacity}">
+          <circle cx="${n.x}" cy="${n.y}" r="${R}"
+            fill="${bgColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
+          ${esActual ? `<circle cx="${n.x}" cy="${n.y}" r="${R + 5}"
+            fill="none" stroke="${est.color}" stroke-width="1.5" opacity="0.3" stroke-dasharray="4 2"/>` : ""}
+          <text x="${n.x}" y="${n.y + 4}" text-anchor="middle"
+            font-size="10" font-weight="${esActual ? '700' : '500'}"
+            fill="${textColor}" font-family="inherit">${label}</text>
+        </g>`;
+    }).join("");
+
+    return `
+      <svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;overflow:visible;"
+           class="workflow-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-active" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#5a4bf6"/>
+          </marker>
+          <marker id="arrow-inactive" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#d1d5db"/>
+          </marker>
+        </defs>
+        ${flechas}
+        ${nodos}
+      </svg>`;
+  }
+
+  // Colores de chips por nombre de estado
+  const ESTADO_COLORES = {
+    "Pendiente":    { bg: "#fef3c7", color: "#92400e", border: "#fde68a", dot: "#f59e0b" },
+    "En progreso":  { bg: "#dbeafe", color: "#1e40af", border: "#bfdbfe", dot: "#3b82f6" },
+    "En revisión":  { bg: "#ede9fe", color: "#5b21b6", border: "#ddd6fe", dot: "#8b5cf6" },
+    "Completada":   { bg: "#d1fae5", color: "#065f46", border: "#a7f3d0", dot: "#10b981" },
+    "Bloqueada":    { bg: "#fee2e2", color: "#991b1b", border: "#fecaca", dot: "#ef4444" },
+    "Vencida":      { bg: "#f3f4f6", color: "#374151", border: "#e5e7eb", dot: "#6b7280" },
+  };
+
+  function chipEstado(nombre) {
+    const c = ESTADO_COLORES[nombre] || { bg:"#f3f4f6", color:"#374151", border:"#e5e7eb" };
+    return `<span class="historial-estado-chip" style="background:${c.bg};color:${c.color};border-color:${c.border};">${escapeHTML(nombre)}</span>`;
+  }
+
+  // Config del workflow interactivo
+  const WORKFLOW_NODOS = [
+    { id: 1, label: "Pendiente",   col: "#f59e0b", bg: "#fef3c7", text: "#92400e", x: 0,   y: 0   },
+    { id: 2, label: "En progreso", col: "#3b82f6", bg: "#dbeafe", text: "#1e40af", x: 160, y: 0   },
+    { id: 3, label: "En revisión", col: "#8b5cf6", bg: "#ede9fe", text: "#5b21b6", x: 320, y: 0   },
+    { id: 4, label: "Completada",  col: "#10b981", bg: "#d1fae5", text: "#065f46", x: 320, y: 120 },
+    { id: 5, label: "Bloqueada",   col: "#ef4444", bg: "#fee2e2", text: "#991b1b", x: 160, y: 120 },
+    { id: 6, label: "Vencida",     col: "#6b7280", bg: "#f3f4f6", text: "#374151", x: 0,   y: 120 },
+  ];
+
+  const WORKFLOW_EDGES = [
+    { from: 1, to: 2 }, { from: 1, to: 5 },
+    { from: 2, to: 3 }, { from: 2, to: 5 }, { from: 2, to: 1 },
+    { from: 3, to: 4 }, { from: 3, to: 2 }, { from: 3, to: 5 },
+    { from: 5, to: 1 }, { from: 5, to: 2 },
+  ];
+
+  function montarWorkflowCanvas(canvasId, historial) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const body = canvas.parentElement;
+    const W = body.clientWidth - 48 || 480;
+    const H = 320;
+    canvas.width  = W;
+    canvas.height = H;
+
+    const ctx = canvas.getContext("2d");
+
+    // Nodos
+    // Nodo START especial
+    const START = { x: 60, y: 10, r: 18 };
+
+    const NODES = [
+      { id:1, label:"Pendiente",   col:"#f59e0b", bg:"#fef3c7", txt:"#92400e", x:60,  y:60  },
+      { id:2, label:"En progreso", col:"#3b82f6", bg:"#dbeafe", txt:"#1e40af", x:220, y:60  },
+      { id:3, label:"En revisión", col:"#8b5cf6", bg:"#ede9fe", txt:"#5b21b6", x:380, y:60  },
+      { id:4, label:"Completada",  col:"#10b981", bg:"#d1fae5", txt:"#065f46", x:380, y:200 },
+      { id:5, label:"Bloqueada",   col:"#ef4444", bg:"#fee2e2", txt:"#991b1b", x:220, y:200 },
+      { id:6, label:"Vencida",     col:"#6b7280", bg:"#f3f4f6", txt:"#374151", x:60,  y:200 },
+    ];
+
+    const EDGES = [
+      {from:1,to:2,label:"Iniciar"},
+      {from:1,to:5,label:"Bloquear"},
+      {from:2,to:3,label:"Revisar"},
+      {from:2,to:5,label:"Bloquear"},
+      {from:2,to:1,label:"Revertir"},
+      {from:3,to:4,label:"Aprobar"},
+      {from:3,to:2,label:"Devolver"},
+      {from:3,to:5,label:"Bloquear"},
+      {from:5,to:1,label:"Desbloquear"},
+      {from:5,to:2,label:"Retomar"},
+    ];
+
+    const NW = 110, NH = 40, R = 6;
+
+    // Calcular nodos y edges visitados
+    const visitedNodes = new Set();
+    const visitedEdges = new Set();
+    let estadoActual = historial.length > 0 ? historial[0].estado_nuevo : null;
+
+    historial.forEach(h => {
+      if (h.estado_nuevo)    visitedNodes.add(h.estado_nuevo);
+      if (h.estado_anterior) visitedNodes.add(h.estado_anterior);
+      if (h.estado_anterior && h.estado_nuevo) {
+        visitedEdges.add(`${h.estado_anterior}→${h.estado_nuevo}`);
+      }
+    });
+
+    // Estado pan/zoom
+    let tx = 20, ty = 20, scale = 1;
+    let dragging = false, lastX = 0, lastY = 0;
+
+    function getNodeCenter(n) {
+      return { x: n.x + NW/2, y: n.y + NH/2 };
+    }
+
+    function drawArrow(x1, y1, x2, y2, used, label) {
+      const dx = x2-x1, dy = y2-y1;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      const ux = dx/dist, uy = dy/dist;
+      // Acortar para no solapar nodos
+      const sx = x1 + ux*8, sy = y1 + uy*8;
+      const ex = x2 - ux*10, ey = y2 - uy*10;
+
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.strokeStyle = used ? "#5a4bf6" : "#d1d5db";
+      ctx.lineWidth   = used ? 2.5 : 1.5;
+      ctx.setLineDash(used ? [] : [4,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Punta de flecha
+      const angle = Math.atan2(ey-sy, ex-sx);
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - 10*Math.cos(angle-0.4), ey - 10*Math.sin(angle-0.4));
+      ctx.lineTo(ex - 10*Math.cos(angle+0.4), ey - 10*Math.sin(angle+0.4));
+      ctx.closePath();
+      ctx.fillStyle = used ? "#5a4bf6" : "#d1d5db";
+      ctx.fill();
+
+      // Etiqueta de transición
+      if (used && label) {
+        const mx = (sx+ex)/2, my = (sy+ey)/2;
+        ctx.save();
+        ctx.font = "10px system-ui";
+        const tw = ctx.measureText(label).width;
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.fillRect(mx - tw/2 - 4, my - 9, tw + 8, 16);
+        ctx.fillStyle = "#5a4bf6";
+        ctx.textAlign = "center";
+        ctx.fillText(label, mx, my + 3);
+        ctx.restore();
+      }
+    }
+
+    function drawNode(n) {
+      const visited  = visitedNodes.has(n.label);
+      const isCurr   = n.label === estadoActual;
+      const opacity  = visited ? 1 : 0.3;
+
+      ctx.save();
+      ctx.globalAlpha = opacity;
+
+      // Sombra si activo
+      if (visited) {
+        ctx.shadowColor = n.col + "44";
+        ctx.shadowBlur  = isCurr ? 16 : 6;
+      }
+
+      // Fondo
+      ctx.beginPath();
+      ctx.roundRect(n.x, n.y, NW, NH, R);
+      ctx.fillStyle = visited ? n.bg : "#f9fafb";
+      ctx.fill();
+      ctx.strokeStyle = visited ? n.col : "#e5e7eb";
+      ctx.lineWidth   = isCurr ? 3 : 1.5;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+
+      // Barra superior de color
+      if (visited) {
+        ctx.beginPath();
+        ctx.roundRect(n.x, n.y, NW, 5, [R, R, 0, 0]);
+        ctx.fillStyle = n.col;
+        ctx.fill();
+      }
+
+      // Texto
+      ctx.font = `${isCurr ? 700 : 500} 12px system-ui`;
+      ctx.fillStyle = visited ? n.txt : "#9ca3af";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(n.label, n.x + NW/2, n.y + NH/2 + 3);
+
+      // Badge "actual"
+      if (isCurr) {
+        ctx.font = "bold 9px system-ui";
+        ctx.fillStyle = n.col;
+        ctx.fillText("● ACTUAL", n.x + NW/2, n.y + NH - 6);
+      }
+
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fondo cuadriculado
+      ctx.save();
+      ctx.strokeStyle = "#f0f0f8";
+      ctx.lineWidth = 1;
+      const gridSize = 30;
+      const offX = (tx % gridSize);
+      const offY = (ty % gridSize);
+      for (let x = offX; x < W; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+      }
+      for (let y = offY; y < H; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.scale(scale, scale);
+
+      // Edges
+      EDGES.forEach(e => {
+        const fn = NODES.find(n => n.id === e.from);
+        const tn = NODES.find(n => n.id === e.to);
+        if (!fn || !tn) return;
+        const fc = getNodeCenter(fn), tc = getNodeCenter(tn);
+        const used = visitedEdges.has(`${fn.label}→${tn.label}`);
+        drawArrow(fc.x, fc.y, tc.x, tc.y, used, used ? e.label : "");
+      });
+
+      // Nodo START
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(START.x + NW/2, START.y + START.r, START.r, 0, Math.PI * 2);
+      ctx.fillStyle = "#1e293b";
+      ctx.fill();
+      ctx.font = "bold 9px system-ui";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("START", START.x + NW/2, START.y + START.r);
+      ctx.restore();
+
+      // Flecha START → Pendiente
+      const startCx = START.x + NW/2;
+      const startCy = START.y + START.r * 2;
+      const node1   = NODES[0];
+      const node1Cy = node1.y;
+      ctx.beginPath();
+      ctx.moveTo(startCx, startCy);
+      ctx.lineTo(startCx, node1Cy - 4);
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+      ctx.stroke();
+      // Punta
+      ctx.beginPath();
+      ctx.moveTo(startCx, node1Cy);
+      ctx.lineTo(startCx - 6, node1Cy - 10);
+      ctx.lineTo(startCx + 6, node1Cy - 10);
+      ctx.closePath();
+      ctx.fillStyle = "#1e293b";
+      ctx.fill();
+
+      // Nodes
+      NODES.forEach(n => drawNode(n));
+
+      ctx.restore();
+    }
+
+    draw();
+
+    // Pan
+    canvas.addEventListener("mousedown", e => {
+      dragging = true;
+      lastX = e.offsetX; lastY = e.offsetY;
+      canvas.style.cursor = "grabbing";
+    });
+    canvas.addEventListener("mousemove", e => {
+      if (!dragging) return;
+      tx += e.offsetX - lastX;
+      ty += e.offsetY - lastY;
+      lastX = e.offsetX; lastY = e.offsetY;
+      draw();
+    });
+    canvas.addEventListener("mouseup",   () => { dragging = false; canvas.style.cursor = "grab"; });
+    canvas.addEventListener("mouseleave",() => { dragging = false; canvas.style.cursor = "grab"; });
+
+    // Zoom
+    canvas.addEventListener("wheel", e => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      scale = Math.min(2.5, Math.max(0.4, scale * delta));
+      draw();
+    }, { passive: false });
+  }
+
+  function renderModalHistorial(historial, mostrarTarea) {
+    // Timeline HTML
+    let timelineHtml = "";
+    if (!Array.isArray(historial) || historial.length === 0) {
+      timelineHtml = `<p class="historial-empty">Sin historial de cambios.</p>`;
+    } else {
+      const entradas = historial.map(h => {
+        const fecha   = h.fecha ? new Date(h.fecha).toLocaleString("es-CL") : "";
+        const usuario = escapeHTML(h.usuario || h.username || "Sistema");
+        const anterior = h.estado_anterior;
+        const nuevo    = h.estado_nuevo;
+        const dotColor = (ESTADO_COLORES[nuevo] || {}).dot || "#6b7280";
+        const tarea = mostrarTarea && h.tarea
+          ? `<div class="historial-tarea-nombre">📌 ${escapeHTML(h.tarea)}</div>` : "";
+        const transicion = anterior
+          ? `${chipEstado(anterior)} <span class="historial-arrow">→</span> ${chipEstado(nuevo)}`
+          : chipEstado(nuevo);
+        return `
+          <div class="historial-entry">
+            <div class="historial-dot" style="background:${dotColor};"></div>
+            <div class="historial-entry-card">
+              <div class="historial-entry-header">
+                <span class="historial-usuario">${usuario}</span>
+                <span class="historial-fecha">${fecha}</span>
+              </div>
+              ${tarea}
+              <div class="historial-transicion">${transicion}</div>
+            </div>
+          </div>`;
+      }).join("");
+      timelineHtml = `<div class="historial-timeline">${entradas}</div>`;
+    }
+
+    return `
+      <canvas id="workflow-canvas" class="workflow-canvas"></canvas>
+      <div class="historial-diagrama-hint">🖱 Arrastra · Rueda para zoom</div>
+      <div class="historial-divider"><span>Registro de cambios</span></div>
+      ${timelineHtml}`;
+  }
+
+  function abrirModalHistorial(titulo, subtitulo, historial, mostrarTarea = false) {
+    const modal = document.getElementById("modal-historial");
+    if (!modal) return;
+    document.getElementById("modal-historial-titulo").textContent = titulo;
+    document.getElementById("modal-historial-subtitulo").textContent = subtitulo;
+    document.getElementById("modal-historial-body").innerHTML = renderModalHistorial(historial, mostrarTarea);
+    modal.style.display = "flex";
+
+    requestAnimationFrame(() => {
+      montarWorkflowCanvas("workflow-canvas", historial);
+    });
+
+    const btnCerrar = document.getElementById("btn-cerrar-historial");
+    if (btnCerrar) btnCerrar.onclick = cerrarModalHistorial;
+    modal.onclick = (e) => { if (e.target === modal) cerrarModalHistorial(); };
+  }
+
+  function cerrarModalHistorial() {
+    const modal = document.getElementById("modal-historial");
+    if (modal) modal.style.display = "none";
+  }
+
+  function renderHistorialTarea(historial, subtitulo) {
+    abrirModalHistorial("Historial de la tarea", subtitulo, historial, false);
+  }
+
   return {
     abrirModal,
     cerrarModal,
@@ -529,5 +1020,8 @@ const MentoriasUI = (() => {
     abrirModalDetalle,
     cerrarModalDetalle,
     toggleBtnVerTodas,
+    renderHistorialTarea,
+    cerrarModalHistorial,
+    generarDiagramaEstado,
   };
 })();

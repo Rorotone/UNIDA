@@ -305,6 +305,13 @@ async function handleClickListaMentorias(e) {
     return;
   }
 
+
+
+  if (e.target.closest(".btn-ver-historial")) {
+    await handleHistorialTarea(e.target.closest(".btn-ver-historial"));
+    return;
+  }
+
   if (e.target.closest(".btn-eliminar-tarea")) {
     const tareaItem = e.target.closest(".tarea-item");
     const idTarea = tareaItem?.dataset.tareaId;
@@ -390,30 +397,47 @@ async function handleSubmitTarea(e) {
   }
 }
 
+async function handleHistorialTarea(btnHistorial) {
+  const tareaItem = btnHistorial.closest(".tarea-item");
+  const card = btnHistorial.closest(".mentoria-card");
+  const idMentoria = card?.dataset.mentoriaId;
+  const idTarea = btnHistorial.dataset.tareaId;
+  const tituloTarea = tareaItem?.querySelector("strong")?.textContent || "Tarea";
+  const modal = document.getElementById("modal-historial");
+  if (!modal) return;
+
+  document.getElementById("modal-historial-titulo").textContent = "Historial de la tarea";
+  document.getElementById("modal-historial-subtitulo").textContent = tituloTarea;
+  document.getElementById("modal-historial-body").innerHTML = `<p class="historial-loading">Cargando...</p>`;
+  modal.style.display = "flex";
+
+  try {
+    const historial = await MentoriasAPI.obtenerHistorialTarea(idMentoria, idTarea);
+    MentoriasUI.renderHistorialTarea(historial, tituloTarea);
+  } catch (_) {
+    document.getElementById("modal-historial-body").innerHTML = `<p class="historial-empty">No se pudo cargar el historial.</p>`;
+  }
+}
+
 async function handleChangeListaMentorias(e) {
   const select = e.target.closest(".select-estado-tarea");
   if (!select) return;
 
   const tareaItem = select.closest(".tarea-item");
   const card = select.closest(".mentoria-card");
-
   const idMentoria = card?.dataset.mentoriaId;
   const idTarea = tareaItem?.dataset.tareaId;
   const nuevoEstado = Number(select.value);
+  const estadoActual = Number(select.dataset.estadoActual);
 
-  if (!idMentoria || !idTarea) return;
+  if (!idMentoria || !idTarea || nuevoEstado === estadoActual) return;
 
   try {
     await MentoriasAPI.actualizarEstadoTarea(idMentoria, idTarea, nuevoEstado);
     await recargarMentorias();
-
-    showAppAlert("Estado de tarea actualizado correctamente.", "success", {
-      title: "Tarea actualizada"
-    });
+    showAppAlert("Estado de tarea actualizado correctamente.", "success", { title: "Tarea actualizada" });
   } catch (error) {
     console.error("Error al actualizar estado de tarea:", error);
-    showAppAlert(error.message || "No se pudo actualizar la tarea.", "error", {
-      title: "Error al actualizar"
-    });
+    showAppAlert(error.message || "No se pudo actualizar la tarea.", "error", { title: "Error al actualizar" });
   }
 }

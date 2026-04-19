@@ -114,6 +114,19 @@ const MentoriasAPI = (() => {
     });
   }
 
+
+  async function obtenerTransiciones(idEstado) {
+    return request(`${BASE_URL}/estados/${idEstado}/transiciones`);
+  }
+
+  async function obtenerEstados() {
+    return request(`${BASE_URL}/estados`);
+  }
+
+  async function obtenerHistorialTarea(idMentoria, idTarea) {
+    return request(`${BASE_URL}/${idMentoria}/tareas/${idTarea}/historial`);
+  }
+
   async function obtenerMentores() {
     return request(MENTORES_URL);
   }
@@ -132,6 +145,9 @@ const MentoriasAPI = (() => {
     actualizarEstadoTarea,
     eliminarTarea,
     marcarTodasTareas,
+    obtenerTransiciones,
+    obtenerEstados,
+    obtenerHistorialTarea,
     obtenerMentores,
     obtenerProfesores
   };
