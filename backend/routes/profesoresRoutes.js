@@ -26,6 +26,13 @@ const uploadProfesoresCSV = (req, res, next) => {
 
 router.post('/carga-masiva', authenticateToken, uploadProfesoresCSV, profesoresController.uploadProfesoresCSV);
 
+router.get('/catalogo-talleres', authenticateToken, profesoresController.getCatalogoTalleres);
+router.post('/catalogo-talleres', authenticateToken, profesoresController.createCatalogoTaller);
+router.put('/catalogo-talleres/:id_taller', authenticateToken, profesoresController.updateCatalogoTaller);
+router.delete('/catalogo-talleres/:id_taller', authenticateToken, profesoresController.deleteCatalogoTaller);
+router.get('/catalogo-sedes', authenticateToken, profesoresController.getCatalogoSedes);
+router.get('/:id_profesor/sedes', authenticateToken, profesoresController.getProfesorSedes);
+
 router.post('/', authenticateToken, profesoresController.createProfesor);
 router.get('/', authenticateToken, profesoresController.getProfesores);
 router.get('/:id_profesor', authenticateToken, profesoresController.getProfesorById);

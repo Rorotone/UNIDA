@@ -42,6 +42,32 @@ async function fetchProfesores(params = null) {
   return await response.json();
 }
 
+async function fetchCatalogoTalleres() {
+  const response = await fetch('/api/profesores/catalogo-talleres', {
+    headers: getAuthHeader()
+  });
+
+  if (handleUnauthorized(response)) return null;
+  if (!response.ok) throw new Error('Error al cargar catálogo de talleres');
+
+  return await response.json();
+}
+
+async function fetchCatalogoSedes(query = '') {
+  const url = query
+    ? `/api/profesores/catalogo-sedes?q=${encodeURIComponent(query)}`
+    : '/api/profesores/catalogo-sedes';
+
+  const response = await fetch(url, {
+    headers: getAuthHeader()
+  });
+
+  if (handleUnauthorized(response)) return null;
+  if (!response.ok) throw new Error('Error al cargar catálogo de sedes');
+
+  return await response.json();
+}
+
 async function fetchProfesorById(id) {
   const response = await fetch(`/api/profesores/${id}`, {
     headers: getAuthHeader()
@@ -104,6 +130,62 @@ async function deleteProfesor(id) {
   const result = await response.json().catch(() => null);
   if (!response.ok) {
     throw new Error(result?.message || 'Error al eliminar profesor');
+  }
+
+  return result;
+}
+
+async function createCatalogoTaller(data) {
+  const response = await fetch('/api/profesores/catalogo-talleres', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (handleUnauthorized(response)) return null;
+
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(result?.message || 'Error al crear taller');
+  }
+
+  return result;
+}
+
+async function updateCatalogoTaller(id, data) {
+  const response = await fetch(`/api/profesores/catalogo-talleres/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (handleUnauthorized(response)) return null;
+
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(result?.message || 'Error al actualizar taller');
+  }
+
+  return result;
+}
+
+async function deleteCatalogoTaller(id) {
+  const response = await fetch(`/api/profesores/catalogo-talleres/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeader()
+  });
+
+  if (handleUnauthorized(response)) return null;
+
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(result?.message || 'Error al eliminar taller');
   }
 
   return result;

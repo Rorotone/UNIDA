@@ -2,36 +2,53 @@ document.addEventListener('DOMContentLoaded', () => {
   initProfesores();
 });
 
+let sedesSearchTimer = null;
+
 async function initProfesores() {
   bindModalEvents();
   bindFilterEvents();
   bindFormSubmit();
   bindCSVImportEvents();
-  await cargarProfesores();
+  bindCatalogoEvents();
+  bindProfesorTabs();
+  bindSedesFieldEvents();
+  await cargarDatosBase();
 }
 
 function bindModalEvents() {
   const modal = document.getElementById('modal-profesor');
   const openBtn = document.getElementById('open-modal-btn');
   const closeBtn = document.getElementById('close-modal');
+  const openCatalogBtn = document.getElementById('open-catalogo-modal-btn');
+  const openCatalogSecondaryBtn = document.getElementById('open-catalogo-modal-secondary-btn');
+  const closeCatalogBtn = document.getElementById('close-catalogo-modal');
 
-  if (openBtn) {
-    openBtn.addEventListener('click', () => {
-      resetFormUI();
-      abrirModal();
-    });
-  }
+  openBtn?.addEventListener('click', () => {
+    resetFormUI();
+    abrirModal();
+  });
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', cerrarModal);
-  }
+  openCatalogBtn?.addEventListener('click', abrirModalCatalogo);
+  openCatalogSecondaryBtn?.addEventListener('click', abrirModalCatalogo);
+  closeBtn?.addEventListener('click', cerrarModal);
+  closeCatalogBtn?.addEventListener('click', cerrarModalCatalogo);
 
   window.addEventListener('click', (event) => {
     if (event.target === modal) cerrarModal();
+    if (event.target?.id === 'modal-catalogo-talleres') cerrarModalCatalogo();
+
+    const suggestions = document.getElementById('sedes-suggestions');
+    const searchWrap = document.querySelector('.sedes-search-wrap');
+    if (suggestions && searchWrap && !searchWrap.contains(event.target)) {
+      hideSedesSuggestions();
+    }
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') cerrarModal();
+    if (event.key === 'Escape') {
+      cerrarModal();
+      cerrarModalCatalogo();
+    }
   });
 }
 
@@ -39,8 +56,6 @@ function bindFilterEvents() {
   document.getElementById('search-nombre')?.addEventListener('input', applyFilters);
   document.getElementById('search-departamento')?.addEventListener('change', applyFilters);
   document.getElementById('search-sede')?.addEventListener('change', applyFilters);
-  document.getElementById('search-sede-clases')?.addEventListener('change', applyFilters);
-  document.getElementById('search-talleres-vra')?.addEventListener('change', applyFilters);
   document.getElementById('search-btn')?.addEventListener('click', applyFilters);
   document.getElementById('reset-btn')?.addEventListener('click', resetFiltros);
   document.getElementById('toggle-filtros-btn')?.addEventListener('click', toggleFiltros);
@@ -48,6 +63,80 @@ function bindFilterEvents() {
 
 function bindFormSubmit() {
   document.getElementById('profesor-form')?.addEventListener('submit', handleFormSubmit);
+  document.getElementById('add-formacion-btn')?.addEventListener('click', () => addFormacionDocenteItem());
+}
+
+function bindCatalogoEvents() {
+  document.getElementById('catalogo-taller-form')?.addEventListener('submit', handleCatalogoSubmit);
+  document.getElementById('catalogo-reset-btn')?.addEventListener('click', resetCatalogoForm);
+}
+
+function bindSedesFieldEvents() {
+  const searchInput = document.getElementById('sedes-search-input');
+  const selectedContainer = document.getElementById('sedes-selected');
+  const suggestions = document.getElementById('sedes-suggestions');
+
+  searchInput?.addEventListener('input', () => {
+    const query = searchInput.value.trim();
+    window.clearTimeout(sedesSearchTimer);
+
+    sedesSearchTimer = window.setTimeout(async () => {
+      try {
+        const sedes = await fetchCatalogoSedes(query);
+        if (!sedes) return;
+        setCatalogoSedesCache(sedes);
+
+        const selectedIds = new Set(getSelectedSedeIds());
+        const visibles = sedes.filter((sede) => !selectedIds.has(Number(sede.id_sede)));
+        renderSedesSuggestions(visibles);
+      } catch (error) {
+        console.error('Error al buscar sedes:', error);
+        renderSedesSuggestions([]);
+      }
+    }, 120);
+  });
+
+  searchInput?.addEventListener('focus', async () => {
+    try {
+      const sedes = await fetchCatalogoSedes(searchInput.value.trim());
+      if (!sedes) return;
+      setCatalogoSedesCache(sedes);
+      const selectedIds = new Set(getSelectedSedeIds());
+      renderSedesSuggestions(sedes.filter((sede) => !selectedIds.has(Number(sede.id_sede))));
+    } catch (error) {
+      console.error('Error al cargar sugerencias de sedes:', error);
+      renderSedesSuggestions([]);
+    }
+  });
+
+  suggestions?.addEventListener('click', (event) => {
+    const button = event.target.closest('.sede-suggestion-item');
+    if (!button) return;
+
+    const id = Number(button.dataset.id);
+    const sede = getCatalogoSedesCache().find((item) => Number(item.id_sede) === id);
+    if (!sede) return;
+    addSelectedSede(sede);
+  });
+
+  selectedContainer?.addEventListener('click', (event) => {
+    const removeBtn = event.target.closest('.sede-chip-remove');
+    if (!removeBtn) return;
+    removeSelectedSede(Number(removeBtn.dataset.id));
+  });
+
+  const handleSelectedSedeField = (event) => {
+    const target = event.target;
+    if (!target?.dataset?.action || target.dataset.action !== 'sede-field') return;
+
+    const id = Number(target.dataset.id);
+    const field = target.dataset.field;
+    if (!Number.isInteger(id) || !field) return;
+
+    updateSelectedSedeField(id, field, target.value?.trim?.() ?? '');
+  };
+
+  selectedContainer?.addEventListener('change', handleSelectedSedeField);
 }
 
 function bindCSVImportEvents() {
@@ -59,35 +148,65 @@ function bindCSVImportEvents() {
     selectBtn.addEventListener('click', () => input.click());
   }
 
-  if (input) {
-    input.addEventListener('change', () => {
-      const file = input.files?.[0] || null;
-      updateSelectedCSVName(file);
-      clearImportSummary();
-    });
-  }
+  input?.addEventListener('change', () => {
+    const file = input.files?.[0] || null;
+    updateSelectedCSVName(file);
+    clearImportSummary();
+  });
 
-  if (importBtn) {
-    importBtn.addEventListener('click', handleImportCSV);
-  }
-
+  importBtn?.addEventListener('click', handleImportCSV);
   resetImportUI();
 }
 
-async function cargarProfesores() {
+async function cargarDatosBase() {
   try {
-    const profesores = await fetchProfesores();
-    if (!profesores) return;
+    const [profesores, catalogoTalleres, catalogoSedes] = await Promise.all([
+      fetchProfesores(),
+      fetchCatalogoTalleres(),
+      fetchCatalogoSedes()
+    ]);
+
+    if (!profesores || !catalogoTalleres || !catalogoSedes) return;
 
     setProfesoresCache(profesores);
+    setCatalogoTalleresCache(catalogoTalleres);
+    setCatalogoSedesCache(catalogoSedes);
+
     renderRows(getProfesoresCache());
     renderFiltros();
+    renderCatalogoTalleresTable(getCatalogoTalleresCache());
+    renderTalleresSelector([]);
+    setSelectedSedes([]);
+    ensureAtLeastOneFormacionItem();
   } catch (error) {
     console.error('Error al cargar profesores:', error);
     showAppAlert(error.message || 'Error al cargar profesores.', 'error', {
       title: 'Error de carga'
     });
   }
+}
+
+async function recargarProfesores() {
+  const profesores = await fetchProfesores();
+  if (!profesores) return;
+
+  setProfesoresCache(profesores);
+  renderRows(getProfesoresCache());
+  renderFiltros();
+}
+
+async function recargarCatalogo() {
+  const [catalogoTalleres, catalogoSedes] = await Promise.all([
+    fetchCatalogoTalleres(),
+    fetchCatalogoSedes()
+  ]);
+
+  if (!catalogoTalleres || !catalogoSedes) return;
+
+  setCatalogoTalleresCache(catalogoTalleres);
+  setCatalogoSedesCache(catalogoSedes);
+  renderCatalogoTalleresTable(getCatalogoTalleresCache());
+  renderTalleresSelector(getSelectedTallerIds());
 }
 
 async function handleFormSubmit(event) {
@@ -111,11 +230,41 @@ async function handleFormSubmit(event) {
 
     cerrarModal();
     resetFormUI();
-    await cargarProfesores();
+    await recargarProfesores();
+    await recargarCatalogo();
   } catch (error) {
     console.error('Error al guardar profesor:', error);
     showAppAlert(error.message || 'Error al guardar profesor.', 'error', {
       title: 'Error al guardar'
+    });
+  }
+}
+
+async function handleCatalogoSubmit(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('catalogo_id_taller')?.value;
+  const data = getCatalogoFormData();
+
+  try {
+    if (id) {
+      await updateCatalogoTaller(id, data);
+      showAppAlert('Taller actualizado correctamente.', 'success', {
+        title: 'Catálogo actualizado'
+      });
+    } else {
+      await createCatalogoTaller(data);
+      showAppAlert('Taller creado correctamente.', 'success', {
+        title: 'Catálogo actualizado'
+      });
+    }
+
+    resetCatalogoForm();
+    await recargarCatalogo();
+  } catch (error) {
+    console.error('Error al guardar taller:', error);
+    showAppAlert(error.message || 'Error al guardar taller.', 'error', {
+      title: 'Error en catálogo'
     });
   }
 }
@@ -149,7 +298,7 @@ async function handleImportCSV() {
     renderImportSummary(result);
 
     if (Number(result.insertados || 0) > 0) {
-      await cargarProfesores();
+      await recargarProfesores();
     }
 
     const fileName = document.getElementById('csv-file-name');
@@ -179,11 +328,13 @@ async function handleImportCSV() {
     setImportLoading(false);
   }
 }
+
 async function editarProfesor(id) {
   try {
     const profesor = await fetchProfesorById(id);
     if (!profesor) return;
 
+    resetFormUI();
     fillForm(normalizeProfesor(profesor));
     abrirModal();
   } catch (error) {
@@ -210,7 +361,7 @@ async function eliminarProfesor(id) {
     showAppAlert('Profesor eliminado exitosamente.', 'success', {
       title: 'Registro eliminado'
     });
-    await cargarProfesores();
+    await recargarProfesores();
   } catch (error) {
     console.error('Error al eliminar profesor:', error);
     showAppAlert(error.message || 'Error al eliminar profesor.', 'error', {
@@ -219,6 +370,42 @@ async function eliminarProfesor(id) {
   }
 }
 
+function editarCatalogoTaller(id) {
+  const taller = getCatalogoTalleresCache().find((item) => Number(item.id_taller) === Number(id));
+  if (!taller) return;
+
+  fillCatalogoForm(taller);
+  abrirModalCatalogo();
+}
+
+async function eliminarCatalogoTaller(id) {
+  const confirmacion = await showAppConfirm({
+    title: 'Eliminar taller',
+    message: '¿Deseas eliminar este taller del catálogo?',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    danger: true
+  });
+
+  if (!confirmacion) return;
+
+  try {
+    await deleteCatalogoTaller(id);
+    resetCatalogoForm();
+    await recargarCatalogo();
+    showAppAlert('Taller eliminado correctamente.', 'success', {
+      title: 'Catálogo actualizado'
+    });
+  } catch (error) {
+    console.error('Error al eliminar taller:', error);
+    showAppAlert(error.message || 'Error al eliminar taller.', 'error', {
+      title: 'Error en catálogo'
+    });
+  }
+}
+
 window.editarProfesor = editarProfesor;
 window.eliminarProfesor = eliminarProfesor;
 window.cerrarModal = cerrarModal;
+window.editarCatalogoTaller = editarCatalogoTaller;
+window.eliminarCatalogoTaller = eliminarCatalogoTaller;

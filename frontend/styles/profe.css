@@ -27,35 +27,6 @@
   margin-bottom: 0;
 }
 
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  margin-top: 8px;
-  padding: 12px 16px;
-  background: var(--surface-muted);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 0;
-  font-weight: 500;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.checkbox-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--primary);
-}
-
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -65,8 +36,12 @@
   border-top: 1px solid var(--border);
 }
 
-/* Centrar modal profesores */
-#modal-profesor {
+.modal-actions-tight {
+  margin-top: 12px;
+}
+
+#modal-profesor,
+#modal-catalogo-talleres {
   display: none;
   position: fixed;
   inset: 0;
@@ -76,19 +51,30 @@
   padding: 20px;
 }
 
-#modal-profesor.is-open {
+#modal-profesor.is-open,
+#modal-catalogo-talleres.is-open {
   display: flex;
 }
 
-/* tamaño modal profesores */
-#modal-profesor .modal-content {
-  width: min(720px, 95vw);
+#modal-profesor .modal-content,
+#modal-catalogo-talleres .modal-content {
   max-height: 90vh;
   overflow-y: auto;
   margin: 0 auto;
 }
 
-/* acciones superiores */
+.modal-profesor-wide {
+  width: min(980px, 96vw);
+}
+
+.modal-catalogo {
+  width: min(880px, 96vw);
+}
+
+.modal-head-profesor {
+  margin-bottom: 18px;
+}
+
 .top-actions {
   display: flex;
   justify-content: space-between;
@@ -98,7 +84,6 @@
   flex-wrap: wrap;
 }
 
-/* importador CSV */
 .csv-import-container {
   display: flex;
   align-items: center;
@@ -117,9 +102,279 @@
   line-height: 1.2;
 }
 
-/* bloque de acciones de filtros */
 .search-actions {
   align-items: end;
+}
+
+.profesor-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.profesor-tab {
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text);
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.profesor-tab.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.profesor-tab-panel {
+  display: none;
+}
+
+.profesor-tab-panel.is-active {
+  display: block;
+}
+
+.formacion-docente-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.section-card-header h3 {
+  margin: 0;
+}
+
+.sedes-field {
+  display: grid;
+  gap: 10px;
+}
+
+.sedes-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.sede-card {
+  display: grid;
+  gap: 12px;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt, #f8fafc);
+}
+
+.sede-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sede-card-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.sede-card-grid label {
+  display: grid;
+  gap: 6px;
+}
+
+.sede-card-grid select,
+.sede-card-grid input {
+  width: 100%;
+}
+
+.sede-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: #eef0ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.sede-chip-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  min-height: auto;
+}
+
+.sedes-search-wrap {
+  position: relative;
+}
+
+.sedes-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.sedes-suggestions.hidden {
+  display: none;
+}
+
+.sede-suggestion-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--surface-muted);
+  color: var(--text);
+  text-align: left;
+}
+
+.sede-suggestion-item:hover {
+  border-color: var(--border);
+}
+
+.sede-suggestion-item small,
+.sedes-suggestion-empty {
+  color: var(--text-soft);
+}
+
+.repeatable-list {
+  display: grid;
+  gap: 14px;
+}
+
+.repeatable-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface-muted);
+}
+
+.repeatable-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.talleres-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.taller-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+
+.taller-option input {
+  margin-top: 3px;
+}
+
+.taller-option-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.taller-option-main small {
+  color: var(--text-soft);
+}
+
+.empty-selector,
+.info-panel {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.checkbox-item-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.summary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef0ff;
+  color: #4338ca;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.summary-badge-muted {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.summary-stack {
+  display: grid;
+  gap: 4px;
+}
+
+.catalogo-form {
+  margin-bottom: 18px;
+}
+
+textarea {
+  resize: vertical;
 }
 
 @media (max-width: 768px) {
@@ -153,8 +408,13 @@
   .csv-file-name {
     width: 100%;
   }
+
+  .profesor-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
-/* reporte carga masiva CSV */
+
 #csv-import-summary {
   margin-bottom: 16px;
 }
