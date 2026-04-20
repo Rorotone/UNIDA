@@ -1,6 +1,10 @@
+function getToken() {
+  return localStorage.getItem('token');
+}
+
 function getAuthHeader() {
-  const token = localStorage.getItem('token');
-  return { Authorization: `Bearer ${token}` };
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 function handleUnauthorized(response) {
@@ -24,192 +28,297 @@ function handleUnauthorized(response) {
   return false;
 }
 
+async function parseJsonSafe(response) {
+  try {
+    return await response.json();
+  } catch (_) {
+    return null;
+  }
+}
+
+async function request(url, options = {}, defaultErrorMessage = 'Error en la solicitud') {
+  const finalOptions = {
+    ...options,
+    headers: {
+      ...getAuthHeader(),
+      ...(options.headers || {})
+    }
+  };
+
+  const response = await fetch(url, finalOptions);
+
+  if (handleUnauthorized(response)) return null;
+
+  const result = await parseJsonSafe(response);
+
+  if (!response.ok) {
+    throw new Error(result?.message || defaultErrorMessage);
+  }
+
+  return result;
+}
+
+/* =========================================================
+   PROFESORES
+========================================================= */
+
 async function fetchProfesores(params = null) {
   let url = '/api/profesores';
 
   if (params) {
-    const query = new URLSearchParams(params);
-    if (query.toString()) url += `?${query.toString()}`;
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        query.append(key, value);
+      }
+    });
+
+    if (query.toString()) {
+      url += `?${query.toString()}`;
+    }
   }
 
-  const response = await fetch(url, {
-    headers: getAuthHeader()
-  });
-
-  if (handleUnauthorized(response)) return null;
-  if (!response.ok) throw new Error('Error al cargar profesores');
-
-  return await response.json();
+  return await request(url, {}, 'Error al cargar profesores');
 }
 
-async function fetchCatalogoTalleres() {
-  const response = await fetch('/api/profesores/catalogo-talleres', {
-    headers: getAuthHeader()
-  });
-
-  if (handleUnauthorized(response)) return null;
-  if (!response.ok) throw new Error('Error al cargar catálogo de talleres');
-
-  return await response.json();
+async function fetchProfesorById(id) {
+  return await request(`/api/profesores/${id}`, {}, 'Error al cargar profesor');
 }
+
+async function createProfesor(data) {
+  return await request(
+    '/api/profesores',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al crear profesor'
+  );
+}
+
+async function updateProfesor(id, data) {
+  return await request(
+    `/api/profesores/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al actualizar profesor'
+  );
+}
+
+async function deleteProfesor(id) {
+  return await request(
+    `/api/profesores/${id}`,
+    {
+      method: 'DELETE'
+    },
+    'Error al eliminar profesor'
+  );
+}
+
+/* =========================================================
+   CATÁLOGO DE SEDES
+========================================================= */
 
 async function fetchCatalogoSedes(query = '') {
   const url = query
     ? `/api/profesores/catalogo-sedes?q=${encodeURIComponent(query)}`
     : '/api/profesores/catalogo-sedes';
 
-  const response = await fetch(url, {
-    headers: getAuthHeader()
-  });
-
-  if (handleUnauthorized(response)) return null;
-  if (!response.ok) throw new Error('Error al cargar catálogo de sedes');
-
-  return await response.json();
+  return await request(url, {}, 'Error al cargar catálogo de sedes');
 }
 
-async function fetchProfesorById(id) {
-  const response = await fetch(`/api/profesores/${id}`, {
-    headers: getAuthHeader()
-  });
+/* =========================================================
+   CATÁLOGO DE TALLERES
+========================================================= */
 
-  if (handleUnauthorized(response)) return null;
-  if (!response.ok) throw new Error('Error al cargar profesor');
+async function fetchCatalogoTalleres(params = {}) {
+  const query = new URLSearchParams();
 
-  return await response.json();
-}
+  if (params.incluirInactivos) query.append('incluirInactivos', '1');
+  if (params.q) query.append('q', params.q);
 
-async function createProfesor(data) {
-  const response = await fetch('/api/profesores', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
-    },
-    body: JSON.stringify(data)
-  });
+  const qs = query.toString();
+  const url = qs
+    ? `/api/profesores/catalogo-talleres?${qs}`
+    : '/api/profesores/catalogo-talleres';
 
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al crear profesor');
-  }
-
-  return result;
-}
-
-async function updateProfesor(id, data) {
-  const response = await fetch(`/api/profesores/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
-    },
-    body: JSON.stringify(data)
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al actualizar profesor');
-  }
-
-  return result;
-}
-
-async function deleteProfesor(id) {
-  const response = await fetch(`/api/profesores/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeader()
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al eliminar profesor');
-  }
-
-  return result;
+  return await request(url, {}, 'Error al cargar catálogo de talleres');
 }
 
 async function createCatalogoTaller(data) {
-  const response = await fetch('/api/profesores/catalogo-talleres', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
+  return await request(
+    '/api/profesores/catalogo-talleres',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
     },
-    body: JSON.stringify(data)
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al crear taller');
-  }
-
-  return result;
+    'Error al crear taller'
+  );
 }
 
 async function updateCatalogoTaller(id, data) {
-  const response = await fetch(`/api/profesores/catalogo-talleres/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
+  return await request(
+    `/api/profesores/catalogo-talleres/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
     },
-    body: JSON.stringify(data)
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al actualizar taller');
-  }
-
-  return result;
+    'Error al actualizar taller'
+  );
 }
 
 async function deleteCatalogoTaller(id) {
-  const response = await fetch(`/api/profesores/catalogo-talleres/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeader()
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al eliminar taller');
-  }
-
-  return result;
+  return await request(
+    `/api/profesores/catalogo-talleres/${id}`,
+    {
+      method: 'DELETE'
+    },
+    'Error al eliminar taller'
+  );
 }
+
+/* =========================================================
+   CATÁLOGO DE FORMACIONES DOCENTES
+========================================================= */
+
+async function fetchCatalogoFormaciones(params = {}) {
+  const query = new URLSearchParams();
+
+  if (params.incluirInactivos) query.append('incluirInactivos', '1');
+  if (params.q) query.append('q', params.q);
+  if (params.tipo_formacion) query.append('tipo_formacion', params.tipo_formacion);
+
+  const qs = query.toString();
+  const url = qs
+    ? `/api/profesores/catalogo-formaciones?${qs}`
+    : '/api/profesores/catalogo-formaciones';
+
+  return await request(url, {}, 'Error al cargar catálogo de formaciones');
+}
+
+async function createCatalogoFormacion(data) {
+  return await request(
+    '/api/profesores/catalogo-formaciones',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al crear formación'
+  );
+}
+
+async function updateCatalogoFormacion(id, data) {
+  return await request(
+    `/api/profesores/catalogo-formaciones/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al actualizar formación'
+  );
+}
+
+async function deleteCatalogoFormacion(id) {
+  return await request(
+    `/api/profesores/catalogo-formaciones/${id}`,
+    {
+      method: 'DELETE'
+    },
+    'Error al eliminar formación'
+  );
+}
+
+/* =========================================================
+   CATÁLOGO DE MAGÍSTER
+========================================================= */
+
+async function fetchCatalogoMagister(params = {}) {
+  const query = new URLSearchParams();
+
+  if (params.incluirInactivos) query.append('incluirInactivos', '1');
+  if (params.q) query.append('q', params.q);
+
+  const qs = query.toString();
+  const url = qs
+    ? `/api/profesores/catalogo-magister?${qs}`
+    : '/api/profesores/catalogo-magister';
+
+  return await request(url, {}, 'Error al cargar catálogo de magíster');
+}
+
+async function createCatalogoMagister(data) {
+  return await request(
+    '/api/profesores/catalogo-magister',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al crear magíster'
+  );
+}
+
+async function updateCatalogoMagister(id, data) {
+  return await request(
+    `/api/profesores/catalogo-magister/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al actualizar magíster'
+  );
+}
+
+async function deleteCatalogoMagister(id) {
+  return await request(
+    `/api/profesores/catalogo-magister/${id}`,
+    {
+      method: 'DELETE'
+    },
+    'Error al eliminar magíster'
+  );
+}
+
+/* =========================================================
+   CARGA MASIVA CSV
+========================================================= */
 
 async function importarProfesoresCSV(file) {
   const formData = new FormData();
   formData.append('archivo', file);
 
-  const response = await fetch('/api/profesores/carga-masiva', {
-    method: 'POST',
-    headers: {
-      ...getAuthHeader()
+  return await request(
+    '/api/profesores/carga-masiva',
+    {
+      method: 'POST',
+      body: formData
     },
-    body: formData
-  });
-
-  if (handleUnauthorized(response)) return null;
-
-  const result = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(result?.message || 'Error al importar CSV');
-  }
-
-  return result;
+    'Error al importar CSV'
+  );
 }

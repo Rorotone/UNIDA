@@ -26,10 +26,24 @@ const uploadProfesoresCSV = (req, res, next) => {
 
 router.post('/carga-masiva', authenticateToken, uploadProfesoresCSV, profesoresController.uploadProfesoresCSV);
 
+/* Catálogo talleres */
 router.get('/catalogo-talleres', authenticateToken, profesoresController.getCatalogoTalleres);
 router.post('/catalogo-talleres', authenticateToken, profesoresController.createCatalogoTaller);
 router.put('/catalogo-talleres/:id_taller', authenticateToken, profesoresController.updateCatalogoTaller);
 router.delete('/catalogo-talleres/:id_taller', authenticateToken, profesoresController.deleteCatalogoTaller);
+
+/* Catálogo formaciones docentes */
+router.get('/catalogo-formaciones', authenticateToken, profesoresController.getCatalogoFormaciones);
+router.post('/catalogo-formaciones', authenticateToken, profesoresController.createCatalogoFormacion);
+router.put('/catalogo-formaciones/:id_catalogo_formacion', authenticateToken, profesoresController.updateCatalogoFormacion);
+router.delete('/catalogo-formaciones/:id_catalogo_formacion', authenticateToken, profesoresController.deleteCatalogoFormacion);
+
+/* Catálogo magister */
+router.get('/catalogo-magister', authenticateToken, profesoresController.getCatalogoMagister);
+router.post('/catalogo-magister', authenticateToken, profesoresController.createCatalogoMagister);
+router.put('/catalogo-magister/:id_catalogo_magister', authenticateToken, profesoresController.updateCatalogoMagister);
+router.delete('/catalogo-magister/:id_catalogo_magister', authenticateToken, profesoresController.deleteCatalogoMagister);
+
 router.get('/catalogo-sedes', authenticateToken, profesoresController.getCatalogoSedes);
 router.get('/:id_profesor/sedes', authenticateToken, profesoresController.getProfesorSedes);
 

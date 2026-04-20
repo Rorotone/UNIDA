@@ -18,136 +18,189 @@
   </header>
 
   <main>
+    <!-- MODAL PROFESOR -->
     <div id="modal-profesor" class="modal">
       <div class="modal-content modal-profesor-wide">
         <span class="close" id="close-modal">&times;</span>
+
         <form id="profesor-form">
           <input type="hidden" id="id_profesor">
 
           <div class="modal-head-profesor">
             <div>
               <h2 id="form-title">Agregar Profesor</h2>
-              <p class="inline-note">Organiza el perfil del profesor en Datos generales y Formación Docente.</p>
+              <p class="inline-note">
+                Organiza el perfil del profesor en Datos generales y Formación Docente.
+              </p>
             </div>
           </div>
 
           <div class="profesor-tabs">
-            <button type="button" class="profesor-tab is-active" data-tab="datos-generales">Datos generales</button>
-            <button type="button" class="profesor-tab" data-tab="formacion-docente">Formación Docente</button>
+            <button type="button" class="profesor-tab is-active" data-tab="datos-generales">
+              Datos generales
+            </button>
+            <button type="button" class="profesor-tab" data-tab="formacion-docente">
+              Formación Docente
+            </button>
           </div>
 
+          <!-- TAB: DATOS GENERALES -->
           <section class="profesor-tab-panel is-active" data-panel="datos-generales">
-            <div class="modal-form-grid">
-              <div class="form-group">
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" required>
-              </div>
-
-              <div class="form-group">
-                <label for="departamento">Departamento</label>
-                <input type="text" id="departamento" required>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="sedes-search-input">Sedes</label>
-                <p class="inline-note">Configura modalidad y flexibilidad por sede en cada tarjeta seleccionada.</p>
-                <div class="sedes-field">
-                  <div id="sedes-selected" class="sedes-selected"></div>
-                  <div class="sedes-search-wrap">
-                    <input type="text" id="sedes-search-input" autocomplete="off" placeholder="Buscar sedes por nombre, código o ciudad">
-                    <div id="sedes-suggestions" class="sedes-suggestions hidden"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group full-width">
-                <label class="checkbox-item checkbox-item-inline">
-                  <input type="checkbox" id="estado_I"> Participa o registra actividad de investigación
-                </label>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="otro_i">Observaciones / información adicional</label>
-                <textarea id="otro_i" rows="4" placeholder="Observaciones asociadas a investigación, docencia u otra información relevante"></textarea>
-              </div>
-            </div>
-          </section>
-
-          <section class="profesor-tab-panel" data-panel="formacion-docente">
-            <div class="formacion-docente-layout">
+            <div class="tab-panel-shell">
               <div class="section-card">
                 <div class="section-card-header">
                   <div>
-                    <h3>Talleres desde catálogo</h3>
-                    <p class="inline-note">Selector múltiple centralizado para evitar duplicidades.</p>
-                  </div>
-                  <button type="button" id="open-catalogo-modal-btn" class="btn-secondary btn-sm">Administrar catálogo</button>
-                </div>
-
-                <div id="talleres-selector" class="talleres-selector"></div>
-              </div>
-
-              <div class="section-card">
-                <div class="section-card-header">
-                  <div>
-                    <h3>Formación docente</h3>
-                    <p class="inline-note">Puedes registrar múltiples actividades formativas.</p>
-                  </div>
-                  <button type="button" id="add-formacion-btn" class="btn-secondary btn-sm">Agregar formación</button>
-                </div>
-
-                <div id="formaciones-docentes-list" class="repeatable-list"></div>
-              </div>
-
-              <div class="section-card">
-                <div class="section-card-header">
-                  <div>
-                    <h3>Magíster</h3>
-                    <p class="inline-note">Detalle ampliado del magíster del profesor.</p>
+                    <h3>Información base del profesor</h3>
+                    <p class="inline-note">
+                      Registra los datos generales y las sedes donde el profesor realiza docencia.
+                    </p>
                   </div>
                 </div>
 
                 <div class="modal-form-grid">
                   <div class="form-group">
-                    <label for="magister_institucion">Institución</label>
-                    <input type="text" id="magister_institucion">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" required>
                   </div>
 
                   <div class="form-group">
-                    <label for="magister_area_estudio">Área de estudio</label>
-                    <input type="text" id="magister_area_estudio">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="magister_anio_obtencion">Año de obtención</label>
-                    <input type="number" id="magister_anio_obtencion" min="1900" max="2100" step="1">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="magister_modalidad">Modalidad</label>
-                    <select id="magister_modalidad">
-                      <option value="">Seleccionar modalidad</option>
-                      <option value="presencial">Presencial</option>
-                      <option value="online">Online</option>
-                      <option value="semipresencial">Semipresencial</option>
-                      <option value="hibrido">Híbrido</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="magister_estado">Estado</label>
-                    <select id="magister_estado">
-                      <option value="finalizado">Finalizado</option>
-                      <option value="cursando">Cursando</option>
-                      <option value="pausado">Pausado</option>
-                    </select>
+                    <label for="departamento">Departamento</label>
+                    <input type="text" id="departamento" required>
                   </div>
 
                   <div class="form-group full-width">
-                    <label for="magister_observaciones">Observaciones</label>
-                    <textarea id="magister_observaciones" rows="3" placeholder="Notas adicionales sobre el magíster"></textarea>
+                    <label for="sedes-search-input">Sedes</label>
+                    <p class="inline-note">
+                      Busca y selecciona una o más sedes. Luego podrás configurar modalidad y flexibilidad por cada una.
+                    </p>
+
+                    <div class="sedes-field">
+                      <div id="sedes-selected" class="sedes-selected"></div>
+
+                      <div class="sedes-search-wrap">
+                        <input
+                          type="text"
+                          id="sedes-search-input"
+                          autocomplete="off"
+                          placeholder="Buscar sedes por nombre, código o ciudad"
+                        >
+                        <div id="sedes-suggestions" class="sedes-suggestions hidden"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="checkbox-item-inline" for="estado_I">
+                      <input type="checkbox" id="estado_I">
+                      <span>Profesor activo para investigación / formación</span>
+                    </label>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="otro_i">Observaciones / información adicional</label>
+                    <textarea
+                      id="otro_i"
+                      rows="4"
+                      placeholder="Observaciones asociadas a docencia u otra información relevante"
+                    ></textarea>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB: FORMACIÓN DOCENTE -->
+          <section class="profesor-tab-panel" data-panel="formacion-docente">
+            <div class="tab-panel-shell">
+              <div class="formacion-docente-layout">
+
+                <!-- TALLERES -->
+                <div class="section-card">
+                  <div class="section-card-header">
+                    <div>
+                      <h3>Talleres desde catálogo</h3>
+                      <p class="inline-note">
+                        Selecciona talleres disponibles desde un catálogo centralizado para evitar duplicidades.
+                      </p>
+                    </div>
+                    <button type="button" id="open-catalogo-modal-btn" class="btn-secondary btn-sm">
+                      Administrar catálogo
+                    </button>
+                  </div>
+
+                  <div class="catalogo-selector-shell">
+                    <div class="catalogo-selector-toolbar">
+                      <div class="catalogo-selector-summary">
+                        <span class="summary-badge">Catálogo</span>
+                        <div class="summary-stack">
+                          <strong>Talleres disponibles</strong>
+                          <small>Selecciona uno o más talleres del catálogo institucional.</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="talleres-selector" class="talleres-selector"></div>
+                  </div>
+                </div>
+
+                <!-- FORMACIONES -->
+                <div class="section-card">
+                  <div class="section-card-header">
+                    <div>
+                      <h3>Formaciones docentes desde catálogo</h3>
+                      <p class="inline-note">
+                        Selecciona una o más formaciones docentes desde un catálogo centralizado.
+                      </p>
+                    </div>
+                    <button type="button" id="open-catalogo-formaciones-btn" class="btn-secondary btn-sm">
+                      Administrar catálogo
+                    </button>
+                  </div>
+
+                  <div class="catalogo-selector-shell">
+                    <div class="catalogo-selector-toolbar">
+                      <div class="catalogo-selector-summary">
+                        <span class="summary-badge summary-badge-green">Catálogo</span>
+                        <div class="summary-stack">
+                          <strong>Formaciones disponibles</strong>
+                          <small>Selecciona una o más formaciones del catálogo institucional.</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="formaciones-selector" class="talleres-selector"></div>
+                  </div>
+                </div>
+
+                <!-- MAGISTER -->
+                <div class="section-card">
+                  <div class="section-card-header">
+                    <div>
+                      <h3>Magíster desde catálogo</h3>
+                      <p class="inline-note">
+                        Selecciona un magíster disponible desde un catálogo centralizado.
+                      </p>
+                    </div>
+                    <button type="button" id="open-catalogo-magister-btn" class="btn-secondary btn-sm">
+                      Administrar catálogo
+                    </button>
+                  </div>
+
+                  <div class="catalogo-selector-shell">
+                    <div class="catalogo-selector-toolbar">
+                      <div class="catalogo-selector-summary">
+                        <span class="summary-badge summary-badge-blue">Selección única</span>
+                        <div class="summary-stack">
+                          <strong>Magíster disponible</strong>
+                          <small>Selecciona un magíster del catálogo institucional.</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="magister-selector" class="talleres-selector single-selection"></div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </section>
@@ -160,6 +213,7 @@
       </div>
     </div>
 
+    <!-- MODAL CATÁLOGO TALLERES -->
     <div id="modal-catalogo-talleres" class="modal">
       <div class="modal-content modal-catalogo">
         <span class="close" id="close-catalogo-modal">&times;</span>
@@ -167,7 +221,9 @@
         <div class="modal-head-profesor">
           <div>
             <h2>Catálogo de talleres</h2>
-            <p class="inline-note">Administra los talleres disponibles para asociar a profesores.</p>
+            <p class="inline-note">
+              Administra los talleres disponibles para asociar a profesores.
+            </p>
           </div>
         </div>
 
@@ -216,69 +272,154 @@
       </div>
     </div>
 
-    <template id="formacion-docente-template">
-      <div class="repeatable-card">
-        <div class="repeatable-card-header">
-          <strong>Actividad formativa</strong>
-          <button type="button" class="btn-danger btn-sm btn-remove-formacion">Eliminar</button>
+    <!-- MODAL CATÁLOGO FORMACIONES -->
+    <div id="modal-catalogo-formaciones" class="modal">
+      <div class="modal-content modal-catalogo">
+        <span class="close" id="close-catalogo-formaciones-modal">&times;</span>
+
+        <div class="modal-head-profesor">
+          <div>
+            <h2>Catálogo de formaciones docentes</h2>
+            <p class="inline-note">
+              Administra las formaciones docentes disponibles para asociar a profesores.
+            </p>
+          </div>
         </div>
 
-        <div class="modal-form-grid">
-          <div class="form-group">
-            <label>Tipo</label>
-            <select data-field="tipo_formacion">
-              <option value="">Seleccionar tipo</option>
-              <option value="VRA">VRA</option>
-              <option value="curso">Curso</option>
-              <option value="diplomado">Diplomado</option>
-              <option value="certificacion">Certificación</option>
-              <option value="seminario">Seminario</option>
-              <option value="otro">Otro</option>
-            </select>
+        <form id="catalogo-formacion-form" class="catalogo-form">
+          <input type="hidden" id="catalogo_id_formacion">
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="catalogo_nombre_actividad">Nombre de la actividad</label>
+              <input type="text" id="catalogo_nombre_actividad" required>
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_tipo_formacion">Tipo</label>
+              <select id="catalogo_tipo_formacion">
+                <option value="VRA">VRA</option>
+                <option value="curso">Curso</option>
+                <option value="diplomado">Diplomado</option>
+                <option value="certificacion">Certificación</option>
+                <option value="seminario">Seminario</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_institucion_formacion">Institución</label>
+              <input type="text" id="catalogo_institucion_formacion">
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_estado_formacion">Estado</label>
+              <select id="catalogo_estado_formacion">
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="catalogo_descripcion_formacion">Descripción</label>
+              <textarea id="catalogo_descripcion_formacion" rows="3"></textarea>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label>Nombre de la actividad</label>
-            <input type="text" data-field="nombre_actividad">
+          <div class="modal-actions modal-actions-tight">
+            <button type="button" id="catalogo-formacion-reset-btn" class="btn-secondary">Limpiar</button>
+            <button type="submit" class="btn-success">Guardar formación</button>
           </div>
+        </form>
 
-          <div class="form-group">
-            <label>Institución</label>
-            <input type="text" data-field="institucion">
-          </div>
-
-          <div class="form-group">
-            <label>Año</label>
-            <input type="number" data-field="anio" min="1900" max="2100" step="1">
-          </div>
-
-          <div class="form-group">
-            <label>Modalidad</label>
-            <select data-field="modalidad">
-              <option value="">Seleccionar modalidad</option>
-              <option value="presencial">Presencial</option>
-              <option value="online">Online</option>
-              <option value="hibrido">Híbrido</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Estado</label>
-            <select data-field="estado">
-              <option value="vigente">Vigente</option>
-              <option value="finalizado">Finalizado</option>
-              <option value="en_proceso">En proceso</option>
-            </select>
-          </div>
-
-          <div class="form-group full-width">
-            <label>Descripción</label>
-            <textarea rows="3" data-field="descripcion"></textarea>
-          </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Actividad</th>
+                <th>Tipo</th>
+                <th>Institución</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="catalogo-formaciones-body"></tbody>
+          </table>
         </div>
       </div>
-    </template>
+    </div>
 
+    <!-- MODAL CATÁLOGO MAGÍSTER -->
+    <div id="modal-catalogo-magister" class="modal">
+      <div class="modal-content modal-catalogo">
+        <span class="close" id="close-catalogo-magister-modal">&times;</span>
+
+        <div class="modal-head-profesor">
+          <div>
+            <h2>Catálogo de magíster</h2>
+            <p class="inline-note">
+              Administra los magíster disponibles para asociar a profesores.
+            </p>
+          </div>
+        </div>
+
+        <form id="catalogo-magister-form" class="catalogo-form">
+          <input type="hidden" id="catalogo_id_magister">
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="catalogo_nombre_magister">Nombre del magíster</label>
+              <input type="text" id="catalogo_nombre_magister" required>
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_institucion_magister">Institución</label>
+              <input type="text" id="catalogo_institucion_magister">
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_area_estudio_magister">Área de estudio</label>
+              <input type="text" id="catalogo_area_estudio_magister">
+            </div>
+
+            <div class="form-group">
+              <label for="catalogo_estado_magister">Estado</label>
+              <select id="catalogo_estado_magister">
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="catalogo_descripcion_magister">Descripción</label>
+              <textarea id="catalogo_descripcion_magister" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="modal-actions modal-actions-tight">
+            <button type="button" id="catalogo-magister-reset-btn" class="btn-secondary">Limpiar</button>
+            <button type="submit" class="btn-success">Guardar magíster</button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Magíster</th>
+                <th>Institución</th>
+                <th>Área</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="catalogo-magister-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
     <section class="section">
       <h2>Lista de Profesores</h2>
 
@@ -286,7 +427,9 @@
         <div class="form-actions">
           <button id="open-modal-btn" type="button">Agregar Profesor</button>
           <button id="toggle-filtros-btn" type="button">Filtrar</button>
-          <button id="open-catalogo-modal-secondary-btn" type="button" class="btn-secondary">Catálogo de talleres</button>
+          <button id="open-catalogo-modal-secondary-btn" type="button" class="btn-secondary">
+            Catálogo de talleres
+          </button>
         </div>
 
         <div class="csv-import-container">
