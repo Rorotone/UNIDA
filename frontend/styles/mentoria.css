@@ -483,16 +483,21 @@
 
 .modal-historial-close {
   background: none;
-  border: none;
-  font-size: 1.4rem;
-  color: var(--text-soft);
   cursor: pointer;
-  line-height: 1;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
-  flex-shrink: 0;
+  color: var(--text-soft);
 }
 
-.modal-historial-close:hover { color: var(--text); }
+.modal-historial-close span {
+  display: block;
+  transform: translateY(-1px); /* ajuste fino del descenso tipográfico */
+}
 
 .modal-historial-body {
   overflow-y: auto;

@@ -142,7 +142,23 @@ function aplicarFiltroCalendario(fechaSeleccionada) {
 async function recargarTareas(card, idMentoria) {
   try {
     const tareas = await MentoriasAPI.obtenerTareas(idMentoria);
-    MentoriasUI.renderTareas(card, Array.isArray(tareas) ? tareas : []);
+    const listaTareas = Array.isArray(tareas) ? tareas : [];
+
+    // Pre-cargar transiciones por estado para no hacer fetch dentro de la UI
+    const estadosUnicos = [...new Set(listaTareas
+      .map(t => Number(t.estado ?? 1))
+      .filter(e => e !== 4 && e !== 6)
+    )];
+    const transicionesPorEstado = {};
+    await Promise.all(estadosUnicos.map(async (estado) => {
+      try {
+        transicionesPorEstado[estado] = await MentoriasAPI.obtenerTransiciones(estado);
+      } catch (_) {
+        transicionesPorEstado[estado] = [];
+      }
+    }));
+
+    MentoriasUI.renderTareas(card, listaTareas, transicionesPorEstado);
     MentoriasUI.toggleTareas(card, true);
   } catch (error) {
     console.error("Error al cargar tareas:", error);
@@ -307,6 +323,13 @@ async function handleClickListaMentorias(e) {
 
 
 
+  if (e.target.closest("[data-abrir-detalle]")) {
+    const btn = e.target.closest("[data-abrir-detalle]");
+    const idDetalle = Number(btn.dataset.abrirDetalle);
+    await handleAbrirDetalle(idDetalle);
+    return;
+  }
+
   if (e.target.closest(".btn-ver-historial")) {
     await handleHistorialTarea(e.target.closest(".btn-ver-historial"));
     return;
@@ -416,6 +439,25 @@ async function handleHistorialTarea(btnHistorial) {
     MentoriasUI.renderHistorialTarea(historial, tituloTarea);
   } catch (_) {
     document.getElementById("modal-historial-body").innerHTML = `<p class="historial-empty">No se pudo cargar el historial.</p>`;
+  }
+}
+
+async function handleAbrirDetalle(idMentoria) {
+  const mentoria = mentoriasCache.find(m => (m.id_mentoria || m.id) === idMentoria);
+  if (!mentoria) return;
+
+  const contenedor = document.getElementById("detalle-tareas-lista");
+  if (contenedor) {
+    contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">Cargando tareas...</p>`;
+  }
+
+  try {
+    const tareas = await MentoriasAPI.obtenerTareas(idMentoria);
+    MentoriasUI.abrirModalDetalle(mentoria, Array.isArray(tareas) ? tareas : []);
+  } catch (_) {
+    if (contenedor) {
+      contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">No se pudieron cargar las tareas.</p>`;
+    }
   }
 }
 
