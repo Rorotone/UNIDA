@@ -120,7 +120,7 @@ const MentoriasUI = (() => {
     container.classList.toggle("hidden-block", !visible);
   }
 
-  function renderTareas(card, tareas) {
+  function renderTareas(card, tareas, transicionesPorEstado = {}) {
     const lista = card.querySelector(".lista-tareas");
     if (!lista) return;
 
@@ -176,24 +176,22 @@ const MentoriasUI = (() => {
       lista.appendChild(li);
     });
 
-    // Cargar transiciones válidas para cada select
-    tareas.forEach(async (tarea) => {
+    // Poblar opciones de transición usando el mapa pre-cargado desde mentorias.js
+    tareas.forEach((tarea) => {
       const idTarea = tarea.id_tarea || tarea.id || tarea.idTarea;
       const estado = Number(tarea.estado ?? 1);
       const esFinal = estado === 4 || estado === 6;
       if (esFinal) return;
 
-      try {
-        const transiciones = await MentoriasAPI.obtenerTransiciones(estado);
-        const select = lista.querySelector(`.select-estado-tarea[data-tarea-id="${idTarea}"]`);
-        if (!select) return;
-        transiciones.forEach(t => {
-          const opt = document.createElement("option");
-          opt.value = t.id;
-          opt.textContent = t.nombre;
-          select.appendChild(opt);
-        });
-      } catch (_) {}
+      const transiciones = transicionesPorEstado[estado] || [];
+      const select = lista.querySelector(`.select-estado-tarea[data-tarea-id="${idTarea}"]`);
+      if (!select) return;
+      transiciones.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.nombre;
+        select.appendChild(opt);
+      });
     });
 
     // Deshabilitar botones marcar/desmarcar si no hay tareas modificables
@@ -439,14 +437,13 @@ const MentoriasUI = (() => {
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
             <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:999px;${badgeStyle}">${badgeLabel}</span>
             <button type="button" style="font-size:0.78rem;min-height:28px;padding:0 10px;"
-              onclick="abrirModalDetalle(${idMentoria})">Ver tareas</button>
+              data-abrir-detalle="${idMentoria}">Ver tareas</button>
           </div>
         </div>`;
     }).join("");
   }
 
-  async function abrirModalDetalle(idMentoria, cache) {
-    const mentoria = cache.find(m => (m.id_mentoria || m.id) === idMentoria);
+  function abrirModalDetalle(mentoria, tareas) {
     if (!mentoria) return;
 
     const estado = Number(mentoria.completada ?? 0);
@@ -470,14 +467,7 @@ const MentoriasUI = (() => {
     document.getElementById("modal-detalle-mentoria")?.classList.add("is-open");
 
     const contenedor = document.getElementById("detalle-tareas-lista");
-    contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">Cargando tareas...</p>`;
-
-    try {
-      const tareas = await MentoriasAPI.obtenerTareas(idMentoria);
-      renderDetalleTareas(contenedor, tareas);
-    } catch (_) {
-      contenedor.innerHTML = `<p style="color:var(--text-soft);font-size:0.88rem;text-align:center;padding:16px 0;">No se pudieron cargar las tareas.</p>`;
-    }
+    renderDetalleTareas(contenedor, tareas);
   }
 
   function renderDetalleTareas(contenedor, tareas) {
