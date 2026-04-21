@@ -598,3 +598,138 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+.formacion-docente-shell {
+  display: grid;
+  gap: 20px;
+}
+
+.formacion-docente-hero {
+  padding: 20px 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fcfcff 0%, #f6f8ff 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.formacion-docente-hero h3 {
+  margin: 4px 0 8px;
+  font-size: 1.2rem;
+  color: #111827;
+}
+
+.section-eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6366f1;
+}
+
+.section-card-academica {
+  padding: 22px;
+  border-radius: 18px;
+}
+
+.section-card-header-soft {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf0f5;
+  margin-bottom: 16px;
+}
+
+.section-card-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-card-title-wrap h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.catalogo-selector-toolbar-soft {
+  background: linear-gradient(180deg, #fbfcff 0%, #f7f8fc 100%);
+  border-color: #e6eaf2;
+}
+
+.catalogo-selector-shell {
+  gap: 14px;
+}
+
+.talleres-selector {
+  padding: 2px;
+}
+
+.taller-option {
+  min-height: 132px;
+  border-radius: 18px;
+}
+
+.taller-option-main {
+  gap: 10px;
+}
+
+.taller-option-main strong {
+  font-size: 1rem;
+}
+
+.taller-option-main small {
+  font-size: 0.89rem;
+}
+
+.single-selection .taller-option {
+  min-height: 132px;
+}
+
+@media (max-width: 768px) {
+  .formacion-docente-hero {
+    padding: 18px;
+  }
+
+  .section-card-title-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+} 
+.taller-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease,
+    transform .2s ease,
+    background-color .2s ease;
+  min-height: 120px;
+}
+
+.taller-option:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.10);
+  transform: translateY(-2px);
+}
+
+.taller-option input[type="checkbox"],
+.taller-option input[type="radio"] {
+  margin: 4px 0 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #4f46e5;
+  cursor: pointer;
+}
+
+.taller-option.is-selected {
+  border-color: #4f46e5;
+  background: linear-gradient(180deg, #f8f7ff 0%, #f4f3ff 100%);
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.14);
+}

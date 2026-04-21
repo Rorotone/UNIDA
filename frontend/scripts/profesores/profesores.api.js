@@ -62,7 +62,7 @@ async function request(url, options = {}, defaultErrorMessage = 'Error en la sol
    PROFESORES
 ========================================================= */
 
-async function fetchProfesores(params = null) {
+export async function fetchProfesores(params = null) {
   let url = '/api/profesores';
 
   if (params) {
@@ -82,11 +82,11 @@ async function fetchProfesores(params = null) {
   return await request(url, {}, 'Error al cargar profesores');
 }
 
-async function fetchProfesorById(id) {
+export async function fetchProfesorById(id) {
   return await request(`/api/profesores/${id}`, {}, 'Error al cargar profesor');
 }
 
-async function createProfesor(data) {
+export async function createProfesor(data) {
   return await request(
     '/api/profesores',
     {
@@ -100,7 +100,7 @@ async function createProfesor(data) {
   );
 }
 
-async function updateProfesor(id, data) {
+export async function updateProfesor(id, data) {
   return await request(
     `/api/profesores/${id}`,
     {
@@ -114,7 +114,7 @@ async function updateProfesor(id, data) {
   );
 }
 
-async function deleteProfesor(id) {
+export async function deleteProfesor(id) {
   return await request(
     `/api/profesores/${id}`,
     {
@@ -128,7 +128,7 @@ async function deleteProfesor(id) {
    CATÁLOGO DE SEDES
 ========================================================= */
 
-async function fetchCatalogoSedes(query = '') {
+export async function fetchCatalogoSedes(query = '') {
   const url = query
     ? `/api/profesores/catalogo-sedes?q=${encodeURIComponent(query)}`
     : '/api/profesores/catalogo-sedes';
@@ -140,7 +140,7 @@ async function fetchCatalogoSedes(query = '') {
    CATÁLOGO DE TALLERES
 ========================================================= */
 
-async function fetchCatalogoTalleres(params = {}) {
+export async function fetchCatalogoTalleres(params = {}) {
   const query = new URLSearchParams();
 
   if (params.incluirInactivos) query.append('incluirInactivos', '1');
@@ -154,7 +154,7 @@ async function fetchCatalogoTalleres(params = {}) {
   return await request(url, {}, 'Error al cargar catálogo de talleres');
 }
 
-async function createCatalogoTaller(data) {
+export async function createCatalogoTaller(data) {
   return await request(
     '/api/profesores/catalogo-talleres',
     {
@@ -168,7 +168,7 @@ async function createCatalogoTaller(data) {
   );
 }
 
-async function updateCatalogoTaller(id, data) {
+export async function updateCatalogoTaller(id, data) {
   return await request(
     `/api/profesores/catalogo-talleres/${id}`,
     {
@@ -182,7 +182,7 @@ async function updateCatalogoTaller(id, data) {
   );
 }
 
-async function deleteCatalogoTaller(id) {
+export async function deleteCatalogoTaller(id) {
   return await request(
     `/api/profesores/catalogo-talleres/${id}`,
     {
@@ -196,7 +196,7 @@ async function deleteCatalogoTaller(id) {
    CATÁLOGO DE FORMACIONES DOCENTES
 ========================================================= */
 
-async function fetchCatalogoFormaciones(params = {}) {
+export async function fetchCatalogoFormaciones(params = {}) {
   const query = new URLSearchParams();
 
   if (params.incluirInactivos) query.append('incluirInactivos', '1');
@@ -211,7 +211,7 @@ async function fetchCatalogoFormaciones(params = {}) {
   return await request(url, {}, 'Error al cargar catálogo de formaciones');
 }
 
-async function createCatalogoFormacion(data) {
+export async function createCatalogoFormacion(data) {
   return await request(
     '/api/profesores/catalogo-formaciones',
     {
@@ -225,7 +225,7 @@ async function createCatalogoFormacion(data) {
   );
 }
 
-async function updateCatalogoFormacion(id, data) {
+export async function updateCatalogoFormacion(id, data) {
   return await request(
     `/api/profesores/catalogo-formaciones/${id}`,
     {
@@ -239,7 +239,7 @@ async function updateCatalogoFormacion(id, data) {
   );
 }
 
-async function deleteCatalogoFormacion(id) {
+export async function deleteCatalogoFormacion(id) {
   return await request(
     `/api/profesores/catalogo-formaciones/${id}`,
     {
@@ -253,7 +253,7 @@ async function deleteCatalogoFormacion(id) {
    CATÁLOGO DE MAGÍSTER
 ========================================================= */
 
-async function fetchCatalogoMagister(params = {}) {
+export async function fetchCatalogoMagister(params = {}) {
   const query = new URLSearchParams();
 
   if (params.incluirInactivos) query.append('incluirInactivos', '1');
@@ -267,7 +267,7 @@ async function fetchCatalogoMagister(params = {}) {
   return await request(url, {}, 'Error al cargar catálogo de magíster');
 }
 
-async function createCatalogoMagister(data) {
+export async function createCatalogoMagister(data) {
   return await request(
     '/api/profesores/catalogo-magister',
     {
@@ -281,7 +281,7 @@ async function createCatalogoMagister(data) {
   );
 }
 
-async function updateCatalogoMagister(id, data) {
+export async function updateCatalogoMagister(id, data) {
   return await request(
     `/api/profesores/catalogo-magister/${id}`,
     {
@@ -295,7 +295,7 @@ async function updateCatalogoMagister(id, data) {
   );
 }
 
-async function deleteCatalogoMagister(id) {
+export async function deleteCatalogoMagister(id) {
   return await request(
     `/api/profesores/catalogo-magister/${id}`,
     {
@@ -309,7 +309,7 @@ async function deleteCatalogoMagister(id) {
    CARGA MASIVA CSV
 ========================================================= */
 
-async function importarProfesoresCSV(file) {
+export async function importarProfesoresCSV(file) {
   const formData = new FormData();
   formData.append('archivo', file);
 

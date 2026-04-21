@@ -44,7 +44,6 @@
             </button>
           </div>
 
-          <!-- TAB: DATOS GENERALES -->
           <section class="profesor-tab-panel is-active" data-panel="datos-generales">
             <div class="tab-panel-shell">
               <div class="section-card">
@@ -109,101 +108,123 @@
             </div>
           </section>
 
-          <!-- TAB: FORMACIÓN DOCENTE -->
-          <section class="profesor-tab-panel" data-panel="formacion-docente">
-            <div class="tab-panel-shell">
-              <div class="formacion-docente-layout">
+         <section class="profesor-tab-panel" data-panel="formacion-docente">
+          <div class="tab-panel-shell">
+            <div class="formacion-docente-shell">
+              <div class="formacion-docente-hero">
+                <div>
+                  <p class="section-eyebrow">Perfil académico</p>
+                  <h3>Formación docente y antecedentes académicos</h3>
+                  <p class="inline-note">
+                    Centraliza la selección de talleres, formaciones y magíster desde catálogos institucionales.
+                    Esto mantiene consistencia, evita duplicados y mejora la administración del perfil.
+                  </p>
+                </div>
+              </div>
 
+              <div class="formacion-docente-layout">
                 <!-- TALLERES -->
-                <div class="section-card">
-                  <div class="section-card-header">
-                    <div>
-                      <h3>Talleres desde catálogo</h3>
-                      <p class="inline-note">
-                        Selecciona talleres disponibles desde un catálogo centralizado para evitar duplicidades.
-                      </p>
+                <article class="section-card section-card-academica">
+                  <div class="section-card-header section-card-header-soft">
+                    <div class="section-card-title-wrap">
+                      <span class="summary-badge">Múltiple</span>
+                      <div class="summary-stack">
+                        <h3>Talleres</h3>
+                        <p class="inline-note">
+                          Selecciona uno o más talleres desde el catálogo institucional.
+                        </p>
+                      </div>
                     </div>
+
                     <button type="button" id="open-catalogo-modal-btn" class="btn-secondary btn-sm">
                       Administrar catálogo
                     </button>
                   </div>
 
                   <div class="catalogo-selector-shell">
-                    <div class="catalogo-selector-toolbar">
+                    <div class="catalogo-selector-toolbar catalogo-selector-toolbar-soft">
                       <div class="catalogo-selector-summary">
                         <span class="summary-badge">Catálogo</span>
                         <div class="summary-stack">
                           <strong>Talleres disponibles</strong>
-                          <small>Selecciona uno o más talleres del catálogo institucional.</small>
+                          <small>Asocia múltiples talleres al profesor.</small>
                         </div>
                       </div>
                     </div>
 
                     <div id="talleres-selector" class="talleres-selector"></div>
                   </div>
-                </div>
+                </article>
 
                 <!-- FORMACIONES -->
-                <div class="section-card">
-                  <div class="section-card-header">
-                    <div>
-                      <h3>Formaciones docentes desde catálogo</h3>
-                      <p class="inline-note">
-                        Selecciona una o más formaciones docentes desde un catálogo centralizado.
-                      </p>
+                <article class="section-card section-card-academica">
+                  <div class="section-card-header section-card-header-soft">
+                    <div class="section-card-title-wrap">
+                      <span class="summary-badge summary-badge-green">Múltiple</span>
+                      <div class="summary-stack">
+                        <h3>Formaciones docentes</h3>
+                        <p class="inline-note">
+                          Selecciona una o más actividades de formación desde el catálogo centralizado.
+                        </p>
+                      </div>
                     </div>
+
                     <button type="button" id="open-catalogo-formaciones-btn" class="btn-secondary btn-sm">
                       Administrar catálogo
                     </button>
                   </div>
 
                   <div class="catalogo-selector-shell">
-                    <div class="catalogo-selector-toolbar">
+                    <div class="catalogo-selector-toolbar catalogo-selector-toolbar-soft">
                       <div class="catalogo-selector-summary">
                         <span class="summary-badge summary-badge-green">Catálogo</span>
                         <div class="summary-stack">
                           <strong>Formaciones disponibles</strong>
-                          <small>Selecciona una o más formaciones del catálogo institucional.</small>
+                          <small>Incluye VRA, cursos, diplomados, certificaciones y seminarios.</small>
                         </div>
                       </div>
                     </div>
 
                     <div id="formaciones-selector" class="talleres-selector"></div>
                   </div>
-                </div>
+                </article>
 
                 <!-- MAGISTER -->
-                <div class="section-card">
-                  <div class="section-card-header">
-                    <div>
-                      <h3>Magíster desde catálogo</h3>
-                      <p class="inline-note">
-                        Selecciona un magíster disponible desde un catálogo centralizado.
-                      </p>
+                <article class="section-card section-card-academica">
+                  <div class="section-card-header section-card-header-soft">
+                    <div class="section-card-title-wrap">
+                      <span class="summary-badge summary-badge-blue">Única</span>
+                      <div class="summary-stack">
+                        <h3>Magíster</h3>
+                        <p class="inline-note">
+                          Selecciona un magíster del catálogo institucional como antecedente académico principal.
+                        </p>
+                      </div>
                     </div>
+
                     <button type="button" id="open-catalogo-magister-btn" class="btn-secondary btn-sm">
                       Administrar catálogo
                     </button>
                   </div>
 
                   <div class="catalogo-selector-shell">
-                    <div class="catalogo-selector-toolbar">
+                    <div class="catalogo-selector-toolbar catalogo-selector-toolbar-soft">
                       <div class="catalogo-selector-summary">
                         <span class="summary-badge summary-badge-blue">Selección única</span>
                         <div class="summary-stack">
                           <strong>Magíster disponible</strong>
-                          <small>Selecciona un magíster del catálogo institucional.</small>
+                          <small>Solo se puede asociar un magíster por profesor.</small>
                         </div>
                       </div>
                     </div>
 
                     <div id="magister-selector" class="talleres-selector single-selection"></div>
                   </div>
-                </div>
-
+                </article>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           <div class="modal-actions">
             <button type="button" class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
@@ -213,7 +234,6 @@
       </div>
     </div>
 
-    <!-- MODAL CATÁLOGO TALLERES -->
     <div id="modal-catalogo-talleres" class="modal">
       <div class="modal-content modal-catalogo">
         <span class="close" id="close-catalogo-modal">&times;</span>
@@ -272,7 +292,6 @@
       </div>
     </div>
 
-    <!-- MODAL CATÁLOGO FORMACIONES -->
     <div id="modal-catalogo-formaciones" class="modal">
       <div class="modal-content modal-catalogo">
         <span class="close" id="close-catalogo-formaciones-modal">&times;</span>
@@ -349,7 +368,6 @@
       </div>
     </div>
 
-    <!-- MODAL CATÁLOGO MAGÍSTER -->
     <div id="modal-catalogo-magister" class="modal">
       <div class="modal-content modal-catalogo">
         <span class="close" id="close-catalogo-magister-modal">&times;</span>
@@ -419,7 +437,6 @@
       </div>
     </div>
 
-    <!-- LISTADO -->
     <section class="section">
       <h2>Lista de Profesores</h2>
 
@@ -482,8 +499,6 @@
   </main>
 
   <script src="/scripts/core/ui-alerts.js"></script>
-  <script src="/scripts/profesores/profesores.api.js"></script>
-  <script src="/scripts/profesores/profesores.ui.js"></script>
-  <script src="/scripts/profesores/profesores.js"></script>
+  <script type="module" src="/scripts/profesores/profesores.js"></script>
 </body>
 </html>

@@ -1,11 +1,18 @@
-let profesoresCache = [];
-let catalogoTalleresCache = [];
-let catalogoFormacionesCache = [];
-let catalogoMagisterCache = [];
-let catalogoSedesCache = [];
-let selectedSedesCache = [];
+import {
+  getProfesoresCache,
+  getCatalogoTalleresCache,
+  getCatalogoFormacionesCache,
+  getCatalogoMagisterCache
+} from './profesores.state.js';
 
-function escapeHTML(text) {
+import {
+  setSelectedSedes,
+  getSelectedSedes,
+  getSelectedSedeIds,
+  clearSedesSearch
+} from './profesores.sedes.js';
+
+export function escapeHTML(text) {
   return String(text ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -14,244 +21,23 @@ function escapeHTML(text) {
     .replaceAll("'", '&#039;');
 }
 
-/* =========================================================
-   NORMALIZACIÓN Y CACHES
-========================================================= */
-
-function normalizeProfesor(p) {
-  return {
-    ...p,
-    sede: p.Sede ?? p.sede ?? p.sedes_resumen ?? '',
-    sedes_resumen: p.sedes_resumen ?? p.Sede ?? p.sede ?? '',
-    cantidad_talleres: Number(p.cantidad_talleres ?? 0),
-    cantidad_formaciones: Number(p.cantidad_formaciones ?? 0),
-    cantidad_magister: Number(p.cantidad_magister ?? 0),
-    formacion_docente_resumen: p.formacion_docente_resumen ?? 'Sin registros',
-    talleres_catalogo: Array.isArray(p.talleres_catalogo) ? p.talleres_catalogo : [],
-    taller_ids: Array.isArray(p.taller_ids) ? p.taller_ids.map((id) => Number(id)) : [],
-    formacion_ids: Array.isArray(p.formacion_ids) ? p.formacion_ids.map((id) => Number(id)) : [],
-    sedes: Array.isArray(p.sedes) ? p.sedes : [],
-    sede_ids: Array.isArray(p.sede_ids) ? p.sede_ids.map((id) => Number(id)) : [],
-    formaciones_docentes: Array.isArray(p.formaciones_docentes) ? p.formaciones_docentes : [],
-    magister: p.magister ?? null,
-    magister_id: Number(
-      p.magister_id ??
-      p.magister?.id_catalogo_magister ??
-      p.magister?.id_magister ??
-      0
-    ) || null,
-    estado_I: Number(p.estado_I ?? p.Estado_I ?? 0),
-    otro_i: p.otro_i ?? p.Otro_i ?? ''
-  };
-}
-
-function setProfesoresCache(data) {
-  profesoresCache = (data || []).map(normalizeProfesor);
-}
-
-function getProfesoresCache() {
-  return profesoresCache;
-}
-
-function setCatalogoTalleresCache(data) {
-  catalogoTalleresCache = Array.isArray(data) ? data : [];
-}
-
-function getCatalogoTalleresCache() {
-  return catalogoTalleresCache;
-}
-
-function setCatalogoFormacionesCache(data) {
-  catalogoFormacionesCache = Array.isArray(data) ? data : [];
-}
-
-function getCatalogoFormacionesCache() {
-  return catalogoFormacionesCache;
-}
-
-function setCatalogoMagisterCache(data) {
-  catalogoMagisterCache = Array.isArray(data) ? data : [];
-}
-
-function getCatalogoMagisterCache() {
-  return catalogoMagisterCache;
-}
-
-function setCatalogoSedesCache(data) {
-  catalogoSedesCache = Array.isArray(data) ? data : [];
-}
-
-function getCatalogoSedesCache() {
-  return catalogoSedesCache;
-}
-
-/* =========================================================
-   SEDES
-========================================================= */
-
-function setSelectedSedes(data) {
-  const normalized = Array.isArray(data) ? data : [];
-  const unique = new Map();
-
-  normalized.forEach((item) => {
-    const id = Number(item?.id_sede ?? item);
-    if (!Number.isInteger(id) || id <= 0) return;
-
-    unique.set(id, {
-      id_sede: id,
-      nombre_sede: item?.nombre_sede ?? item?.label ?? String(id),
-      codigo_sede: item?.codigo_sede ?? null,
-      ciudad: item?.ciudad ?? null,
-      tipo_sede: item?.tipo_sede ?? 'docencia',
-      modalidad: item?.modalidad ?? item?.modalidad_clases ?? '',
-      flexibilidad_horaria: item?.flexibilidad_horaria ?? ''
-    });
-  });
-
-  selectedSedesCache = Array.from(unique.values());
-  renderSelectedSedes();
-}
-
-function getSelectedSedes() {
-  return selectedSedesCache;
-}
-
-function getSelectedSedeIds() {
-  return selectedSedesCache.map((item) => Number(item.id_sede));
-}
-
-function updateSelectedSedeField(idSede, field, value) {
-  selectedSedesCache = selectedSedesCache.map((item) => {
-    if (Number(item.id_sede) !== Number(idSede)) return item;
-    return {
-      ...item,
-      [field]: String(value ?? '').trim(),
-    };
-  });
-
-  renderSelectedSedes();
-}
-
-function renderSelectedSedes() {
-  const container = document.getElementById('sedes-selected');
-  if (!container) return;
-
-  if (!selectedSedesCache.length) {
-    container.innerHTML = `<span class="inline-note">No hay sedes seleccionadas.</span>`;
-    return;
-  }
-
-  container.innerHTML = selectedSedesCache.map((sede) => `
-    <div class="sede-card">
-      <div class="sede-card-header">
-        <strong>${escapeHTML(sede.nombre_sede)}</strong>
-        <button type="button" class="sede-chip-remove" data-id="${sede.id_sede}" aria-label="Quitar sede">&times;</button>
-      </div>
-
-      <div class="sede-card-grid">
-        <label>
-          Modalidad
-          <select data-action="sede-field" data-field="modalidad" data-id="${sede.id_sede}">
-            <option value="">Seleccionar modalidad</option>
-            <option value="presencial" ${sede.modalidad === 'presencial' ? 'selected' : ''}>Presencial</option>
-            <option value="online" ${sede.modalidad === 'online' ? 'selected' : ''}>Online</option>
-            <option value="hibrida" ${sede.modalidad === 'hibrida' ? 'selected' : ''}>Híbrida</option>
-          </select>
-        </label>
-
-        <label>
-          Flexibilidad horaria
-          <input
-            type="text"
-            data-action="sede-field"
-            data-field="flexibilidad_horaria"
-            data-id="${sede.id_sede}"
-            value="${escapeHTML(sede.flexibilidad_horaria)}"
-            placeholder="Ej. alta, franjas AM/PM"
-          >
-        </label>
-      </div>
-    </div>
-  `).join('');
-}
-
-function hideSedesSuggestions() {
-  const container = document.getElementById('sedes-suggestions');
-  if (!container) return;
-  container.classList.add('hidden');
-  container.innerHTML = '';
-}
-
-function clearSedesSearch() {
-  const input = document.getElementById('sedes-search-input');
-  if (input) input.value = '';
-  hideSedesSuggestions();
-}
-
-function addSelectedSede(sede) {
-  const idSede = Number(sede?.id_sede);
-  if (!Number.isInteger(idSede) || idSede <= 0) return;
-  if (selectedSedesCache.some((item) => Number(item.id_sede) === idSede)) return;
-
-  selectedSedesCache.push({
-    id_sede: idSede,
-    nombre_sede: sede.nombre_sede,
-    codigo_sede: sede.codigo_sede ?? null,
-    ciudad: sede.ciudad ?? null,
-    tipo_sede: sede.tipo_sede ?? 'docencia',
-    modalidad: sede.modalidad ?? sede.modalidad_clases ?? '',
-    flexibilidad_horaria: sede.flexibilidad_horaria ?? ''
-  });
-
-  renderSelectedSedes();
-  clearSedesSearch();
-  document.getElementById('sedes-search-input')?.focus();
-}
-
-function removeSelectedSede(idSede) {
-  selectedSedesCache = selectedSedesCache.filter((item) => Number(item.id_sede) !== Number(idSede));
-  renderSelectedSedes();
-}
-
-function renderSedesSuggestions(items) {
-  const container = document.getElementById('sedes-suggestions');
-  if (!container) return;
-
-  if (!items.length) {
-    container.innerHTML = `<div class="sedes-suggestion-empty">No hay coincidencias.</div>`;
-    container.classList.remove('hidden');
-    return;
-  }
-
-  container.innerHTML = items.map((sede) => `
-    <button type="button" class="sede-suggestion-item" data-id="${sede.id_sede}">
-      <strong>${escapeHTML(sede.nombre_sede)}</strong>
-      <small>${escapeHTML([sede.ciudad, sede.codigo_sede].filter(Boolean).join(' · ') || 'Sede activa')}</small>
-    </button>
-  `).join('');
-
-  container.classList.remove('hidden');
-}
-
-/* =========================================================
-   HELPERS GENÉRICOS DE CATÁLOGOS
-========================================================= */
-
-function getCheckedIds(selector) {
-  return Array.from(document.querySelectorAll(`${selector} input[type="checkbox"]:checked`))
+export function getCheckedIds(selector) {
+  return Array.from(
+    document.querySelectorAll(`${selector} input[type="checkbox"]:checked`)
+  )
     .map((checkbox) => Number(checkbox.value))
     .filter((value) => Number.isInteger(value) && value > 0);
 }
 
-function getRadioSelectedId(selector) {
-  const selected = document.querySelector(`${selector} input[type="radio"]:checked`);
+export function getRadioSelectedId(selector) {
+  const selected = document.querySelector(`${selector} input[type="checkbox"]:checked`);
   if (!selected) return null;
 
   const value = Number(selected.value);
   return Number.isInteger(value) && value > 0 ? value : null;
 }
 
-function updateSelectableCardState(container) {
+export function updateSelectableCardState(container) {
   if (!container) return;
 
   container.querySelectorAll('.taller-option').forEach((item) => {
@@ -260,7 +46,7 @@ function updateSelectableCardState(container) {
   });
 }
 
-function buildCatalogCard({
+export function buildCatalogCard({
   inputType = 'checkbox',
   inputName = '',
   value,
@@ -271,33 +57,40 @@ function buildCatalogCard({
   status = ''
 }) {
   return `
-    <label class="taller-option ${checked ? 'is-selected' : ''}">
-      <input type="${inputType}" ${inputName ? `name="${inputName}"` : ''} value="${value}" ${checked ? 'checked' : ''}>
-      <span class="taller-option-main">
+    <label class="taller-option">
+      <input
+        type="${escapeHTML(inputType)}"
+        ${inputName ? `name="${escapeHTML(inputName)}"` : ''}
+        value="${escapeHTML(value)}"
+        ${checked ? 'checked' : ''}
+      >
+      <div class="taller-option-main">
         <strong>${escapeHTML(title)}</strong>
         ${subtitle ? `<small>${escapeHTML(subtitle)}</small>` : ''}
         ${description ? `<small>${escapeHTML(description)}</small>` : ''}
-        ${status && status !== 'activo' ? `<small>(Estado: ${escapeHTML(status)})</small>` : ''}
-      </span>
+        ${status ? `<small>Estado: ${escapeHTML(status)}</small>` : ''}
+      </div>
     </label>
   `;
 }
 
 /* =========================================================
-   TALLERES
+   SELECTORES DE CATÁLOGO
 ========================================================= */
 
-function getSelectedTallerIds() {
+export function getSelectedTallerIds() {
   return getCheckedIds('#talleres-selector');
 }
 
-function renderTalleresSelector(selectedIds = []) {
+export function renderTalleresSelector(selectedIds = []) {
   const container = document.getElementById('talleres-selector');
   if (!container) return;
 
+  const catalogoTalleresCache = getCatalogoTalleresCache();
   const selectedSet = new Set((selectedIds || []).map((item) => Number(item)));
-  const visibles = catalogoTalleresCache.filter((item) =>
-    item.estado === 'activo' || selectedSet.has(Number(item.id_taller))
+
+  const visibles = catalogoTalleresCache.filter(
+    (item) => item.estado === 'activo' || selectedSet.has(Number(item.id_taller))
   );
 
   if (!visibles.length) {
@@ -305,33 +98,37 @@ function renderTalleresSelector(selectedIds = []) {
     return;
   }
 
-  container.innerHTML = visibles.map((taller) => buildCatalogCard({
-    inputType: 'checkbox',
-    value: taller.id_taller,
-    checked: selectedSet.has(Number(taller.id_taller)),
-    title: taller.nombre_taller,
-    description: taller.descripcion || 'Sin descripción',
-    status: taller.estado || 'activo'
-  })).join('');
+  container.innerHTML = visibles
+    .map((taller) =>
+      buildCatalogCard({
+        inputType: 'checkbox',
+        inputName: 'taller_ids',
+        value: taller.id_taller,
+        checked: selectedSet.has(Number(taller.id_taller)),
+        title: taller.nombre_taller,
+        description: taller.descripcion || 'Sin descripción',
+        status: taller.estado || 'activo'
+      })
+    )
+    .join('');
 
   updateSelectableCardState(container);
 }
 
-/* =========================================================
-   FORMACIONES DESDE CATÁLOGO
-========================================================= */
-
-function getSelectedFormacionIds() {
+export function getSelectedFormacionIds() {
   return getCheckedIds('#formaciones-selector');
 }
 
-function renderFormacionesSelector(selectedIds = []) {
+export function renderFormacionesSelector(selectedIds = []) {
   const container = document.getElementById('formaciones-selector');
   if (!container) return;
 
+  const catalogoFormacionesCache = getCatalogoFormacionesCache();
   const selectedSet = new Set((selectedIds || []).map((item) => Number(item)));
-  const visibles = catalogoFormacionesCache.filter((item) =>
-    item.estado === 'activo' || selectedSet.has(Number(item.id_catalogo_formacion))
+
+  const visibles = catalogoFormacionesCache.filter(
+    (item) =>
+      item.estado === 'activo' || selectedSet.has(Number(item.id_catalogo_formacion))
   );
 
   if (!visibles.length) {
@@ -339,37 +136,44 @@ function renderFormacionesSelector(selectedIds = []) {
     return;
   }
 
-  container.innerHTML = visibles.map((formacion) => buildCatalogCard({
-    inputType: 'checkbox',
-    value: formacion.id_catalogo_formacion,
-    checked: selectedSet.has(Number(formacion.id_catalogo_formacion)),
-    title: formacion.nombre_actividad,
-    subtitle: [
-      formacion.tipo_formacion ? `Tipo: ${formacion.tipo_formacion}` : '',
-      formacion.institucion ? `Institución: ${formacion.institucion}` : ''
-    ].filter(Boolean).join(' · '),
-    description: formacion.descripcion || 'Sin descripción',
-    status: formacion.estado || 'activo'
-  })).join('');
+  container.innerHTML = visibles
+    .map((formacion) =>
+      buildCatalogCard({
+        inputType: 'checkbox',
+        inputName: 'formacion_ids',
+        value: formacion.id_catalogo_formacion,
+        checked: selectedSet.has(Number(formacion.id_catalogo_formacion)),
+        title: formacion.nombre_actividad,
+        subtitle: [
+          formacion.tipo_formacion ? `Tipo: ${formacion.tipo_formacion}` : '',
+          formacion.institucion ? `Institución: ${formacion.institucion}` : ''
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        description: formacion.descripcion || 'Sin descripción',
+        status: formacion.estado || 'activo'
+      })
+    )
+    .join('');
 
   updateSelectableCardState(container);
 }
 
-/* =========================================================
-   MAGÍSTER DESDE CATÁLOGO
-========================================================= */
-
-function getSelectedMagisterId() {
+export function getSelectedMagisterId() {
   return getRadioSelectedId('#magister-selector');
 }
 
-function renderMagisterSelector(selectedId = null) {
+export function renderMagisterSelector(selectedId = null) {
   const container = document.getElementById('magister-selector');
   if (!container) return;
 
+  const catalogoMagisterCache = getCatalogoMagisterCache();
   const normalizedSelectedId = Number(selectedId) || null;
-  const visibles = catalogoMagisterCache.filter((item) =>
-    item.estado === 'activo' || Number(item.id_catalogo_magister) === normalizedSelectedId
+
+  const visibles = catalogoMagisterCache.filter(
+    (item) =>
+      item.estado === 'activo' ||
+      Number(item.id_catalogo_magister) === normalizedSelectedId
   );
 
   if (!visibles.length) {
@@ -377,19 +181,25 @@ function renderMagisterSelector(selectedId = null) {
     return;
   }
 
-  container.innerHTML = visibles.map((magister) => buildCatalogCard({
-    inputType: 'radio',
-    inputName: 'magister_id',
-    value: magister.id_catalogo_magister,
-    checked: Number(magister.id_catalogo_magister) === normalizedSelectedId,
-    title: magister.nombre_magister,
-    subtitle: [
-      magister.institucion ? `Institución: ${magister.institucion}` : '',
-      magister.area_estudio ? `Área: ${magister.area_estudio}` : ''
-    ].filter(Boolean).join(' · '),
-    description: magister.descripcion || 'Sin descripción',
-    status: magister.estado || 'activo'
-  })).join('');
+  container.innerHTML = visibles
+    .map((magister) =>
+      buildCatalogCard({
+        inputType: 'checkbox',
+        inputName: 'magister_id',
+        value: magister.id_catalogo_magister,
+        checked: Number(magister.id_catalogo_magister) === normalizedSelectedId,
+        title: magister.nombre_magister,
+        subtitle: [
+          magister.institucion ? `Institución: ${magister.institucion}` : '',
+          magister.area_estudio ? `Área: ${magister.area_estudio}` : ''
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        description: magister.descripcion || 'Sin descripción',
+        status: magister.estado || 'activo'
+      })
+    )
+    .join('');
 
   updateSelectableCardState(container);
 }
@@ -398,7 +208,7 @@ function renderMagisterSelector(selectedId = null) {
    TABLA PRINCIPAL
 ========================================================= */
 
-function renderRows(data) {
+export function renderRows(data) {
   const tbody = document.getElementById('profesores-body');
   if (!tbody) return;
 
@@ -422,7 +232,11 @@ function renderRows(data) {
       <td>
         <div class="summary-stack">
           <strong>${escapeHTML(p.formacion_docente_resumen || 'Sin registros')}</strong>
-          <span class="inline-note">Talleres: ${Number(p.cantidad_talleres ?? 0)} · Formaciones: ${Number(p.cantidad_formaciones ?? 0)} · Magíster: ${Number(p.cantidad_magister ?? 0)}</span>
+          <span class="inline-note">
+            Talleres: ${Number(p.cantidad_talleres ?? 0)} ·
+            Formaciones: ${Number(p.cantidad_formaciones ?? 0)} ·
+            Magíster: ${Number(p.cantidad_magister ?? 0)}
+          </span>
         </div>
       </td>
       <td>
@@ -437,24 +251,45 @@ function renderRows(data) {
   });
 }
 
-function uniqueValues(arr, key) {
-  return [...new Set(arr.map(item => String(item?.[key] ?? '').trim()).filter(Boolean))].sort();
+/* =========================================================
+   FILTROS
+========================================================= */
+
+export function uniqueValues(arr, key) {
+  return [
+    ...new Set(
+      arr
+        .map((item) => String(item?.[key] ?? '').trim())
+        .filter(Boolean)
+    )
+  ].sort();
 }
 
-function populateSelect(selectEl, values) {
+export function populateSelect(selectEl, values) {
   if (!selectEl) return;
 
   selectEl.innerHTML =
     `<option value="">Todos</option>` +
-    values.map(v => `<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join('');
+    values.map((v) => `<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join('');
 }
 
-function renderFiltros() {
-  populateSelect(document.getElementById('search-departamento'), uniqueValues(profesoresCache, 'departamento'));
-  populateSelect(document.getElementById('search-sede'), uniqueValues(profesoresCache, 'sedes_resumen'));
+export function renderFiltros() {
+  const profesoresCache = getProfesoresCache();
+
+  populateSelect(
+    document.getElementById('search-departamento'),
+    uniqueValues(profesoresCache, 'departamento')
+  );
+
+  populateSelect(
+    document.getElementById('search-sede'),
+    uniqueValues(profesoresCache, 'sedes_resumen')
+  );
 }
 
-function applyFilters() {
+export function applyFilters() {
+  const profesoresCache = getProfesoresCache();
+
   const qNombre = document.getElementById('search-nombre')?.value.toLowerCase() || '';
   const depto = document.getElementById('search-departamento')?.value || '';
   const sede = document.getElementById('search-sede')?.value || '';
@@ -470,7 +305,7 @@ function applyFilters() {
   renderRows(filtrados);
 }
 
-function toggleFiltros() {
+export function toggleFiltros() {
   const container = document.getElementById('search-container');
   const btn = document.getElementById('toggle-filtros-btn');
   if (!container || !btn) return;
@@ -480,14 +315,10 @@ function toggleFiltros() {
   btn.textContent = willShow ? 'Ocultar filtros' : 'Filtrar';
 }
 
-function resetFiltros() {
-  const ids = [
-    'search-nombre',
-    'search-departamento',
-    'search-sede'
-  ];
+export function resetFiltros() {
+  const profesoresCache = getProfesoresCache();
 
-  ids.forEach((id) => {
+  ['search-nombre', 'search-departamento', 'search-sede'].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -496,43 +327,47 @@ function resetFiltros() {
 }
 
 /* =========================================================
-   MODALES Y TABS
+   MODALES
 ========================================================= */
 
-function abrirModal() {
+export function abrirModal() {
   document.getElementById('modal-profesor')?.classList.add('is-open');
 }
 
-function cerrarModal() {
+export function cerrarModal() {
   document.getElementById('modal-profesor')?.classList.remove('is-open');
-  hideSedesSuggestions();
+  clearSedesSearch();
 }
 
-function abrirModalCatalogo() {
+export function abrirModalCatalogo() {
   document.getElementById('modal-catalogo-talleres')?.classList.add('is-open');
 }
 
-function cerrarModalCatalogo() {
+export function cerrarModalCatalogo() {
   document.getElementById('modal-catalogo-talleres')?.classList.remove('is-open');
 }
 
-function abrirModalCatalogoFormaciones() {
+export function abrirModalCatalogoFormaciones() {
   document.getElementById('modal-catalogo-formaciones')?.classList.add('is-open');
 }
 
-function cerrarModalCatalogoFormaciones() {
+export function cerrarModalCatalogoFormaciones() {
   document.getElementById('modal-catalogo-formaciones')?.classList.remove('is-open');
 }
 
-function abrirModalCatalogoMagister() {
+export function abrirModalCatalogoMagister() {
   document.getElementById('modal-catalogo-magister')?.classList.add('is-open');
 }
 
-function cerrarModalCatalogoMagister() {
+export function cerrarModalCatalogoMagister() {
   document.getElementById('modal-catalogo-magister')?.classList.remove('is-open');
 }
 
-function activateTab(tabName) {
+/* =========================================================
+   TABS
+========================================================= */
+
+export function activateTab(tabName) {
   document.querySelectorAll('.profesor-tab').forEach((button) => {
     button.classList.toggle('is-active', button.dataset.tab === tabName);
   });
@@ -542,17 +377,17 @@ function activateTab(tabName) {
   });
 }
 
-function bindProfesorTabs() {
+export function bindProfesorTabs() {
   document.querySelectorAll('.profesor-tab').forEach((button) => {
     button.addEventListener('click', () => activateTab(button.dataset.tab));
   });
 }
 
 /* =========================================================
-   RESET / FILL / DATA FORM
+   FORMULARIO PRINCIPAL
 ========================================================= */
 
-function resetFormUI() {
+export function resetFormUI() {
   const form = document.getElementById('profesor-form');
   const idInput = document.getElementById('id_profesor');
   const title = document.getElementById('form-title');
@@ -569,7 +404,7 @@ function resetFormUI() {
   activateTab('datos-generales');
 }
 
-function fillForm(profesor) {
+export function fillForm(profesor) {
   document.getElementById('id_profesor').value = profesor.id_profesor;
   document.getElementById('nombre').value = profesor.nombre ?? '';
   document.getElementById('departamento').value = profesor.departamento ?? '';
@@ -577,23 +412,25 @@ function fillForm(profesor) {
   document.getElementById('otro_i').value = profesor.otro_i ?? '';
 
   setSelectedSedes(profesor.sedes ?? []);
-  renderTalleresSelector(profesor.taller_ids ?? profesor.talleres_catalogo?.map((t) => t.id_taller) ?? []);
+  renderTalleresSelector(
+    profesor.taller_ids ?? profesor.talleres_catalogo?.map((t) => t.id_taller) ?? []
+  );
   renderFormacionesSelector(
     profesor.formacion_ids ??
-    profesor.formaciones_docentes?.map((f) => f.id_catalogo_formacion).filter(Boolean) ??
-    []
+      profesor.formaciones_docentes
+        ?.map((f) => f.id_catalogo_formacion)
+        .filter(Boolean) ??
+      []
   );
   renderMagisterSelector(
-    profesor.magister_id ??
-    profesor.magister?.id_catalogo_magister ??
-    null
+    profesor.magister_id ?? profesor.magister?.id_catalogo_magister ?? null
   );
 
   const title = document.getElementById('form-title');
   if (title) title.textContent = 'Editar Profesor';
 }
 
-function getFormData() {
+export function getFormData() {
   return {
     nombre: document.getElementById('nombre').value.trim(),
     departamento: document.getElementById('departamento').value.trim(),
@@ -608,10 +445,10 @@ function getFormData() {
 }
 
 /* =========================================================
-   CATÁLOGO TALLERES - TABLA Y FORM
+   TABLAS DE CATÁLOGO
 ========================================================= */
 
-function renderCatalogoTalleresTable(data) {
+export function renderCatalogoTalleresTable(data) {
   const tbody = document.getElementById('catalogo-talleres-body');
   if (!tbody) return;
 
@@ -635,7 +472,11 @@ function renderCatalogoTalleresTable(data) {
           <span class="inline-note">${escapeHTML(taller.descripcion || 'Sin descripción')}</span>
         </div>
       </td>
-      <td><span class="summary-badge ${taller.estado === 'inactivo' ? 'summary-badge-muted' : ''}">${escapeHTML(taller.estado)}</span></td>
+      <td>
+        <span class="summary-badge ${taller.estado === 'inactivo' ? 'summary-badge-muted' : ''}">
+          ${escapeHTML(taller.estado)}
+        </span>
+      </td>
       <td>${Number(taller.profesores_asociados ?? 0)}</td>
       <td>
         <div class="action-buttons">
@@ -649,25 +490,21 @@ function renderCatalogoTalleresTable(data) {
   });
 }
 
-function resetCatalogoForm() {
+export function resetCatalogoForm() {
   document.getElementById('catalogo_id_taller').value = '';
   document.getElementById('catalogo_nombre_taller').value = '';
   document.getElementById('catalogo_descripcion').value = '';
   document.getElementById('catalogo_estado').value = 'activo';
 }
 
-function fillCatalogoForm(taller) {
+export function fillCatalogoForm(taller) {
   document.getElementById('catalogo_id_taller').value = taller.id_taller;
   document.getElementById('catalogo_nombre_taller').value = taller.nombre_taller ?? '';
   document.getElementById('catalogo_descripcion').value = taller.descripcion ?? '';
   document.getElementById('catalogo_estado').value = taller.estado ?? 'activo';
 }
 
-/* =========================================================
-   CATÁLOGO FORMACIONES - TABLA Y FORM
-========================================================= */
-
-function renderCatalogoFormacionesTable(data) {
+export function renderCatalogoFormacionesTable(data) {
   const tbody = document.getElementById('catalogo-formaciones-body');
   if (!tbody) return;
 
@@ -693,7 +530,11 @@ function renderCatalogoFormacionesTable(data) {
       </td>
       <td>${escapeHTML(item.tipo_formacion || '-')}</td>
       <td>${escapeHTML(item.institucion || '-')}</td>
-      <td><span class="summary-badge ${item.estado === 'inactivo' ? 'summary-badge-muted' : ''}">${escapeHTML(item.estado || 'activo')}</span></td>
+      <td>
+        <span class="summary-badge ${item.estado === 'inactivo' ? 'summary-badge-muted' : ''}">
+          ${escapeHTML(item.estado || 'activo')}
+        </span>
+      </td>
       <td>
         <div class="action-buttons">
           <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoFormacion(${item.id_catalogo_formacion})">Editar</button>
@@ -706,7 +547,7 @@ function renderCatalogoFormacionesTable(data) {
   });
 }
 
-function resetCatalogoFormacionForm() {
+export function resetCatalogoFormacionForm() {
   document.getElementById('catalogo_id_formacion').value = '';
   document.getElementById('catalogo_nombre_actividad').value = '';
   document.getElementById('catalogo_tipo_formacion').value = 'VRA';
@@ -715,7 +556,7 @@ function resetCatalogoFormacionForm() {
   document.getElementById('catalogo_estado_formacion').value = 'activo';
 }
 
-function fillCatalogoFormacionForm(item) {
+export function fillCatalogoFormacionForm(item) {
   document.getElementById('catalogo_id_formacion').value = item.id_catalogo_formacion;
   document.getElementById('catalogo_nombre_actividad').value = item.nombre_actividad ?? '';
   document.getElementById('catalogo_tipo_formacion').value = item.tipo_formacion ?? 'VRA';
@@ -724,11 +565,7 @@ function fillCatalogoFormacionForm(item) {
   document.getElementById('catalogo_estado_formacion').value = item.estado ?? 'activo';
 }
 
-/* =========================================================
-   CATÁLOGO MAGÍSTER - TABLA Y FORM
-========================================================= */
-
-function renderCatalogoMagisterTable(data) {
+export function renderCatalogoMagisterTable(data) {
   const tbody = document.getElementById('catalogo-magister-body');
   if (!tbody) return;
 
@@ -754,7 +591,11 @@ function renderCatalogoMagisterTable(data) {
       </td>
       <td>${escapeHTML(item.institucion || '-')}</td>
       <td>${escapeHTML(item.area_estudio || '-')}</td>
-      <td><span class="summary-badge ${item.estado === 'inactivo' ? 'summary-badge-muted' : ''}">${escapeHTML(item.estado || 'activo')}</span></td>
+      <td>
+        <span class="summary-badge ${item.estado === 'inactivo' ? 'summary-badge-muted' : ''}">
+          ${escapeHTML(item.estado || 'activo')}
+        </span>
+      </td>
       <td>
         <div class="action-buttons">
           <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoMagister(${item.id_catalogo_magister})">Editar</button>
@@ -767,7 +608,7 @@ function renderCatalogoMagisterTable(data) {
   });
 }
 
-function resetCatalogoMagisterForm() {
+export function resetCatalogoMagisterForm() {
   document.getElementById('catalogo_id_magister').value = '';
   document.getElementById('catalogo_nombre_magister').value = '';
   document.getElementById('catalogo_institucion_magister').value = '';
@@ -776,7 +617,7 @@ function resetCatalogoMagisterForm() {
   document.getElementById('catalogo_estado_magister').value = 'activo';
 }
 
-function fillCatalogoMagisterForm(item) {
+export function fillCatalogoMagisterForm(item) {
   document.getElementById('catalogo_id_magister').value = item.id_catalogo_magister;
   document.getElementById('catalogo_nombre_magister').value = item.nombre_magister ?? '';
   document.getElementById('catalogo_institucion_magister').value = item.institucion ?? '';
