@@ -218,3 +218,266 @@
   font: inherit;
   font-weight: 600;
 }
+
+/* ===== Boton aceptar verde en confirms no-peligrosos ===== */
+.app-confirm-modal:not(.is-danger) .app-confirm-accept {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.app-confirm-modal:not(.is-danger) .app-confirm-accept:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+/* ===== Elevar alertas por encima del modal ===== */
+.app-alert-container {
+  z-index: 999999 !important;
+}
+
+.app-confirm-modal {
+  z-index: 999998 !important;
+}
+
+/* ===== Modal gestión de usuarios ===== */
+.nav-modal-content.nav-modal-wide {
+  width: min(100%, 860px);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.nav-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.nav-modal-close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.nav-modal-subtitle {
+  margin: -14px 0 18px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.nav-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.nav-modal-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.nav-modal-tab.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.nav-modal-panel {
+  display: none;
+}
+
+.nav-modal-panel.is-active {
+  display: block;
+}
+
+.gestion-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.gestion-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.gestion-users-table thead {
+  background: var(--primary);
+  color: #fff;
+}
+
+.gestion-users-table th,
+.gestion-users-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.gestion-users-table tbody tr:hover:not(.gestion-edit-row) {
+  background: #f9fafb;
+}
+
+.gestion-rol-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #eef0ff;
+  color: #5a4bf6;
+}
+
+.gestion-acciones-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gestion-btn-edit,
+.gestion-btn-disable {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.gestion-btn-edit {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.gestion-btn-edit:hover {
+  background: #f3f4f6;
+}
+
+.gestion-btn-disable {
+  background: #ef4444;
+  color: #fff;
+}
+
+.gestion-btn-disable:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.gestion-btn-disable:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gestion-btn-enable {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #16a34a;
+  color: #fff;
+}
+
+.gestion-btn-enable:hover {
+  background: #15803d;
+}
+
+.gestion-row-disabled td {
+  opacity: 0.55;
+}
+
+.gestion-badge-disabled {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #fee2e2;
+  color: #b91c1c;
+  vertical-align: middle;
+}
+
+.gestion-empty {
+  text-align: center;
+  padding: 28px 14px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.gestion-edit-row td {
+  background: #f8faff;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gestion-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gestion-edit-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+.gestion-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.gestion-edit-grid .nav-modal-field {
+  margin-bottom: 0;
+}
+
+.gestion-edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.gestion-edit-actions .btn-cancel {
+  padding: 0 16px;
+  min-height: 36px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.gestion-edit-actions .btn-primary {
+  padding: 0 16px;
+  min-height: 36px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}

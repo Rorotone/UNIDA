@@ -10,6 +10,7 @@ export const obtenerMentores = async (req, res) => {
     const [rows] = await db.execute(`
       SELECT id, username, nombre
       FROM users
+      WHERE deleted_at IS NULL
       ORDER BY username ASC
     `);
 
