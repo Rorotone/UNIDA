@@ -51,7 +51,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    
+
     // Find user
     const [users] = await db.execute(
       `SELECT u.*, t.tipo as rol_nombre
@@ -62,6 +62,9 @@ export const login = async (req, res) => {
     );
     if (users.length === 0) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+    if (users[0].deleted_at) {
+      return res.status(403).json({ message: 'Usuario deshabilitado. Contacta al administrador.' });
     }
     
     const user = users[0];
@@ -86,11 +89,111 @@ export const login = async (req, res) => {
 
 export const getUsers = async (req, res) => {
     try {
-      const [users] = await db.execute('SELECT id, username, nombre FROM users');
+      const [users] = await db.execute('SELECT id, username, nombre FROM users WHERE deleted_at IS NULL');
       res.status(200).json(users);
     } catch (error) {
       console.error('Error al obtener usuarios:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+export const getUsersAdmin = async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      `SELECT u.id, u.username, u.nombre, u.rol, t.tipo AS rol_nombre,
+              u.deleted_at
+       FROM users u
+       JOIN tipo_usuario t ON u.rol = t.id
+       ORDER BY u.deleted_at IS NOT NULL ASC, u.nombre ASC`
+    );
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error al obtener usuarios (admin):', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+export const enableUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [existing] = await db.execute('SELECT id FROM users WHERE id = ? AND deleted_at IS NOT NULL', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado o ya está habilitado.' });
+    }
+
+    await db.execute('UPDATE users SET deleted_at = NULL WHERE id = ?', [id]);
+    res.json({ message: 'Usuario habilitado exitosamente.' });
+  } catch (error) {
+    console.error('Error al habilitar usuario:', error);
+    res.status(500).json({ message: 'Error al habilitar el usuario.' });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, username, rol } = req.body;
+
+    if (!nombre || !username || !rol) {
+      return res.status(400).json({ message: 'Nombre, username y rol son obligatorios.' });
+    }
+    if (username.trim().length < 3 || username.trim().length > 30) {
+      return res.status(400).json({ message: 'El username debe tener entre 3 y 30 caracteres.' });
+    }
+    if (nombre.trim().length < 2 || nombre.trim().length > 100) {
+      return res.status(400).json({ message: 'El nombre debe tener entre 2 y 100 caracteres.' });
+    }
+
+    const [tipoUsuario] = await db.execute('SELECT id FROM tipo_usuario WHERE id = ?', [rol]);
+    if (tipoUsuario.length === 0) {
+      return res.status(400).json({ message: 'El rol seleccionado no es válido.' });
+    }
+
+    const [existing] = await db.execute('SELECT id FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const [conflict] = await db.execute(
+      'SELECT id FROM users WHERE username = ? AND id <> ? AND deleted_at IS NULL',
+      [username.trim(), id]
+    );
+    if (conflict.length > 0) {
+      return res.status(400).json({ message: 'El username ya está en uso.' });
+    }
+
+    await db.execute(
+      'UPDATE users SET nombre = ?, username = ?, rol = ? WHERE id = ?',
+      [nombre.trim(), username.trim(), rol, id]
+    );
+
+    res.json({ message: 'Usuario actualizado exitosamente.' });
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error);
+    res.status(500).json({ message: 'Error al actualizar el usuario.' });
+  }
+};
+
+export const disableUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.userId;
+
+    if (Number(id) === Number(adminId)) {
+      return res.status(400).json({ message: 'No puedes deshabilitar tu propio usuario.' });
+    }
+
+    const [existing] = await db.execute('SELECT id FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado o ya deshabilitado.' });
+    }
+
+    await db.execute('UPDATE users SET deleted_at = NOW() WHERE id = ?', [id]);
+    res.json({ message: 'Usuario deshabilitado exitosamente.' });
+  } catch (error) {
+    console.error('Error al deshabilitar usuario:', error);
+    res.status(500).json({ message: 'Error al deshabilitar el usuario.' });
   }
 };
 
@@ -110,7 +213,7 @@ export const changePassword = async (req, res) => {
     const userId = req.user.userId; // From authenticateToken middleware
 
     // Find user
-    const [users] = await db.execute('SELECT * FROM users WHERE id = ?', [userId]);
+    const [users] = await db.execute('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', [userId]);
     if (users.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
@@ -152,7 +255,7 @@ export const getUserProfile = async (req, res) => {
       `SELECT u.id, u.username, u.nombre, t.tipo as rol
        FROM users u
        JOIN tipo_usuario t ON u.rol = t.id
-       WHERE u.id = ?`,
+       WHERE u.id = ? AND u.deleted_at IS NULL`,
       [userId]
     );
     
