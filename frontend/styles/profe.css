@@ -798,19 +798,24 @@ textarea {
 .sedes-cell {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  padding: 2px 0;
 }
- 
+
 .sede-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
- 
+
 .sede-nombre {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text, #1e293b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
 }
  
 .modalidad-badge {

@@ -21,12 +21,19 @@ async function loadNav() {
     const html = await response.text();
     navPlaceholder.innerHTML = html;
 
+    // Mover modales al body para escapar el stacking context del header (backdrop-filter)
+    document.querySelectorAll('#nav-placeholder .nav-modal').forEach((modal) => {
+      document.body.appendChild(modal);
+    });
+
     await initUserBubble();
     bindNavEvents();
   } catch (error) {
     console.error('Error cargando navegación:', error);
   }
 }
+
+let currentUserId = null;
 
 async function initUserBubble() {
   const token = getAuthToken();
@@ -35,6 +42,8 @@ async function initUserBubble() {
   try {
     const res = await fetchWithAuth('/api/auth/profile');
     const perfil = await parseJsonSafe(res);
+
+    currentUserId = perfil?.id ?? null;
 
     const nombre = perfil?.nombre || 'Usuario';
     const username = perfil?.username || 'sin-usuario';
@@ -224,8 +233,8 @@ async function cargarRolesGestion() {
 
     (data || []).forEach((rol) => {
       const option = document.createElement('option');
-      option.value = rol.nombre_tipo || rol.nombre || rol.id_tipo_usuario;
-      option.textContent = rol.nombre_tipo || rol.nombre;
+      option.value = rol.id;
+      option.textContent = rol.tipo;
       select.appendChild(option);
     });
   } catch (error) {
@@ -248,52 +257,136 @@ async function cargarUsuariosGestion() {
     tbody.innerHTML = '';
 
     if (!Array.isArray(users) || users.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="4" style="text-align:center;">No hay usuarios registrados.</td>
-        </tr>
-      `;
+      tbody.innerHTML = `<tr><td colspan="4" class="gestion-empty">No hay usuarios registrados.</td></tr>`;
       return;
     }
 
     users.forEach((user) => {
-      const tr = document.createElement('tr');
+      const userId = user.id;
+      const disabled = !!user.deleted_at;
+      const rolNombre = user.rol_nombre || user.rol || '—';
 
-      const estadoTexto = Number(user.estado ?? 1) === 1 ? 'Desactivar' : 'Activar';
-      const accionClase = Number(user.estado ?? 1) === 1 ? 'danger' : 'success';
-      const action = Number(user.estado ?? 1) === 1 ? 'disable' : 'enable';
+      // Fila principal
+      const tr = document.createElement('tr');
+      if (disabled) tr.classList.add('gestion-row-disabled');
+      tr.dataset.userId = userId;
+
+      const isSelf = String(userId) === String(currentUserId);
 
       tr.innerHTML = `
-        <td>${user.nombre || '—'}</td>
+        <td>${user.nombre || '—'} ${disabled ? '<span class="gestion-badge-disabled">Inactivo</span>' : ''}</td>
         <td>${user.username || '—'}</td>
-        <td>${user.rol || user.tipo_usuario || '—'}</td>
+        <td><span class="gestion-rol-badge">${rolNombre}</span></td>
         <td>
-          <button
-            type="button"
-            class="dd-btn ${accionClase}"
-            data-user-id="${user.id_usuario}"
-            data-action="${action}"
-          >
-            ${estadoTexto}
-          </button>
+          <div class="gestion-acciones-cell">
+            <button type="button" class="gestion-btn-edit" data-action="edit" data-user-id="${userId}">Editar</button>
+            <button type="button" class="${disabled ? 'gestion-btn-enable' : 'gestion-btn-disable'}"
+              data-action="${disabled ? 'enable' : 'disable'}"
+              data-user-id="${userId}"
+              ${isSelf ? 'disabled title="No puedes deshabilitar tu propia sesión"' : ''}
+            >${disabled ? 'Habilitar' : 'Deshabilitar'}</button>
+          </div>
         </td>
       `;
 
       tbody.appendChild(tr);
-    });
 
-    tbody.querySelectorAll('button[data-user-id]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const userId = btn.dataset.userId;
-        const action = btn.dataset.action;
+      // Fila de edición (oculta inicialmente)
+      const editTr = document.createElement('tr');
+      editTr.classList.add('gestion-edit-row');
+      editTr.style.display = 'none';
+      editTr.dataset.editFor = userId;
+      editTr.innerHTML = `
+        <td colspan="4">
+          <div class="gestion-edit-form">
+            <p class="gestion-edit-title">Editando: <strong>${user.nombre || ''}</strong></p>
+            <div class="gestion-edit-grid">
+              <div class="nav-modal-field">
+                <label>Nombre</label>
+                <input type="text" class="edit-nombre" value="${user.nombre || ''}">
+              </div>
+              <div class="nav-modal-field">
+                <label>Username</label>
+                <input type="text" class="edit-username" value="${user.username || ''}">
+              </div>
+              <div class="nav-modal-field">
+                <label>Rol</label>
+                <select class="edit-rol"></select>
+              </div>
+            </div>
+            <div class="gestion-edit-actions">
+              <button type="button" class="btn-cancel edit-cancel">Cancelar</button>
+              <button type="button" class="btn-primary edit-save">Guardar</button>
+            </div>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(editTr);
 
-        await cambiarEstadoUsuario(userId, action);
+      // Poblar select de roles en la fila de edición desde el backend
+      const editRolSelect = editTr.querySelector('.edit-rol');
+      fetchWithAuth('/api/auth/tipos-usuario')
+        .then(r => r.json())
+        .then(tipos => {
+          editRolSelect.innerHTML = '<option value="">Seleccione un rol...</option>';
+          (tipos || []).forEach(t => {
+            const o = document.createElement('option');
+            o.value = t.id;
+            o.textContent = t.tipo;
+            if (String(t.id) === String(user.rol)) o.selected = true;
+            editRolSelect.appendChild(o);
+          });
+        })
+        .catch(() => {});
+
+      // Botón Editar → mostrar fila edición
+      tr.querySelector('[data-action="edit"]').addEventListener('click', () => {
+        const isOpen = editTr.style.display !== 'none';
+        // Cerrar todas las filas de edición abiertas
+        tbody.querySelectorAll('.gestion-edit-row').forEach(r => r.style.display = 'none');
+        editTr.style.display = isOpen ? 'none' : '';
+      });
+
+      // Botón Cancelar
+      editTr.querySelector('.edit-cancel').addEventListener('click', () => {
+        editTr.style.display = 'none';
+      });
+
+      // Botón Guardar
+      editTr.querySelector('.edit-save').addEventListener('click', async () => {
+        const nombre = editTr.querySelector('.edit-nombre').value.trim();
+        const username = editTr.querySelector('.edit-username').value.trim();
+        const rol = editTr.querySelector('.edit-rol').value;
+        await editarUsuario(userId, { nombre, username, rol });
+      });
+
+      // Botón Activar/Desactivar
+      tr.querySelector(`[data-action="${disabled ? 'enable' : 'disable'}"]`).addEventListener('click', async () => {
+        await cambiarEstadoUsuario(userId, disabled ? 'enable' : 'disable');
       });
     });
   } catch (error) {
     if (error.message !== 'Sesión expirada') {
       console.error('Error cargando usuarios:', error);
     }
+  }
+}
+
+async function editarUsuario(userId, { nombre, username, rol }) {
+  try {
+    const response = await fetchWithAuth(`/api/auth/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, username, rol })
+    });
+    const data = await parseJsonSafe(response);
+    if (!response.ok) {
+      alert(data.message || 'No se pudo actualizar el usuario.');
+      return;
+    }
+    await cargarUsuariosGestion();
+  } catch (error) {
+    if (error.message !== 'Sesión expirada') console.error('Error editando usuario:', error);
   }
 }
 
@@ -304,7 +397,7 @@ async function cambiarEstadoUsuario(userId, action) {
         ? `/api/auth/users/${userId}/enable`
         : `/api/auth/users/${userId}`;
 
-    const method = action === 'enable' ? 'PATCH' : 'DELETE';
+    const method = action === 'enable' ? 'PUT' : 'DELETE';
 
     const response = await fetchWithAuth(endpoint, {
       method
