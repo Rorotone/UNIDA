@@ -626,6 +626,63 @@ textarea {
   color: #6366f1;
 }
 
+/* SEDES CON MODALIDADES */
+.sedes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sede-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.sede-badge strong {
+  font-weight: 600;
+}
+
+.sede-badge span {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+/* MODALIDAD: Presencial */
+.sede-badge-presencial {
+  background-color: #dbeafe;
+  color: #0c4a6e;
+  border-color: #7dd3fc;
+}
+
+/* MODALIDAD: Online */
+.sede-badge-online {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+/* MODALIDAD: Híbrida */
+.sede-badge-hibrida {
+  background-color: #fce7f3;
+  color: #831843;
+  border-color: #fbcfe8;
+}
+
+/* MODALIDAD: Sin especificar o default */
+.sede-badge-default {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
 .section-card-academica {
   padding: 22px;
   border-radius: 18px;

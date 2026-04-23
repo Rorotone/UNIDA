@@ -1,107 +1,103 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-
-  if (loginForm) {
-    const inputs = loginForm.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.addEventListener('input', clearFormAlert);
-    });
-
-    loginForm.addEventListener('submit', handleLogin);
-  }
-
-  if (registerForm) {
-    const inputs = registerForm.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.addEventListener('input', clearFormAlert);
-    });
-
-    registerForm.addEventListener('submit', handleRegister);
-  }
-});
-
 function renderAppAlert(message, type = 'error') {
-  const errorBox = document.getElementById('error-message');
-  if (!errorBox) return;
+  const box = document.getElementById('form-alert');
+  if (!box) return;
 
-  errorBox.textContent = message;
-  errorBox.style.display = 'block';
-  errorBox.className = 'error-message';
-
-  if (type === 'success') {
-    errorBox.style.background = '#dcfce7';
-    errorBox.style.color = '#166534';
-    errorBox.style.border = '1px solid #bbf7d0';
-  } else if (type === 'warning') {
-    errorBox.style.background = '#fef3c7';
-    errorBox.style.color = '#92400e';
-    errorBox.style.border = '1px solid #fde68a';
-  } else {
-    errorBox.style.background = '#fee2e2';
-    errorBox.style.color = '#b91c1c';
-    errorBox.style.border = '1px solid #fecaca';
-  }
+  box.className = `form-alert ${type}`;
+  box.textContent = message;
+  box.style.display = 'block';
 }
 
 function clearFormAlert() {
-  const errorBox = document.getElementById('error-message');
-  if (!errorBox) return;
+  const box = document.getElementById('form-alert');
+  if (!box) return;
 
-  errorBox.style.display = 'none';
-  errorBox.textContent = '';
+  box.textContent = '';
+  box.className = 'form-alert';
+  box.style.display = 'none';
 }
 
 function setButtonLoading(button, isLoading, loadingText = 'Procesando...') {
   if (!button) return;
 
   if (isLoading) {
-    if (!button.dataset.originalText) {
-      button.dataset.originalText = button.textContent;
-    }
-    button.textContent = loadingText;
+    button.dataset.originalText = button.textContent;
     button.disabled = true;
-    button.style.opacity = '0.7';
-    button.style.cursor = 'not-allowed';
+    button.textContent = loadingText;
   } else {
-    button.textContent = button.dataset.originalText || 'Enviar';
     button.disabled = false;
-    button.style.opacity = '';
-    button.style.cursor = '';
+    button.textContent = button.dataset.originalText || 'Enviar';
   }
 }
 
 function validateCredentials(username, password) {
-  const cleanUsername = username.trim();
-  const cleanPassword = password.trim();
-
-  if (!cleanUsername && !cleanPassword) {
-    renderAppAlert('Debes completar usuario y contraseña.', 'warning');
+  if (!username?.trim()) {
+    renderAppAlert('El usuario es obligatorio.', 'warning');
     return false;
   }
 
-  if (!cleanUsername) {
-    renderAppAlert('Debes ingresar el usuario.', 'warning');
-    return false;
-  }
-
-  if (!cleanPassword) {
-    renderAppAlert('Debes ingresar la contraseña.', 'warning');
-    return false;
-  }
-
-  if (cleanUsername.length < 3) {
-    renderAppAlert('El usuario debe tener al menos 3 caracteres.', 'warning');
-    return false;
-  }
-
-  if (password.length < 6) {
-    renderAppAlert('La contraseña debe tener al menos 6 caracteres.', 'warning');
+  if (!password?.trim()) {
+    renderAppAlert('La contraseña es obligatoria.', 'warning');
     return false;
   }
 
   return true;
 }
+
+/* =========================================================
+   HELPERS GLOBALES DE AUTENTICACIÓN
+========================================================= */
+
+function getAuthToken() {
+  return localStorage.getItem('token');
+}
+
+function clearSessionAndRedirect() {
+  localStorage.removeItem('token');
+  window.location.replace('/login.html');
+}
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = getAuthToken();
+
+  return {
+    ...extraHeaders,
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+}
+
+async function parseJsonSafe(response) {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
+function handleUnauthorized(response) {
+  if (response.status === 401) {
+    clearSessionAndRedirect();
+    return true;
+  }
+  return false;
+}
+
+async function fetchWithAuth(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    credentials: options.credentials ?? 'include',
+    headers: getAuthHeaders(options.headers || {})
+  });
+
+  if (handleUnauthorized(response)) {
+    throw new Error('Sesión expirada');
+  }
+
+  return response;
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
 
 async function handleLogin(e) {
   e.preventDefault();
@@ -111,8 +107,8 @@ async function handleLogin(e) {
   const passwordInput = document.getElementById('password');
   const submitButton = e.target.querySelector('button[type="submit"]');
 
-  const username = usernameInput.value;
-  const password = passwordInput.value;
+  const username = usernameInput?.value || '';
+  const password = passwordInput?.value || '';
 
   if (!validateCredentials(username, password)) return;
 
@@ -167,20 +163,24 @@ async function handleLogin(e) {
   }
 }
 
+/* =========================================================
+   REGISTRO
+========================================================= */
+
 async function handleRegister(e) {
   e.preventDefault();
   clearFormAlert();
 
-  const nombreInput   = document.getElementById('nombre');
+  const nombreInput = document.getElementById('nombre');
   const usernameInput = document.getElementById('username');
   const passwordInput = document.getElementById('password');
-  const rolInput      = document.getElementById('rol');
-  const submitButton  = e.target.querySelector('button[type="submit"]');
+  const rolInput = document.getElementById('rol');
+  const submitButton = e.target.querySelector('button[type="submit"]');
 
-  const nombre   = nombreInput?.value.trim();
-  const username = usernameInput.value;
-  const password = passwordInput.value;
-  const rol      = rolInput?.value;
+  const nombre = nombreInput?.value.trim();
+  const username = usernameInput?.value || '';
+  const password = passwordInput?.value || '';
+  const rol = rolInput?.value || '';
 
   if (!nombre) {
     renderAppAlert('El nombre completo es obligatorio.', 'warning');
@@ -197,13 +197,11 @@ async function handleRegister(e) {
   setButtonLoading(submitButton, true, 'Creando usuario...');
 
   try {
-    const token = localStorage.getItem('token');
     const response = await fetch('/api/auth/register', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getAuthHeaders({
+        'Content-Type': 'application/json'
+      }),
       credentials: 'include',
       body: JSON.stringify({
         nombre,
@@ -213,19 +211,18 @@ async function handleRegister(e) {
       })
     });
 
-    let data = {};
-    try {
-      data = await response.json();
-    } catch {
-      data = {};
-    }
+    const data = await parseJsonSafe(response);
+
+    if (handleUnauthorized(response)) return;
 
     if (response.ok) {
       renderAppAlert(`Usuario "${username.trim()}" creado exitosamente.`, 'success');
+
       if (nombreInput) nombreInput.value = '';
-      usernameInput.value = '';
-      passwordInput.value = '';
+      if (usernameInput) usernameInput.value = '';
+      if (passwordInput) passwordInput.value = '';
       if (rolInput) rolInput.value = '';
+
       return;
     }
 
@@ -247,3 +244,20 @@ async function handleRegister(e) {
     setButtonLoading(submitButton, false);
   }
 }
+
+/* =========================================================
+   INICIALIZACIÓN
+========================================================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+  }
+
+  if (registerForm) {
+    registerForm.addEventListener('submit', handleRegister);
+  }
+});

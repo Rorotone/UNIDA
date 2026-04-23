@@ -208,6 +208,30 @@ export function renderMagisterSelector(selectedId = null) {
    TABLA PRINCIPAL
 ========================================================= */
 
+export function formatSedesWithModalidad(sedesResumen) {
+  if (!sedesResumen) return 'Sin sede';
+  
+  // Parsear "Sede (modalidad), Sede (modalidad)" 
+  const sedesArray = sedesResumen.split(', ');
+  
+  return sedesArray
+    .map((item) => {
+      const match = item.match(/^(.+?)\s*\((.+?)\)$/);
+      if (match) {
+        const [, nombreSede, modalidad] = match;
+        const modalidadClass = 
+          modalidad.toLowerCase().includes('presencial') ? 'presencial' :
+          modalidad.toLowerCase().includes('online') ? 'online' :
+          modalidad.toLowerCase().includes('hybrid') || modalidad.toLowerCase().includes('híbrida') ? 'hibrida' :
+          'default';
+        
+        return `<div class="sede-badge sede-badge-${modalidadClass}"><strong>${escapeHTML(nombreSede)}</strong><span>${escapeHTML(modalidad)}</span></div>`;
+      }
+      return `<div class="sede-badge sede-badge-default"><strong>${escapeHTML(item)}</strong></div>`;
+    })
+    .join('');
+}
+
 export function renderRows(data) {
   const tbody = document.getElementById('profesores-body');
   if (!tbody) return;
@@ -228,7 +252,11 @@ export function renderRows(data) {
     tr.innerHTML = `
       <td>${escapeHTML(p.nombre)}</td>
       <td>${escapeHTML(p.departamento)}</td>
-      <td>${escapeHTML(p.sedes_resumen || p.sede || 'Sin sede')}</td>
+      <td>
+        <div class="sedes-list">
+          ${formatSedesWithModalidad(p.sedes_resumen || p.sede || '')}
+        </div>
+      </td>
       <td>
         <div class="summary-stack">
           <strong>${escapeHTML(p.formacion_docente_resumen || 'Sin registros')}</strong>
