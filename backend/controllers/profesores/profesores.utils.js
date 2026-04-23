@@ -81,6 +81,7 @@ export const mapProfesorListRow = (row) => ({
     nombre: row.nombre,
     departamento: row.departamento,
     sedes_resumen: row.sedes_resumen || '',
+    sedes_modalidad: row.sedes_modalidad || '',
     cantidad_talleres: safeNumber(row.cantidad_talleres, 0),
     cantidad_formaciones: safeNumber(row.cantidad_formaciones, 0),
     cantidad_magister: safeNumber(row.cantidad_magister, 0),

@@ -353,7 +353,8 @@ export async function getProfesoresService(filters = {}) {
             COUNT(DISTINCT pt.id_taller) AS cantidad_talleres,
             COUNT(DISTINCT pf.id_formacion) AS cantidad_formaciones,
             COUNT(DISTINCT pm.id_magister) AS cantidad_magister,
-            COALESCE(GROUP_CONCAT(DISTINCT CONCAT(cs.nombre_sede, ' (', COALESCE(ps.modalidad, 'Sin modalidad'), ')') ORDER BY cs.nombre_sede ASC SEPARATOR ', '), '') AS sedes_resumen
+            COALESCE(GROUP_CONCAT(DISTINCT cs.nombre_sede ORDER BY cs.nombre_sede ASC SEPARATOR ', '), '') AS sedes_resumen,
+            COALESCE(GROUP_CONCAT(DISTINCT ps.modalidad ORDER BY cs.nombre_sede ASC SEPARATOR ', '), '') AS sedes_modalidad
         FROM profesores p
         LEFT JOIN profesor_talleres pt ON pt.id_profesor = p.id_profesor
         LEFT JOIN profesor_formacion_docente pf ON pf.id_profesor = p.id_profesor
@@ -393,6 +394,7 @@ export async function getProfesoresService(filters = {}) {
     return rows.map((row) => ({
         ...mapProfesorListRow(row),
         sedes_resumen: row.sedes_resumen || '',
+        sedes_modalidad: row.sedes_modalidad || '',
     }));
 }
 

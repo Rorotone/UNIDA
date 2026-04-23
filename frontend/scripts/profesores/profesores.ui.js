@@ -208,30 +208,6 @@ export function renderMagisterSelector(selectedId = null) {
    TABLA PRINCIPAL
 ========================================================= */
 
-export function formatSedesWithModalidad(sedesResumen) {
-  if (!sedesResumen) return 'Sin sede';
-  
-  // Parsear "Sede (modalidad), Sede (modalidad)" 
-  const sedesArray = sedesResumen.split(', ');
-  
-  return sedesArray
-    .map((item) => {
-      const match = item.match(/^(.+?)\s*\((.+?)\)$/);
-      if (match) {
-        const [, nombreSede, modalidad] = match;
-        const modalidadClass = 
-          modalidad.toLowerCase().includes('presencial') ? 'presencial' :
-          modalidad.toLowerCase().includes('online') ? 'online' :
-          modalidad.toLowerCase().includes('hybrid') || modalidad.toLowerCase().includes('híbrida') ? 'hibrida' :
-          'default';
-        
-        return `<div class="sede-badge sede-badge-${modalidadClass}"><strong>${escapeHTML(nombreSede)}</strong><span>${escapeHTML(modalidad)}</span></div>`;
-      }
-      return `<div class="sede-badge sede-badge-default"><strong>${escapeHTML(item)}</strong></div>`;
-    })
-    .join('');
-}
-
 export function renderRows(data) {
   const tbody = document.getElementById('profesores-body');
   if (!tbody) return;
@@ -246,17 +222,33 @@ export function renderRows(data) {
     `;
     return;
   }
-
   data.forEach((p) => {
     const tr = document.createElement('tr');
+
+    const nombres = p.sedes_resumen ? p.sedes_resumen.split(', ').map(s => s.trim()).filter(Boolean) : [];
+    const modalidades = p.sedes_modalidad ? p.sedes_modalidad.split(', ').map(s => s.trim()) : [];
+
+    const sedeHTML = nombres.length > 0
+      ? nombres.map((nombre, i) => {
+          const modalidad = (modalidades[i] || '').toLowerCase();
+          const badgeClass = modalidad === 'presencial'
+            ? 'modalidad-badge modalidad-presencial'
+            : modalidad === 'híbrido' || modalidad === 'hibrido'
+              ? 'modalidad-badge modalidad-hibrido'
+              : modalidad === 'online' || modalidad === 'virtual'
+                ? 'modalidad-badge modalidad-online'
+                : 'modalidad-badge modalidad-otro';
+          return `<div class="sede-row">
+            <span class="sede-nombre">${escapeHTML(nombre)}</span>
+            <span class="${badgeClass}">${escapeHTML(modalidades[i] || 'N/A')}</span>
+          </div>`;
+        }).join('')
+      : `<span class="text-muted">Sin sede</span>`;
+
     tr.innerHTML = `
       <td>${escapeHTML(p.nombre)}</td>
       <td>${escapeHTML(p.departamento)}</td>
-      <td>
-        <div class="sedes-list">
-          ${formatSedesWithModalidad(p.sedes_resumen || p.sede || '')}
-        </div>
-      </td>
+      <td><div class="sedes-cell">${sedeHTML}</div></td>
       <td>
         <div class="summary-stack">
           <strong>${escapeHTML(p.formacion_docente_resumen || 'Sin registros')}</strong>

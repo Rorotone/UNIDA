@@ -790,3 +790,62 @@ textarea {
   background: linear-gradient(180deg, #f8f7ff 0%, #f4f3ff 100%);
   box-shadow: 0 12px 28px rgba(79, 70, 229, 0.14);
 }
+
+/* =========================================================
+   BADGES DE MODALIDAD POR SEDE
+========================================================= */
+ 
+.sedes-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+ 
+.sede-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+ 
+.sede-nombre {
+  font-size: 0.875rem;
+  color: var(--text, #1e293b);
+}
+ 
+.modalidad-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+ 
+.modalidad-presencial {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+ 
+.modalidad-hibrido {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+ 
+.modalidad-online {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+ 
+.modalidad-otro {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}
