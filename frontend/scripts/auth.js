@@ -1,42 +1,132 @@
-function renderAppAlert(message, type = 'error') {
-  const box = document.getElementById('form-alert');
-  if (!box) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
 
-  box.className = `form-alert ${type}`;
-  box.textContent = message;
-  box.style.display = 'block';
+  if (loginForm) {
+    const inputs = loginForm.querySelectorAll('input');
+    inputs.forEach((input) => {
+      input.addEventListener('input', clearFormAlert);
+    });
+
+    loginForm.addEventListener('submit', handleLogin);
+  }
+
+  if (registerForm) {
+    const inputs = registerForm.querySelectorAll('input, select');
+    inputs.forEach((input) => {
+      input.addEventListener('input', clearFormAlert);
+      input.addEventListener('change', clearFormAlert);
+    });
+
+    registerForm.addEventListener('submit', handleRegister);
+  }
+});
+
+/* =========================================================
+   ALERTAS DEL LOGIN / REGISTRO
+========================================================= */
+
+function renderAppAlert(message, type = 'error') {
+  const errorBox = document.getElementById('error-message') || document.getElementById('form-alert');
+
+  if (errorBox) {
+    errorBox.textContent = message;
+    errorBox.style.display = 'block';
+    errorBox.className = errorBox.id === 'form-alert' ? `form-alert ${type}` : 'error-message';
+
+    if (errorBox.id === 'error-message') {
+      if (type === 'success') {
+        errorBox.style.background = '#dcfce7';
+        errorBox.style.color = '#166534';
+        errorBox.style.border = '1px solid #bbf7d0';
+      } else if (type === 'warning') {
+        errorBox.style.background = '#fef3c7';
+        errorBox.style.color = '#92400e';
+        errorBox.style.border = '1px solid #fde68a';
+      } else {
+        errorBox.style.background = '#fee2e2';
+        errorBox.style.color = '#b91c1c';
+        errorBox.style.border = '1px solid #fecaca';
+      }
+    }
+
+    return;
+  }
+
+  if (typeof showAppAlert === 'function') {
+    showAppAlert(message, type, {
+      title:
+        type === 'success' ? 'Éxito' :
+        type === 'warning' ? 'Atención' :
+        type === 'error' ? 'Error' : 'Información'
+    });
+    return;
+  }
+
+  window.alert(message);
 }
 
 function clearFormAlert() {
-  const box = document.getElementById('form-alert');
-  if (!box) return;
+  const errorBox = document.getElementById('error-message') || document.getElementById('form-alert');
+  if (!errorBox) return;
 
-  box.textContent = '';
-  box.className = 'form-alert';
-  box.style.display = 'none';
+  errorBox.style.display = 'none';
+  errorBox.textContent = '';
+  errorBox.className = errorBox.id === 'form-alert' ? 'form-alert' : 'error-message';
+
+  if (errorBox.id === 'error-message') {
+    errorBox.style.background = '';
+    errorBox.style.color = '';
+    errorBox.style.border = '';
+  }
 }
 
 function setButtonLoading(button, isLoading, loadingText = 'Procesando...') {
   if (!button) return;
 
   if (isLoading) {
-    button.dataset.originalText = button.textContent;
-    button.disabled = true;
+    if (!button.dataset.originalText) {
+      button.dataset.originalText = button.textContent;
+    }
+
     button.textContent = loadingText;
+    button.disabled = true;
+    button.style.opacity = '0.7';
+    button.style.cursor = 'not-allowed';
   } else {
-    button.disabled = false;
     button.textContent = button.dataset.originalText || 'Enviar';
+    button.disabled = false;
+    button.style.opacity = '';
+    button.style.cursor = '';
   }
 }
 
 function validateCredentials(username, password) {
-  if (!username?.trim()) {
-    renderAppAlert('El usuario es obligatorio.', 'warning');
+  const cleanUsername = String(username || '').trim();
+  const cleanPassword = String(password || '').trim();
+
+  if (!cleanUsername && !cleanPassword) {
+    renderAppAlert('Debes completar usuario y contraseña.', 'warning');
     return false;
   }
 
-  if (!password?.trim()) {
-    renderAppAlert('La contraseña es obligatoria.', 'warning');
+  if (!cleanUsername) {
+    renderAppAlert('Debes ingresar el usuario.', 'warning');
+    return false;
+  }
+
+  if (!cleanPassword) {
+    renderAppAlert('Debes ingresar la contraseña.', 'warning');
+    return false;
+  }
+
+  if (cleanUsername.length < 3) {
+    renderAppAlert('El usuario debe tener al menos 3 caracteres.', 'warning');
+    return false;
+  }
+
+  if (String(password).length < 6) {
+    renderAppAlert('La contraseña debe tener al menos 6 caracteres.', 'warning');
     return false;
   }
 
@@ -118,7 +208,7 @@ async function handleLogin(e) {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       credentials: 'include',
       body: JSON.stringify({
@@ -127,12 +217,7 @@ async function handleLogin(e) {
       })
     });
 
-    let data = {};
-    try {
-      data = await response.json();
-    } catch {
-      data = {};
-    }
+    const data = await parseJsonSafe(response);
 
     if (response.ok) {
       if (data.token) {
@@ -177,7 +262,7 @@ async function handleRegister(e) {
   const rolInput = document.getElementById('rol');
   const submitButton = e.target.querySelector('button[type="submit"]');
 
-  const nombre = nombreInput?.value.trim();
+  const nombre = nombreInput?.value.trim() || '';
   const username = usernameInput?.value || '';
   const password = passwordInput?.value || '';
   const rol = rolInput?.value || '';
@@ -244,20 +329,3 @@ async function handleRegister(e) {
     setButtonLoading(submitButton, false);
   }
 }
-
-/* =========================================================
-   INICIALIZACIÓN
-========================================================= */
-
-document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-
-  if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
-  }
-
-  if (registerForm) {
-    registerForm.addEventListener('submit', handleRegister);
-  }
-});
