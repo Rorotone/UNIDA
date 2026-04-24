@@ -14,6 +14,12 @@ export const MAX_LENGTHS = {
     area_estudio: 150,
     nombre_magister: 180,
     descripcion_catalogo: 500,
+
+    // Catálogo de sedes
+    nombre_sede: 150,
+    codigo_sede: 50,
+    direccion: 255,
+    ciudad: 100,
 };
 
 export const VALID_MODALIDADES_CLASES = ['presencial', 'online', 'hibrido', 'hibrida'];

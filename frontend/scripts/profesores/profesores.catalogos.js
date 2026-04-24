@@ -14,7 +14,8 @@ import {
   deleteCatalogoMagister,
   fetchCatalogoSedes,
   createCatalogoSede,
-  updateCatalogoSede
+  updateCatalogoSede,
+  deleteCatalogoSede
 } from './profesores.api.js';
 
 import {
@@ -418,6 +419,32 @@ export function editarCatalogoSede(id) {
   fillCatalogoSedeForm(item);
 }
 
+export async function eliminarCatalogoSede(id) {
+  const confirmacion = await showAppConfirm({
+    title: 'Eliminar sede',
+    message: '¿Deseas eliminar esta sede del catálogo? Si está asociada a profesores, el backend bloqueará la eliminación.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    danger: true
+  });
+
+  if (!confirmacion) return;
+
+  try {
+    await deleteCatalogoSede(id);
+    resetCatalogoSedeForm();
+    await recargarCatalogoSedes();
+    showAppAlert('Sede eliminada correctamente.', 'success', {
+      title: 'Catálogo actualizado'
+    });
+  } catch (error) {
+    console.error('Error al eliminar sede:', error);
+    showAppAlert(error.message || 'Error al eliminar sede.', 'error', {
+      title: 'Error en catálogo'
+    });
+  }
+}
+
 /* =========================================================
    EXPOSICIÓN GLOBAL PARA BOTONES INLINE
 ========================================================= */
@@ -432,3 +459,4 @@ window.editarCatalogoMagister = editarCatalogoMagister;
 window.eliminarCatalogoMagister = eliminarCatalogoMagister;
 
 window.editarCatalogoSede = editarCatalogoSede;
+window.eliminarCatalogoSede = eliminarCatalogoSede;

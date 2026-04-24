@@ -5,6 +5,9 @@ import {
     updateProfesorService,
     deleteProfesorService,
     getCatalogoSedesService,
+    createCatalogoSedeService,
+    updateCatalogoSedeService,
+    deleteCatalogoSedeService,
     getProfesorSedesService,
     getCatalogoTalleresService,
     createCatalogoTallerService,
@@ -81,6 +84,33 @@ export const getCatalogoSedes = async (req, res) => {
         return res.status(200).json(result);
     } catch (error) {
         return handleError(res, error, 'Error al obtener catálogo de sedes:');
+    }
+};
+
+export const createCatalogoSede = async (req, res) => {
+    try {
+        const result = await createCatalogoSedeService(req.body);
+        return res.status(201).json(result);
+    } catch (error) {
+        return handleError(res, error, 'Error al crear sede del catálogo:');
+    }
+};
+
+export const updateCatalogoSede = async (req, res) => {
+    try {
+        const result = await updateCatalogoSedeService(req.params.id_sede, req.body);
+        return res.status(200).json(result);
+    } catch (error) {
+        return handleError(res, error, 'Error al actualizar sede del catálogo:');
+    }
+};
+
+export const deleteCatalogoSede = async (req, res) => {
+    try {
+        const result = await deleteCatalogoSedeService(req.params.id_sede);
+        return res.status(200).json(result);
+    } catch (error) {
+        return handleError(res, error, 'Error al eliminar sede del catálogo:');
     }
 };
 

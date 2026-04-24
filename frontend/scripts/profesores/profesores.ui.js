@@ -189,6 +189,9 @@ export function renderCatalogoSedesTable(data) {
           <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoSede(${Number(idSede)})">
             Editar
           </button>
+          <button type="button" class="btn-danger btn-sm" onclick="eliminarCatalogoSede(${Number(idSede)})">
+            Eliminar
+          </button>
         </div>
       </td>
     `;

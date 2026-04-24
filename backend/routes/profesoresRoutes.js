@@ -14,6 +14,9 @@ import {
   updateCatalogoMagister,
   deleteCatalogoMagister,
   getCatalogoSedes,
+  createCatalogoSede,
+  updateCatalogoSede,
+  deleteCatalogoSede,
   getProfesorSedes,
   createProfesor,
   getProfesores,
@@ -73,6 +76,9 @@ router.delete('/catalogo-magister/:id_catalogo_magister', authenticateToken, del
 
 /* Sedes */
 router.get('/catalogo-sedes', authenticateToken, getCatalogoSedes);
+router.post('/catalogo-sedes', authenticateToken, createCatalogoSede);
+router.put('/catalogo-sedes/:id_sede', authenticateToken, updateCatalogoSede);
+router.delete('/catalogo-sedes/:id_sede', authenticateToken, deleteCatalogoSede);
 router.get('/:id_profesor/sedes', authenticateToken, getProfesorSedes);
 
 /* Profesores */

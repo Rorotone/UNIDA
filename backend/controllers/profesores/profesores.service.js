@@ -493,27 +493,180 @@ export async function deleteProfesorService(idProfesor) {
 export async function getCatalogoSedesService(queryObject = {}) {
     const q = normalizeText(queryObject?.q);
     let query = `
-        SELECT id_sede, nombre_sede, codigo_sede, direccion, ciudad, estado
-        FROM catalogo_sedes
-        WHERE estado = 'activa'
+        SELECT
+            cs.id_sede,
+            cs.nombre_sede,
+            cs.codigo_sede,
+            cs.direccion,
+            cs.ciudad,
+            cs.estado,
+            cs.created_at,
+            cs.updated_at,
+            COUNT(ps.id_profesor_sede) AS profesores_asociados
+        FROM catalogo_sedes cs
+        LEFT JOIN profesor_sedes ps ON ps.id_sede = cs.id_sede
+        WHERE 1 = 1
     `;
     const params = [];
 
     if (q) {
         query += `
             AND (
-                nombre_sede LIKE ?
-                OR COALESCE(codigo_sede, '') LIKE ?
-                OR COALESCE(ciudad, '') LIKE ?
+                cs.nombre_sede LIKE ?
+                OR COALESCE(cs.codigo_sede, '') LIKE ?
+                OR COALESCE(cs.ciudad, '') LIKE ?
+                OR COALESCE(cs.direccion, '') LIKE ?
+                OR COALESCE(cs.estado, '') LIKE ?
             )
         `;
-        params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+        params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
     }
 
-    query += ' ORDER BY nombre_sede ASC LIMIT 20';
+    query += `
+        GROUP BY
+            cs.id_sede,
+            cs.nombre_sede,
+            cs.codigo_sede,
+            cs.direccion,
+            cs.ciudad,
+            cs.estado,
+            cs.created_at,
+            cs.updated_at
+        ORDER BY cs.nombre_sede ASC
+    `;
 
     const [rows] = await db.execute(query, params);
-    return rows;
+    return rows.map((row) => ({
+        ...row,
+        profesores_asociados: safeNumber(row.profesores_asociados, 0),
+    }));
+}
+
+export async function createCatalogoSedeService(body) {
+    const nombre_sede = normalizeText(body?.nombre_sede);
+    const codigo_sede = normalizeText(body?.codigo_sede);
+    const direccion = normalizeText(body?.direccion);
+    const ciudad = normalizeText(body?.ciudad);
+    const estado = normalizeText(body?.estado).toLowerCase() || 'activa';
+
+    if (!nombre_sede) {
+        throw createHttpError(400, 'El nombre de la sede es obligatorio.');
+    }
+
+    if (!validateLength('nombre_sede', nombre_sede)) {
+        throw createHttpError(400, 'El nombre de la sede no puede superar 150 caracteres.');
+    }
+
+    if (!['activa', 'inactiva'].includes(estado)) {
+        throw createHttpError(400, 'El estado de la sede es inválido.');
+    }
+
+    const [existingRows] = await db.execute(
+        'SELECT id_sede FROM catalogo_sedes WHERE LOWER(nombre_sede) = LOWER(?)',
+        [nombre_sede]
+    );
+
+    if (existingRows.length > 0) {
+        throw createHttpError(400, 'Ya existe una sede con ese nombre.');
+    }
+
+    if (codigo_sede) {
+        const [existingCodeRows] = await db.execute(
+            'SELECT id_sede FROM catalogo_sedes WHERE LOWER(codigo_sede) = LOWER(?)',
+            [codigo_sede]
+        );
+
+        if (existingCodeRows.length > 0) {
+            throw createHttpError(400, 'Ya existe una sede con ese código.');
+        }
+    }
+
+    const [result] = await db.execute(
+        `INSERT INTO catalogo_sedes
+            (nombre_sede, codigo_sede, direccion, ciudad, estado)
+         VALUES (?, ?, ?, ?, ?)`,
+        [nombre_sede, codigo_sede || null, direccion || null, ciudad || null, estado]
+    );
+
+    return { message: 'Sede creada correctamente.', id_sede: result.insertId };
+}
+
+export async function updateCatalogoSedeService(idSede, body) {
+    const nombre_sede = normalizeText(body?.nombre_sede);
+    const codigo_sede = normalizeText(body?.codigo_sede);
+    const direccion = normalizeText(body?.direccion);
+    const ciudad = normalizeText(body?.ciudad);
+    const estado = normalizeText(body?.estado).toLowerCase() || 'activa';
+
+    if (!nombre_sede) {
+        throw createHttpError(400, 'El nombre de la sede es obligatorio.');
+    }
+
+    if (!validateLength('nombre_sede', nombre_sede)) {
+        throw createHttpError(400, 'El nombre de la sede no puede superar 150 caracteres.');
+    }
+
+    if (!['activa', 'inactiva'].includes(estado)) {
+        throw createHttpError(400, 'El estado de la sede es inválido.');
+    }
+
+    const [existingRows] = await db.execute(
+        'SELECT id_sede FROM catalogo_sedes WHERE LOWER(nombre_sede) = LOWER(?) AND id_sede <> ?',
+        [nombre_sede, idSede]
+    );
+
+    if (existingRows.length > 0) {
+        throw createHttpError(400, 'Ya existe una sede con ese nombre.');
+    }
+
+    if (codigo_sede) {
+        const [existingCodeRows] = await db.execute(
+            'SELECT id_sede FROM catalogo_sedes WHERE LOWER(codigo_sede) = LOWER(?) AND id_sede <> ?',
+            [codigo_sede, idSede]
+        );
+
+        if (existingCodeRows.length > 0) {
+            throw createHttpError(400, 'Ya existe una sede con ese código.');
+        }
+    }
+
+    const [result] = await db.execute(
+        `UPDATE catalogo_sedes
+         SET
+            nombre_sede = ?,
+            codigo_sede = ?,
+            direccion = ?,
+            ciudad = ?,
+            estado = ?,
+            updated_at = CURRENT_TIMESTAMP
+         WHERE id_sede = ?`,
+        [nombre_sede, codigo_sede || null, direccion || null, ciudad || null, estado, idSede]
+    );
+
+    if (result.affectedRows === 0) {
+        throw createHttpError(404, 'Sede no encontrada.');
+    }
+
+    return { message: 'Sede actualizada correctamente.' };
+}
+
+export async function deleteCatalogoSedeService(idSede) {
+    const [relations] = await db.execute(
+        'SELECT COUNT(*) AS total FROM profesor_sedes WHERE id_sede = ?',
+        [idSede]
+    );
+
+    if (safeNumber(relations[0]?.total, 0) > 0) {
+        throw createHttpError(400, 'No se puede eliminar la sede porque está asociada a uno o más profesores.');
+    }
+
+    const [result] = await db.execute('DELETE FROM catalogo_sedes WHERE id_sede = ?', [idSede]);
+
+    if (result.affectedRows === 0) {
+        throw createHttpError(404, 'Sede no encontrada.');
+    }
+
+    return { message: 'Sede eliminada correctamente.' };
 }
 
 export async function getProfesorSedesService(idProfesor) {
