@@ -20,7 +20,8 @@ import {
   getCatalogoFormacionesCache,
   setCatalogoMagisterCache,
   getCatalogoMagisterCache,
-  setCatalogoSedesCache
+  setCatalogoSedesCache,
+  getCatalogoSedesCache
 } from './profesores.state.js';
 
 import {
@@ -47,7 +48,10 @@ import {
   renderTalleresSelector,
   renderFormacionesSelector,
   renderMagisterSelector,
-  updateSelectableCardState
+  updateSelectableCardState,
+  initCatalogosModal,
+  bindCatalogoSearch,
+  renderCatalogoSedesTable
 } from './profesores.ui.js';
 
 import {
@@ -77,6 +81,8 @@ export async function initProfesores() {
   bindProfesorTabs();
   bindSedesFieldEvents();
   bindSelectorCardEvents();
+  initCatalogosModal();
+  bindCatalogoSearch();
   await cargarDatosBase();
 }
 
@@ -202,6 +208,7 @@ export async function cargarDatosBase() {
     renderCatalogoTalleresTable(getCatalogoTalleresCache());
     renderCatalogoFormacionesTable(getCatalogoFormacionesCache());
     renderCatalogoMagisterTable(getCatalogoMagisterCache());
+    renderCatalogoSedesTable(getCatalogoSedesCache());
 
     renderTalleresSelector([]);
     renderFormacionesSelector([]);

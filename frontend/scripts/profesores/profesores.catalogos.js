@@ -12,7 +12,9 @@ import {
   createCatalogoMagister,
   updateCatalogoMagister,
   deleteCatalogoMagister,
-  fetchCatalogoSedes
+  fetchCatalogoSedes,
+  createCatalogoSede,
+  updateCatalogoSede
 } from './profesores.api.js';
 
 import {
@@ -22,13 +24,15 @@ import {
   getCatalogoFormacionesCache,
   setCatalogoMagisterCache,
   getCatalogoMagisterCache,
-  setCatalogoSedesCache
+  setCatalogoSedesCache,
+  getCatalogoSedesCache
 } from './profesores.state.js';
 
 import {
   renderCatalogoTalleresTable,
   renderCatalogoFormacionesTable,
   renderCatalogoMagisterTable,
+  renderCatalogoSedesTable,
   renderTalleresSelector,
   renderFormacionesSelector,
   renderMagisterSelector,
@@ -41,6 +45,8 @@ import {
   fillCatalogoFormacionForm,
   resetCatalogoMagisterForm,
   fillCatalogoMagisterForm,
+  resetCatalogoSedeForm,
+  fillCatalogoSedeForm,
   abrirModalCatalogo,
   abrirModalCatalogoFormaciones,
   abrirModalCatalogoMagister
@@ -55,7 +61,11 @@ export function bindCatalogoEvents() {
 
   document.getElementById('catalogo-magister-form')?.addEventListener('submit', handleCatalogoMagisterSubmit);
   document.getElementById('catalogo-magister-reset-btn')?.addEventListener('click', resetCatalogoMagisterForm);
+
+  document.getElementById('catalogo-sede-form')?.addEventListener('submit', handleCatalogoSedeSubmit);
+  document.getElementById('catalogo-sede-reset-btn')?.addEventListener('click', resetCatalogoSedeForm);
 }
+
 
 export async function recargarCatalogosFormulario() {
   const [
@@ -76,6 +86,11 @@ export async function recargarCatalogosFormulario() {
   setCatalogoFormacionesCache(catalogoFormaciones);
   setCatalogoMagisterCache(catalogoMagister);
   setCatalogoSedesCache(catalogoSedes);
+
+  renderCatalogoTalleresTable(getCatalogoTalleresCache());
+  renderCatalogoFormacionesTable(getCatalogoFormacionesCache());
+  renderCatalogoMagisterTable(getCatalogoMagisterCache());
+  renderCatalogoSedesTable(getCatalogoSedesCache());
 
   renderTalleresSelector(getSelectedTallerIds());
   renderFormacionesSelector(getSelectedFormacionIds());
@@ -107,6 +122,14 @@ export async function recargarCatalogoMagister() {
   setCatalogoMagisterCache(catalogoMagister);
   renderCatalogoMagisterTable(getCatalogoMagisterCache());
   renderMagisterSelector(getSelectedMagisterId());
+}
+
+export async function recargarCatalogoSedes() {
+  const catalogoSedes = await fetchCatalogoSedes();
+  if (!catalogoSedes) return;
+
+  setCatalogoSedesCache(catalogoSedes);
+  renderCatalogoSedesTable(getCatalogoSedesCache());
 }
 
 export function getCatalogoTallerFormData() {
@@ -342,6 +365,59 @@ export async function eliminarCatalogoMagister(id) {
   }
 }
 
+export function getCatalogoSedeFormData() {
+  return {
+    nombre_sede: document.getElementById('catalogo_nombre_sede')?.value?.trim() || '',
+    codigo_sede: document.getElementById('catalogo_codigo_sede')?.value?.trim() || '',
+    ciudad: document.getElementById('catalogo_ciudad_sede')?.value?.trim() || '',
+    direccion: document.getElementById('catalogo_direccion_sede')?.value?.trim() || '',
+    estado: document.getElementById('catalogo_estado_sede')?.value || 'activa'
+  };
+}
+
+export async function handleCatalogoSedeSubmit(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('catalogo_id_sede')?.value;
+  const data = getCatalogoSedeFormData();
+
+  try {
+    if (!data.nombre_sede) {
+      throw new Error('El nombre de la sede es obligatorio.');
+    }
+
+    if (id) {
+      await updateCatalogoSede(id, data);
+      showAppAlert('Sede actualizada correctamente.', 'success', {
+        title: 'Catálogo actualizado'
+      });
+    } else {
+      await createCatalogoSede(data);
+      showAppAlert('Sede creada correctamente.', 'success', {
+        title: 'Catálogo actualizado'
+      });
+    }
+
+    resetCatalogoSedeForm();
+    await recargarCatalogoSedes();
+  } catch (error) {
+    console.error('Error al guardar sede:', error);
+    showAppAlert(error.message || 'Error al guardar sede.', 'error', {
+      title: 'Error en catálogo'
+    });
+  }
+}
+
+export function editarCatalogoSede(id) {
+  const item = getCatalogoSedesCache().find(
+    (row) => Number(row.id_sede) === Number(id)
+  );
+
+  if (!item) return;
+
+  fillCatalogoSedeForm(item);
+}
+
 /* =========================================================
    EXPOSICIÓN GLOBAL PARA BOTONES INLINE
 ========================================================= */
@@ -354,3 +430,5 @@ window.eliminarCatalogoFormacion = eliminarCatalogoFormacion;
 
 window.editarCatalogoMagister = editarCatalogoMagister;
 window.eliminarCatalogoMagister = eliminarCatalogoMagister;
+
+window.editarCatalogoSede = editarCatalogoSede;

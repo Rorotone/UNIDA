@@ -2,7 +2,8 @@ import {
   getProfesoresCache,
   getCatalogoTalleresCache,
   getCatalogoFormacionesCache,
-  getCatalogoMagisterCache
+  getCatalogoMagisterCache,
+  getCatalogoSedesCache
 } from './profesores.state.js';
 
 import {
@@ -81,7 +82,120 @@ export function buildCatalogCard({
 export function getSelectedTallerIds() {
   return getCheckedIds('#talleres-selector');
 }
+export function initCatalogosModal() {
+  const modal = document.getElementById('modal-catalogos-secondary');
+  const closeBtn = document.getElementById('close-catalogos-secondary-modal');
 
+  const openBtn = document.getElementById('open-catalogos-modal-secondary-btn');
+  const openTalleresBtn = document.getElementById('open-catalogo-modal-btn');
+  const openFormacionesBtn = document.getElementById('open-catalogo-formaciones-btn');
+  const openMagisterBtn = document.getElementById('open-catalogo-magister-btn');
+
+  if (!modal || !closeBtn) return;
+
+  const tabs = modal.querySelectorAll('.catalogos-secondary-tab');
+  const panels = modal.querySelectorAll('.catalogos-secondary-panel');
+
+  function activarTab(tabName) {
+    tabs.forEach(tab => {
+      tab.classList.toggle('is-active', tab.dataset.catalogoTab === tabName);
+    });
+
+    panels.forEach(panel => {
+      panel.classList.toggle(
+        'is-active',
+        panel.dataset.catalogoPanel === tabName
+      );
+    });
+  }
+
+  function abrirCatalogosEn(tabName = 'talleres') {
+    modal.classList.add('is-open');
+    activarTab(tabName);
+  }
+
+  openBtn?.addEventListener('click', () => abrirCatalogosEn('talleres'));
+  openTalleresBtn?.addEventListener('click', () => abrirCatalogosEn('talleres'));
+  openFormacionesBtn?.addEventListener('click', () => abrirCatalogosEn('formaciones'));
+  openMagisterBtn?.addEventListener('click', () => abrirCatalogosEn('magister'));
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('is-open');
+  });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      activarTab(tab.dataset.catalogoTab);
+    });
+  });
+}
+export function bindCatalogoSearch() {
+  document.addEventListener('input', (e) => {
+
+    if (!e.target.classList.contains('catalogo-search-input')) return;
+
+    const input = e.target;
+    const tableBodyId = input.dataset.searchTable;
+    const tbody = document.getElementById(tableBodyId);
+
+    if (!tbody) return;
+
+    const searchText = input.value.trim().toLowerCase();
+
+    tbody.querySelectorAll('tr').forEach(row => {
+      const match = row.textContent.toLowerCase().includes(searchText);
+      row.style.display = match ? '' : 'none';
+    });
+
+  });
+  
+}
+
+export function renderCatalogoSedesTable(data) {
+  const tbody = document.getElementById('catalogo-sedes-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;">No hay sedes en el catálogo.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  data.forEach((sede) => {
+    const tr = document.createElement('tr');
+    const idSede = sede.id_sede ?? sede.id;
+
+    tr.innerHTML = `
+      <td>
+        <div class="summary-stack">
+          <strong>${escapeHTML(sede.nombre_sede)}</strong>
+          <span class="inline-note">${escapeHTML(sede.direccion || 'Sin dirección')}</span>
+        </div>
+      </td>
+      <td>${escapeHTML(sede.codigo_sede || '-')}</td>
+      <td>${escapeHTML(sede.ciudad || '-')}</td>
+      <td>
+        <span class="summary-badge ${sede.estado === 'inactiva' ? 'summary-badge-muted' : ''}">
+          ${escapeHTML(sede.estado || 'activa')}
+        </span>
+      </td>
+      <td>
+        <div class="action-buttons">
+          <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoSede(${Number(idSede)})">
+            Editar
+          </button>
+        </div>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
 export function renderTalleresSelector(selectedIds = []) {
   const container = document.getElementById('talleres-selector');
   if (!container) return;
@@ -644,4 +758,24 @@ export function fillCatalogoMagisterForm(item) {
   document.getElementById('catalogo_area_estudio_magister').value = item.area_estudio ?? '';
   document.getElementById('catalogo_descripcion_magister').value = item.descripcion ?? '';
   document.getElementById('catalogo_estado_magister').value = item.estado ?? 'activo';
+}
+
+export function resetCatalogoSedeForm() {
+  const form = document.getElementById('catalogo-sede-form');
+  if (form) form.reset();
+
+  const idInput = document.getElementById('catalogo_id_sede');
+  if (idInput) idInput.value = '';
+
+  const estado = document.getElementById('catalogo_estado_sede');
+  if (estado) estado.value = 'activa';
+}
+
+export function fillCatalogoSedeForm(sede) {
+  document.getElementById('catalogo_id_sede').value = sede.id_sede ?? sede.id ?? '';
+  document.getElementById('catalogo_nombre_sede').value = sede.nombre_sede ?? '';
+  document.getElementById('catalogo_codigo_sede').value = sede.codigo_sede ?? '';
+  document.getElementById('catalogo_ciudad_sede').value = sede.ciudad ?? '';
+  document.getElementById('catalogo_direccion_sede').value = sede.direccion ?? '';
+  document.getElementById('catalogo_estado_sede').value = sede.estado ?? 'activa';
 }

@@ -136,6 +136,43 @@ export async function fetchCatalogoSedes(query = '') {
   return await request(url, {}, 'Error al cargar catálogo de sedes');
 }
 
+export async function createCatalogoSede(data) {
+  return await request(
+    '/api/profesores/catalogo-sedes',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al crear sede'
+  );
+}
+
+export async function updateCatalogoSede(id, data) {
+  return await request(
+    `/api/profesores/catalogo-sedes/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    },
+    'Error al actualizar sede'
+  );
+}
+
+export async function deleteCatalogoSede(id) {
+  return await request(
+    `/api/profesores/catalogo-sedes/${id}`,
+    {
+      method: 'DELETE'
+    },
+    'Error al eliminar sede'
+  );
+}
 /* =========================================================
    CATÁLOGO DE TALLERES
 ========================================================= */
