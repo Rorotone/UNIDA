@@ -47,11 +47,14 @@ import {
   renderCatalogoMagisterTable,
   renderTalleresSelector,
   renderFormacionesSelector,
-  renderMagisterSelector,
   updateSelectableCardState,
   initCatalogosModal,
   bindCatalogoSearch,
-  renderCatalogoSedesTable
+  renderCatalogoSedesTable,
+  initPostgradosUI,
+  abrirModalDetalleFormacion,
+  cerrarModalDetalleFormacion,
+  renderModalDetalleFormacion
 } from './profesores.ui.js';
 
 import {
@@ -83,6 +86,8 @@ export async function initProfesores() {
   bindSelectorCardEvents();
   initCatalogosModal();
   bindCatalogoSearch();
+  initPostgradosUI();
+  bindDetalleFormacionEvents();
   await cargarDatosBase();
 }
 
@@ -129,6 +134,9 @@ export function bindModalEvents() {
     if (event.target === modalFormaciones) cerrarModalCatalogoFormaciones();
     if (event.target === modalMagister) cerrarModalCatalogoMagister();
 
+    const modalDetalle = document.getElementById('modal-detalle-formacion');
+    if (event.target === modalDetalle) cerrarModalDetalleFormacion();
+
     const suggestions = document.getElementById('sedes-suggestions');
     const searchWrap = document.querySelector('.sedes-search-wrap');
 
@@ -144,6 +152,7 @@ export function bindModalEvents() {
     cerrarModalCatalogo();
     cerrarModalCatalogoFormaciones();
     cerrarModalCatalogoMagister();
+    cerrarModalDetalleFormacion();
   });
 }
 
@@ -167,8 +176,7 @@ export function bindSelectorCardEvents() {
 
     const container =
       card.closest('#talleres-selector') ||
-      card.closest('#formaciones-selector') ||
-      card.closest('#magister-selector');
+      card.closest('#formaciones-selector');
 
     if (!container) return;
 
@@ -212,7 +220,6 @@ export async function cargarDatosBase() {
 
     renderTalleresSelector([]);
     renderFormacionesSelector([]);
-    renderMagisterSelector(null);
     setSelectedSedes([]);
   } catch (error) {
     console.error('Error al cargar profesores:', error);
@@ -309,6 +316,26 @@ export async function eliminarProfesor(id) {
 /* =========================================================
    EXPOSICIÓN GLOBAL PARA BOTONES INLINE
 ========================================================= */
+
+
+export function bindDetalleFormacionEvents() {
+  document.getElementById('cerrar-modal-detalle-formacion')?.addEventListener('click', cerrarModalDetalleFormacion);
+}
+
+
+window.verDetalleFormacion = async (idProfesor) => {
+  try {
+    const profesor = await fetchProfesorById(idProfesor);
+    if (!profesor) return;
+    renderModalDetalleFormacion(normalizeProfesor(profesor));
+    abrirModalDetalleFormacion();
+  } catch (error) {
+    console.error('Error al cargar detalle:', error);
+    showAppAlert(error.message || 'Error al cargar formación docente.', 'error', {
+      title: 'Error'
+    });
+  }
+};
 
 window.editarProfesor = editarProfesor;
 window.eliminarProfesor = eliminarProfesor;

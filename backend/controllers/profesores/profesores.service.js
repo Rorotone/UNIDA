@@ -16,8 +16,6 @@ import {
     normalizeTallerIds,
     normalizeFormaciones,
     normalizeFormacionCatalogoIds,
-    normalizeCatalogoMagisterId,
-    normalizeMagister,
     createHttpError,
     validateLength,
 } from '../profesores/profesores.utils.js';
@@ -55,24 +53,6 @@ async function fetchCatalogoFormacionesMap(connection, ids) {
         ids
     );
     return new Map(rows.map((row) => [Number(row.id_catalogo_formacion), row]));
-}
-
-async function fetchCatalogoMagisterMap(connection, ids) {
-    if (!ids.length) return new Map();
-    const placeholders = ids.map(() => '?').join(', ');
-    const [rows] = await connection.execute(
-        `SELECT
-            id_catalogo_magister,
-            nombre_magister,
-            institucion,
-            area_estudio,
-            descripcion,
-            estado
-         FROM catalogo_magister
-         WHERE id_catalogo_magister IN (${placeholders})`,
-        ids
-    );
-    return new Map(rows.map((row) => [Number(row.id_catalogo_magister), row]));
 }
 
 async function fetchCatalogoSedesMap(connection, ids) {
@@ -128,7 +108,7 @@ async function buildExpandedProfesor(connection, idProfesor) {
 
     const profesor = normalizeProfesorBase(rows[0]);
 
-    const [sedes, talleres, formaciones, magisteres] = await Promise.all([
+    const [sedes, talleres, formaciones, postgrados] = await Promise.all([
         fetchProfesorSedesRows(connection, idProfesor),
         connection.execute(
             `SELECT
@@ -164,22 +144,19 @@ async function buildExpandedProfesor(connection, idProfesor) {
         ).then(([result]) => result),
         connection.execute(
             `SELECT
-                pm.id_magister,
-                pm.id_profesor,
-                pm.id_catalogo_magister,
-                COALESCE(pm.nombre_magister, cm.nombre_magister) AS nombre_magister,
-                COALESCE(cm.institucion, pm.institucion) AS institucion,
-                COALESCE(cm.area_estudio, pm.area_estudio) AS area_estudio,
-                COALESCE(cm.descripcion, pm.observaciones) AS descripcion_catalogo,
-                pm.anio_obtencion,
-                pm.modalidad,
-                pm.estado,
-                pm.observaciones
-            FROM profesor_magister pm
-            LEFT JOIN catalogo_magister cm
-              ON cm.id_catalogo_magister = pm.id_catalogo_magister
-            WHERE pm.id_profesor = ?
-            ORDER BY pm.updated_at DESC, pm.id_magister DESC`,
+                id_postgrado,
+                id_profesor,
+                tipo_postgrado,
+                nombre_magister,
+                institucion,
+                area_estudio,
+                anio_obtencion,
+                modalidad,
+                estado,
+                observaciones
+            FROM profesor_postgrado
+            WHERE id_profesor = ?
+            ORDER BY created_at ASC, id_postgrado ASC`,
             [idProfesor]
         ).then(([result]) => result),
     ]);
@@ -194,21 +171,108 @@ async function buildExpandedProfesor(connection, idProfesor) {
             ...item,
             anio: item.anio ? Number(item.anio) : null,
         })),
-        magister: magisteres[0]
-            ? {
-                ...magisteres[0],
-                anio_obtencion: magisteres[0].anio_obtencion ? Number(magisteres[0].anio_obtencion) : null,
-            }
-            : null,
+        postgrados: postgrados.map((item) => ({
+            ...item,
+            anio_obtencion: item.anio_obtencion ? Number(item.anio_obtencion) : null,
+        })),
         cantidad_talleres: talleres.length,
         cantidad_formaciones: formaciones.length,
-        cantidad_magister: magisteres.length,
-        formacion_docente_resumen: formatSummary(talleres.length, formaciones.length, magisteres.length),
+        cantidad_postgrados: postgrados.length,
+        formacion_docente_resumen: formatSummary(talleres.length, formaciones.length, postgrados.length),
     };
 }
 
-async function syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, magisterId) {
-    await connection.execute('DELETE FROM profesor_talleres WHERE id_profesor = ?', [idProfesor]);
+// ─── FORMACIÓN DOCENTE ───────────────────────────────────────────────────────
+
+async function syncFormacionDocente(connection, idProfesor, formacionIds) {
+    await connection.execute(
+        'DELETE FROM profesor_formacion_docente WHERE id_profesor = ?',
+        [idProfesor]
+    );
+
+    if (formacionIds.length === 0) return;
+
+    const placeholders = formacionIds.map(() => '?').join(', ');
+    const [catalogoRows] = await connection.execute(
+        `SELECT id_catalogo_formacion, tipo_formacion, nombre_actividad, institucion, descripcion
+         FROM catalogo_formaciones_docentes
+         WHERE id_catalogo_formacion IN (${placeholders})`,
+        formacionIds
+    );
+
+    if (catalogoRows.length === 0) {
+        throw new Error('No se encontraron registros en el catálogo de formación docente');
+    }
+
+    const insertData = catalogoRows.map((row) => [
+        idProfesor,
+        row.id_catalogo_formacion,
+        row.tipo_formacion,
+        row.nombre_actividad,
+        row.institucion,
+        row.descripcion,
+        'vigente'
+    ]);
+
+    await connection.query(
+        `INSERT INTO profesor_formacion_docente 
+            (id_profesor, id_catalogo_formacion, tipo_formacion, nombre_actividad, institucion, descripcion, estado)
+         VALUES ?`,
+        [insertData]
+    );
+}
+
+// ─── POSTGRADOS ───────────────────────────────────────────────────────────────
+
+function normalizePostgrados(postgrados = []) {
+    if (!Array.isArray(postgrados)) return [];
+    return postgrados.map((p) => ({
+        tipo_postgrado: p.tipo_postgrado || 'Magister',
+        nombre_magister: p.nombre_magister || '',
+        institucion: p.institucion || '',
+        area_estudio: p.area_estudio || '',
+        anio_obtencion: p.anio_obtencion || null,
+        modalidad: p.modalidad || null,
+        estado: p.estado || 'finalizado',
+        observaciones: p.observaciones || null,
+    }));
+}
+
+async function syncPostgrados(connection, idProfesor, postgrados = []) {
+    await connection.execute(
+        'DELETE FROM profesor_postgrado WHERE id_profesor = ?',
+        [idProfesor]
+    );
+
+    if (postgrados.length === 0) return;
+
+    const insertData = postgrados.map((p) => [
+        idProfesor,
+        p.tipo_postgrado,
+        p.nombre_magister,
+        p.institucion,
+        p.area_estudio,
+        p.anio_obtencion || null,
+        p.modalidad || null,
+        p.estado || 'finalizado',
+        p.observaciones || null,
+    ]);
+
+    await connection.query(
+        `INSERT INTO profesor_postgrado 
+            (id_profesor, tipo_postgrado, nombre_magister, institucion, area_estudio, anio_obtencion, modalidad, estado, observaciones)
+         VALUES ?`,
+        [insertData]
+    );
+}
+
+// ─── RELACIONES GENERALES ─────────────────────────────────────────────────────
+
+async function syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, postgrados) {
+    await connection.execute(
+        'DELETE FROM profesor_talleres WHERE id_profesor = ?',
+        [idProfesor]
+    );
     if (tallerIds.length > 0) {
         const insertData = tallerIds.map((idTaller) => [idProfesor, idTaller]);
         await connection.query(
@@ -217,22 +281,8 @@ async function syncProfesorRelations(connection, idProfesor, tallerIds, formacio
         );
     }
 
-    await connection.execute('DELETE FROM profesor_formacion_docente WHERE id_profesor = ?', [idProfesor]);
-    if (formacionIds.length > 0) {
-        const insertData = formacionIds.map((idFormacion) => [idProfesor, idFormacion]);
-        await connection.query(
-            'INSERT INTO profesor_formacion_docente (id_profesor, id_catalogo_formacion) VALUES ?',
-            [insertData]
-        );
-    }
-
-    await connection.execute('DELETE FROM profesor_magister WHERE id_profesor = ?', [idProfesor]);
-    if (magisterId) {
-        await connection.execute(
-            'INSERT INTO profesor_magister (id_profesor, id_catalogo_magister) VALUES (?, ?)',
-            [idProfesor, magisterId]
-        );
-    }
+    await syncFormacionDocente(connection, idProfesor, formacionIds);
+    await syncPostgrados(connection, idProfesor, postgrados);
 }
 
 async function replaceProfesorSedes(connection, idProfesor, sedes) {
@@ -260,12 +310,11 @@ function parseProfesorInput(body = {}) {
     const tallerIds = normalizeTallerIds(body.taller_ids);
     const formaciones = normalizeFormaciones(body.formaciones ?? []);
     const formacionIds = normalizeFormacionCatalogoIds(body.formacion_ids);
-    const magisterId = normalizeCatalogoMagisterId(body.magister_id);
-    const magister = normalizeMagister(body.magister ?? {});
-    return { profesor, sedes, tallerIds, formaciones, formacionIds, magisterId, magister };
+    const postgrados = normalizePostgrados(body.postgrados ?? []);
+    return { profesor, sedes, tallerIds, formaciones, formacionIds, postgrados };
 }
 
-async function validateCatalogReferences(connection, { tallerIds, formacionIds, magisterId, sedeIds }) {
+async function validateCatalogReferences(connection, { tallerIds, formacionIds, sedeIds }) {
     if (tallerIds.length > 0) {
         const talleresMap = await fetchCatalogoTalleresMap(connection, tallerIds);
         if (tallerIds.length !== talleresMap.size) {
@@ -280,13 +329,6 @@ async function validateCatalogReferences(connection, { tallerIds, formacionIds, 
         }
     }
 
-    if (magisterId) {
-        const magisterMap = await fetchCatalogoMagisterMap(connection, [magisterId]);
-        if (magisterMap.size === 0) {
-            throw createHttpError(400, 'El magíster seleccionado no existe.');
-        }
-    }
-
     const sedesMap = await fetchCatalogoSedesMap(connection, sedeIds);
     if (sedeIds.length !== sedesMap.size) {
         throw createHttpError(400, 'Una o más sedes seleccionadas no existen.');
@@ -297,13 +339,9 @@ export async function createProfesorService(body) {
     const connection = await db.getConnection();
 
     try {
-        const { profesor, sedes, tallerIds, formaciones, formacionIds, magisterId, magister } = parseProfesorInput(body);
+        const { profesor, sedes, tallerIds, formaciones, formacionIds, postgrados } = parseProfesorInput(body);
 
-        if (body.magister_id && !magisterId) {
-            throw createHttpError(400, 'El magíster debe ser un ID válido.');
-        }
-
-        const payloadValidation = validateProfesorPayload({ profesor, sedes, tallerIds, formaciones, magister });
+        const payloadValidation = validateProfesorPayload({ profesor, sedes, tallerIds, formaciones });
         if (payloadValidation.errors.length > 0) {
             throw createHttpError(400, payloadValidation.errors[0], { errors: payloadValidation.errors });
         }
@@ -311,7 +349,6 @@ export async function createProfesorService(body) {
         await validateCatalogReferences(connection, {
             tallerIds,
             formacionIds,
-            magisterId,
             sedeIds: payloadValidation.sedeIds,
         });
 
@@ -326,7 +363,7 @@ export async function createProfesorService(body) {
 
         const idProfesor = result.insertId;
 
-        await syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, magisterId);
+        await syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, postgrados);
         await replaceProfesorSedes(connection, idProfesor, payloadValidation.sedes);
 
         await connection.commit();
@@ -352,13 +389,13 @@ export async function getProfesoresService(filters = {}) {
             p.departamento,
             COUNT(DISTINCT pt.id_taller) AS cantidad_talleres,
             COUNT(DISTINCT pf.id_formacion) AS cantidad_formaciones,
-            COUNT(DISTINCT pm.id_magister) AS cantidad_magister,
+            COUNT(DISTINCT pp.id_postgrado) AS cantidad_postgrados,
             COALESCE(GROUP_CONCAT(DISTINCT cs.nombre_sede ORDER BY cs.nombre_sede ASC SEPARATOR ', '), '') AS sedes_resumen,
             COALESCE(GROUP_CONCAT(DISTINCT ps.modalidad ORDER BY cs.nombre_sede ASC SEPARATOR ', '), '') AS sedes_modalidad
         FROM profesores p
         LEFT JOIN profesor_talleres pt ON pt.id_profesor = p.id_profesor
         LEFT JOIN profesor_formacion_docente pf ON pf.id_profesor = p.id_profesor
-        LEFT JOIN profesor_magister pm ON pm.id_profesor = p.id_profesor
+        LEFT JOIN profesor_postgrado pp ON pp.id_profesor = p.id_profesor
         LEFT JOIN profesor_sedes ps ON ps.id_profesor = p.id_profesor
         LEFT JOIN catalogo_sedes cs ON cs.id_sede = ps.id_sede
         WHERE p.deleted_at IS NULL
@@ -419,10 +456,12 @@ export async function getProfesorByIdService(idProfesor) {
                 flexibilidad_horaria: s.flexibilidad_horaria,
             })),
             taller_ids: profesor.taller_ids,
+            talleres_catalogo: profesor.talleres_catalogo ?? [],
             formacion_ids: profesor.formaciones_docentes
                 .filter((item) => item.id_catalogo_formacion)
                 .map((item) => item.id_catalogo_formacion),
-            magister_id: profesor.magister?.id_catalogo_magister || null,
+            formaciones_docentes: profesor.formaciones_docentes ?? [],
+            postgrados: profesor.postgrados ?? [],
         };
     } finally {
         connection.release();
@@ -433,13 +472,9 @@ export async function updateProfesorService(idProfesor, body) {
     const connection = await db.getConnection();
 
     try {
-        const { profesor, sedes, tallerIds, formaciones, formacionIds, magisterId, magister } = parseProfesorInput(body);
+        const { profesor, sedes, tallerIds, formaciones, formacionIds, postgrados } = parseProfesorInput(body);
 
-        if (body.magister_id && !magisterId) {
-            throw createHttpError(400, 'El magíster debe ser un ID válido.');
-        }
-
-        const payloadValidation = validateProfesorPayload({ profesor, sedes, tallerIds, formaciones, magister });
+        const payloadValidation = validateProfesorPayload({ profesor, sedes, tallerIds, formaciones });
         if (payloadValidation.errors.length > 0) {
             throw createHttpError(400, payloadValidation.errors[0], { errors: payloadValidation.errors });
         }
@@ -447,7 +482,6 @@ export async function updateProfesorService(idProfesor, body) {
         await validateCatalogReferences(connection, {
             tallerIds,
             formacionIds,
-            magisterId,
             sedeIds: payloadValidation.sedeIds,
         });
 
@@ -464,7 +498,7 @@ export async function updateProfesorService(idProfesor, body) {
             throw createHttpError(404, 'Profesor no encontrado.');
         }
 
-        await syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, magisterId);
+        await syncProfesorRelations(connection, idProfesor, tallerIds, formacionIds, postgrados);
         await replaceProfesorSedes(connection, idProfesor, payloadValidation.sedes);
 
         await connection.commit();
@@ -1118,10 +1152,10 @@ export async function getCatalogoMagisterService() {
             cm.area_estudio,
             cm.descripcion,
             cm.estado,
-            COUNT(pm.id_magister) AS profesores_asociados
+            COUNT(pm.id_postgrado) AS profesores_asociados
          FROM catalogo_magister cm
-         LEFT JOIN profesor_magister pm
-           ON pm.id_catalogo_magister = cm.id_catalogo_magister
+         LEFT JOIN profesor_postgrado pm
+           ON pm.nombre_magister = cm.nombre_magister
          GROUP BY
             cm.id_catalogo_magister,
             cm.nombre_magister,
@@ -1217,17 +1251,6 @@ export async function updateCatalogoMagisterService(idCatalogoMagister, body) {
 }
 
 export async function deleteCatalogoMagisterService(idCatalogoMagister) {
-    const [relations] = await db.execute(
-        `SELECT COUNT(*) AS total
-         FROM profesor_magister
-         WHERE id_catalogo_magister = ?`,
-        [idCatalogoMagister]
-    );
-
-    if (safeNumber(relations[0]?.total, 0) > 0) {
-        throw createHttpError(400, 'No se puede eliminar el magíster porque está asociado a uno o más profesores.');
-    }
-
     const [result] = await db.execute(
         'DELETE FROM catalogo_magister WHERE id_catalogo_magister = ?',
         [idCatalogoMagister]

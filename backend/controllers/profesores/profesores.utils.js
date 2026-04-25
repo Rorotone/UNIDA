@@ -64,7 +64,7 @@ export const hasMeaningfulValue = (value) => normalizeText(value) !== '';
 export const validateLength = (field, value) => !value || String(value).length <= MAX_LENGTHS[field];
 export const hasLetters = (value) => /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(value);
 
-export const formatSummary = (cantidadTalleres = 0, cantidadFormaciones = 0, cantidadMagister = 0) => {
+export const formatSummary = (cantidadTalleres = 0, cantidadFormaciones = 0, cantidadPostgrados = 0) => {
     const parts = [];
 
     if (Number(cantidadTalleres) > 0) {
@@ -75,8 +75,8 @@ export const formatSummary = (cantidadTalleres = 0, cantidadFormaciones = 0, can
         parts.push(`${cantidadFormaciones} formación${Number(cantidadFormaciones) === 1 ? '' : 'es'}`);
     }
 
-    if (Number(cantidadMagister) > 0) {
-        parts.push(`${cantidadMagister} magíster`);
+    if (Number(cantidadPostgrados) > 0) {
+        parts.push(`${cantidadPostgrados} postgrado${Number(cantidadPostgrados) === 1 ? '' : 's'}`);
     }
 
     return parts.length > 0 ? parts.join(' · ') : 'Sin registros';
@@ -90,8 +90,8 @@ export const mapProfesorListRow = (row) => ({
     sedes_modalidad: row.sedes_modalidad || '',
     cantidad_talleres: safeNumber(row.cantidad_talleres, 0),
     cantidad_formaciones: safeNumber(row.cantidad_formaciones, 0),
-    cantidad_magister: safeNumber(row.cantidad_magister, 0),
-    formacion_docente_resumen: formatSummary(row.cantidad_talleres, row.cantidad_formaciones, row.cantidad_magister),
+    cantidad_postgrados: safeNumber(row.cantidad_postgrados, 0),
+    formacion_docente_resumen: formatSummary(row.cantidad_talleres, row.cantidad_formaciones, row.cantidad_postgrados),
 });
 
 export const normalizeProfesorBase = (row) => ({

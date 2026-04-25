@@ -1,4 +1,3 @@
-/* Refactor exacto basado en profesores(8).js */
 import {
   fetchCatalogoTalleres,
   createCatalogoTaller,
@@ -36,10 +35,8 @@ import {
   renderCatalogoSedesTable,
   renderTalleresSelector,
   renderFormacionesSelector,
-  renderMagisterSelector,
   getSelectedTallerIds,
   getSelectedFormacionIds,
-  getSelectedMagisterId,
   resetCatalogoForm,
   fillCatalogoForm,
   resetCatalogoFormacionForm,
@@ -66,7 +63,6 @@ export function bindCatalogoEvents() {
   document.getElementById('catalogo-sede-form')?.addEventListener('submit', handleCatalogoSedeSubmit);
   document.getElementById('catalogo-sede-reset-btn')?.addEventListener('click', resetCatalogoSedeForm);
 }
-
 
 export async function recargarCatalogosFormulario() {
   const [
@@ -95,7 +91,6 @@ export async function recargarCatalogosFormulario() {
 
   renderTalleresSelector(getSelectedTallerIds());
   renderFormacionesSelector(getSelectedFormacionIds());
-  renderMagisterSelector(getSelectedMagisterId());
 }
 
 export async function recargarCatalogoTalleres() {
@@ -122,7 +117,6 @@ export async function recargarCatalogoMagister() {
 
   setCatalogoMagisterCache(catalogoMagister);
   renderCatalogoMagisterTable(getCatalogoMagisterCache());
-  renderMagisterSelector(getSelectedMagisterId());
 }
 
 export async function recargarCatalogoSedes() {

@@ -12,7 +12,7 @@ export function normalizeProfesor(p) {
     sedes_resumen: p.sedes_resumen ?? p.Sede ?? p.sede ?? '',
     cantidad_talleres: Number(p.cantidad_talleres ?? 0),
     cantidad_formaciones: Number(p.cantidad_formaciones ?? 0),
-    cantidad_magister: Number(p.cantidad_magister ?? 0),
+    cantidad_postgrados: Number(p.cantidad_postgrados ?? 0),
     formacion_docente_resumen: p.formacion_docente_resumen ?? 'Sin registros',
     talleres_catalogo: Array.isArray(p.talleres_catalogo) ? p.talleres_catalogo : [],
     taller_ids: Array.isArray(p.taller_ids) ? p.taller_ids.map((id) => Number(id)) : [],
@@ -20,13 +20,7 @@ export function normalizeProfesor(p) {
     sedes: Array.isArray(p.sedes) ? p.sedes : [],
     sede_ids: Array.isArray(p.sede_ids) ? p.sede_ids.map((id) => Number(id)) : [],
     formaciones_docentes: Array.isArray(p.formaciones_docentes) ? p.formaciones_docentes : [],
-    magister: p.magister ?? null,
-    magister_id: Number(
-      p.magister_id ??
-      p.magister?.id_catalogo_magister ??
-      p.magister?.id_magister ??
-      0
-    ) || null,
+    postgrados: Array.isArray(p.postgrados) ? p.postgrados : [],
     estado_I: Number(p.estado_I ?? p.Estado_I ?? 0),
     otro_i: p.otro_i ?? p.Otro_i ?? ''
   };

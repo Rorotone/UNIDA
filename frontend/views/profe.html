@@ -190,37 +190,93 @@
                   </div>
                 </article>
 
-                <!-- MAGISTER -->
+                <!-- POSTGRADOS -->
                 <article class="section-card section-card-academica">
                   <div class="section-card-header section-card-header-soft">
                     <div class="section-card-title-wrap">
-                      <span class="summary-badge summary-badge-blue">Única</span>
+                      <span class="summary-badge summary-badge-blue">Múltiple</span>
                       <div class="summary-stack">
-                        <h3>Magíster</h3>
+                        <h3>Postgrados</h3>
                         <p class="inline-note">
-                          Selecciona un magíster del catálogo institucional como antecedente académico principal.
+                          Agrega los postgrados del profesor (Magíster, Doctorado, Diplomado, Certificado).
                         </p>
                       </div>
                     </div>
-
-                    <button type="button" id="open-catalogo-magister-btn" class="btn-secondary btn-sm">
-                      Administrar catálogo
+                    <button type="button" class="btn-secondary btn-sm" id="btn-agregar-postgrado">
+                      + Agregar postgrado
                     </button>
                   </div>
 
-                  <div class="catalogo-selector-shell">
-                    <div class="catalogo-selector-toolbar catalogo-selector-toolbar-soft">
-                      <div class="catalogo-selector-summary">
-                        <span class="summary-badge summary-badge-blue">Selección única</span>
-                        <div class="summary-stack">
-                          <strong>Magíster disponible</strong>
-                          <small>Solo se puede asociar un magíster por profesor.</small>
-                        </div>
+                  <!-- Formulario desplegable -->
+                  <div id="postgrado-form-wrapper" class="postgrado-form-wrapper" style="display:none;">
+                    <div class="modal-form-grid">
+                      <input type="hidden" id="postgrado_edit_index" value="">
+
+                      <div class="form-group">
+                        <label for="postgrado_tipo">Tipo de postgrado</label>
+                        <select id="postgrado_tipo">
+                          <option value="">Seleccionar...</option>
+                          <option value="Magister">Magíster</option>
+                          <option value="Doctorado">Doctorado</option>
+                          <option value="Diplomado">Diplomado</option>
+                          <option value="Certificado">Certificado</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_nombre">Nombre del postgrado</label>
+                        <input type="text" id="postgrado_nombre" placeholder="Ej: Magíster en Educación">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_institucion">Institución</label>
+                        <input type="text" id="postgrado_institucion" placeholder="Ej: UNAB">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_area">Área de estudio</label>
+                        <input type="text" id="postgrado_area" placeholder="Ej: Ciencias de la Educación">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_anio">Año de obtención</label>
+                        <input type="number" id="postgrado_anio" min="1950" max="2099" placeholder="Ej: 2020">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_modalidad">Modalidad</label>
+                        <select id="postgrado_modalidad">
+                          <option value="">Sin especificar</option>
+                          <option value="presencial">Presencial</option>
+                          <option value="online">Online</option>
+                          <option value="semipresencial">Semipresencial</option>
+                          <option value="hibrido">Híbrido</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="postgrado_estado">Estado</label>
+                        <select id="postgrado_estado">
+                          <option value="finalizado">Finalizado</option>
+                          <option value="cursando">Cursando</option>
+                          <option value="pausado">Pausado</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group full-width">
+                        <label for="postgrado_observaciones">Observaciones</label>
+                        <textarea id="postgrado_observaciones" rows="2" placeholder="Opcional..."></textarea>
                       </div>
                     </div>
 
-                    <div id="magister-selector" class="talleres-selector single-selection"></div>
+                    <div class="modal-actions modal-actions-tight">
+                      <button type="button" class="btn-ghost" id="btn-cancelar-postgrado">Cancelar</button>
+                      <button type="button" class="btn-success" id="btn-guardar-postgrado">Guardar postgrado</button>
+                    </div>
                   </div>
+
+                  <!-- Lista de postgrados agregados -->
+                  <div id="postgrados-lista" class="postgrados-lista"></div>
                 </article>
               </div>
             </div>
@@ -610,6 +666,22 @@
       </div>
     </section>
   </main>
+
+  <!-- MODAL DETALLE FORMACION DOCENTE -->
+  <div id="modal-detalle-formacion" class="modal">
+    <div class="modal-content modal-detalle-formacion-content">
+      <span id="cerrar-modal-detalle-formacion" class="close">&times;</span>
+
+      <div class="modal-head-profesor">
+        <div>
+          <h2 id="detalle-formacion-nombre">Formación Docente</h2>
+          <p id="detalle-formacion-depto" class="inline-note"></p>
+        </div>
+      </div>
+
+      <div id="detalle-formacion-body"></div>
+    </div>
+  </div>
 
   <script src="/scripts/core/ui-alerts.js"></script>
   <script type="module" src="/scripts/profesores/profesores.js"></script>
