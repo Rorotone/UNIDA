@@ -43,7 +43,7 @@
 #modal-profesor,
 #modal-catalogo-talleres,
 #modal-catalogo-formaciones,
-#modal-catalogo-magister {
+#modal-catalogo-postgrado {
   display: none;
   position: fixed;
   inset: 0;
@@ -56,14 +56,14 @@
 #modal-profesor.is-open,
 #modal-catalogo-talleres.is-open,
 #modal-catalogo-formaciones.is-open,
-#modal-catalogo-magister.is-open {
+#modal-catalogo-postgrado.is-open {
   display: flex;
 }
 
 #modal-profesor .modal-content,
 #modal-catalogo-talleres .modal-content,
 #modal-catalogo-formaciones .modal-content,
-#modal-catalogo-magister .modal-content {
+#modal-catalogo-postgrado .modal-content {
   max-height: 90vh;
   overflow-y: auto;
   margin: 0 auto;
@@ -1263,4 +1263,20 @@ textarea {
 .btn-detalle-formacion:hover {
   background: #4f46e5;
   color: #fff;
+}
+.selector-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.selector-search-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }

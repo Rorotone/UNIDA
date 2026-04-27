@@ -1,5 +1,5 @@
 export const REQUIRED_HEADERS = ['nombre', 'departamento'];
-export const OPTIONAL_HEADERS = ['talleres', 'formacion', 'estado_i', 'magister', 'otro_i'];
+export const OPTIONAL_HEADERS = ['talleres', 'formacion', 'estado_i', 'postgrado', 'otro_i'];
 export const MAX_ROWS_PER_UPLOAD = 1000;
 export const MAX_LENGTHS = {
     nombre: 30,
@@ -12,7 +12,7 @@ export const MAX_LENGTHS = {
     nombre_actividad: 150,
     institucion: 150,
     area_estudio: 150,
-    nombre_magister: 180,
+    nombre_postgrado: 180,
     descripcion_catalogo: 500,
 
     // Catálogo de sedes
@@ -27,8 +27,8 @@ export const VALID_MODALIDADES_FORMACION = ['presencial', 'online', 'hibrido', '
 export const VALID_MODALIDADES_SCHEDULE = ['presencial', 'online', 'hibrida'];
 export const VALID_TIPOS_FORMACION = ['VRA', 'curso', 'diplomado', 'certificacion', 'seminario', 'otro'];
 export const VALID_ESTADOS_FORMACION = ['vigente', 'finalizado', 'en_proceso'];
-export const VALID_MODALIDADES_MAGISTER = ['presencial', 'online', 'semipresencial', 'hibrido'];
-export const VALID_ESTADOS_MAGISTER = ['cursando', 'finalizado', 'pausado'];
+export const VALID_MODALIDADES_POSTGRADOS = ['presencial', 'online', 'semipresencial', 'hibrido'];
+export const VALID_ESTADOS_POSTGRADOS = ['cursando', 'finalizado', 'pausado'];
 
 export const normalizeText = (value) => String(value ?? '').trim().replace(/\s+/g, ' ');
 
@@ -118,7 +118,7 @@ export const mapCsvRow = (row) => {
         talleres: normalizeText(normalizedRow.talleres),
         formacion: parseBooleanLike(normalizedRow.formacion),
         estado_I: parseBooleanLike(normalizedRow.estado_i),
-        magister: parseBooleanLike(normalizedRow.magister),
+        postgrado: parseBooleanLike(normalizedRow.postgrado),
         otro_i: normalizeText(normalizedRow.otro_i),
     };
 };
@@ -193,14 +193,14 @@ export const normalizeFormacionCatalogoIds = (value) => {
     return [...new Set(ids)];
 };
 
-export const normalizeCatalogoMagisterId = (value) => {
+export const normalizeCatalogoPostgradoId = (value) => {
     const id = Number(value);
     return Number.isInteger(id) && id > 0 ? id : null;
 };
 
-export const normalizeMagister = (value = {}) => ({
-    id_catalogo_magister: Number(value?.id_catalogo_magister) || null,
-    nombre_magister: normalizeText(value?.nombre_magister),
+export const normalizePostgrado = (value = {}) => ({
+    id_catalogo_postgrado: Number(value?.id_catalogo_postgrado) || null,
+    nombre_postgrado: normalizeText(value?.nombre_postgrado),
     institucion: normalizeText(value?.institucion),
     area_estudio: normalizeText(value?.area_estudio),
     anio_obtencion: value?.anio_obtencion ?? '',
@@ -213,9 +213,9 @@ export const isFormacionMeaningful = (formacion) =>
     ['tipo_formacion', 'nombre_actividad', 'institucion', 'anio', 'modalidad', 'descripcion']
         .some((field) => hasMeaningfulValue(formacion?.[field]));
 
-export const isMagisterMeaningful = (magister) =>
+export const isPostgradoMeaningful = (postgrado) =>
     ['institucion', 'area_estudio', 'anio_obtencion', 'modalidad', 'observaciones']
-        .some((field) => hasMeaningfulValue(magister?.[field]));
+        .some((field) => hasMeaningfulValue(postgrado?.[field]));
 
 export const createHttpError = (statusCode, message, extra = {}) => {
     const error = new Error(message);

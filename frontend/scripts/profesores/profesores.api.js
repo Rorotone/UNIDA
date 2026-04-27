@@ -287,10 +287,10 @@ export async function deleteCatalogoFormacion(id) {
 }
 
 /* =========================================================
-   CATÁLOGO DE MAGÍSTER
+   CATÁLOGO DE POSTGRADOS
 ========================================================= */
 
-export async function fetchCatalogoMagister(params = {}) {
+export async function fetchCatalogoPostgrados(params = {}) {
   const query = new URLSearchParams();
 
   if (params.incluirInactivos) query.append('incluirInactivos', '1');
@@ -298,15 +298,15 @@ export async function fetchCatalogoMagister(params = {}) {
 
   const qs = query.toString();
   const url = qs
-    ? `/api/profesores/catalogo-magister?${qs}`
-    : '/api/profesores/catalogo-magister';
+    ? `/api/profesores/catalogo-postgrados?${qs}`
+    : '/api/profesores/catalogo-postgrados';
 
-  return await request(url, {}, 'Error al cargar catálogo de magíster');
+  return await request(url, {}, 'Error al cargar catálogo de postgrados');
 }
 
-export async function createCatalogoMagister(data) {
+export async function createCatalogoPostgrado(data) {
   return await request(
-    '/api/profesores/catalogo-magister',
+    '/api/profesores/catalogo-postgrados',
     {
       method: 'POST',
       headers: {
@@ -314,13 +314,13 @@ export async function createCatalogoMagister(data) {
       },
       body: JSON.stringify(data)
     },
-    'Error al crear magíster'
+    'Error al crear postgrado'
   );
 }
 
-export async function updateCatalogoMagister(id, data) {
+export async function updateCatalogoPostgrado(id, data) {
   return await request(
-    `/api/profesores/catalogo-magister/${id}`,
+    `/api/profesores/catalogo-postgrados/${id}`,
     {
       method: 'PUT',
       headers: {
@@ -328,17 +328,17 @@ export async function updateCatalogoMagister(id, data) {
       },
       body: JSON.stringify(data)
     },
-    'Error al actualizar magíster'
+    'Error al actualizar postgrado'
   );
 }
 
-export async function deleteCatalogoMagister(id) {
+export async function deleteCatalogoPostgrado(id) {
   return await request(
-    `/api/profesores/catalogo-magister/${id}`,
+    `/api/profesores/catalogo-postgrados/${id}`,
     {
       method: 'DELETE'
     },
-    'Error al eliminar magíster'
+    'Error al eliminar postgrado'
   );
 }
 

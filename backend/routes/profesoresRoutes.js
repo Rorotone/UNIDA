@@ -9,6 +9,10 @@ import {
   createCatalogoFormacion,
   updateCatalogoFormacion,
   deleteCatalogoFormacion,
+  getCatalogoPostgrados,
+  createCatalogoPostgrado,
+  updateCatalogoPostgrado,
+  deleteCatalogoPostgrado,
   getCatalogoMagister,
   createCatalogoMagister,
   updateCatalogoMagister,
@@ -68,7 +72,13 @@ router.post('/catalogo-formaciones', authenticateToken, createCatalogoFormacion)
 router.put('/catalogo-formaciones/:id_catalogo_formacion', authenticateToken, updateCatalogoFormacion);
 router.delete('/catalogo-formaciones/:id_catalogo_formacion', authenticateToken, deleteCatalogoFormacion);
 
-/* Catálogo magister */
+/* Catálogo postgrados */
+router.get('/catalogo-postgrados', authenticateToken, getCatalogoPostgrados);
+router.post('/catalogo-postgrados', authenticateToken, createCatalogoPostgrado);
+router.put('/catalogo-postgrados/:id_catalogo_postgrado', authenticateToken, updateCatalogoPostgrado);
+router.delete('/catalogo-postgrados/:id_catalogo_postgrado', authenticateToken, deleteCatalogoPostgrado);
+
+/* Catálogo magister (DEPRECADO - redirigidas a postgrados) */
 router.get('/catalogo-magister', authenticateToken, getCatalogoMagister);
 router.post('/catalogo-magister', authenticateToken, createCatalogoMagister);
 router.put('/catalogo-magister/:id_catalogo_magister', authenticateToken, updateCatalogoMagister);

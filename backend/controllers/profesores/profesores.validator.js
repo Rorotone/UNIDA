@@ -5,15 +5,15 @@ import {
     VALID_TIPOS_FORMACION,
     VALID_MODALIDADES_FORMACION,
     VALID_ESTADOS_FORMACION,
-    VALID_MODALIDADES_MAGISTER,
-    VALID_ESTADOS_MAGISTER,
+    VALID_MODALIDADES_POSTGRADOS,
+    VALID_ESTADOS_POSTGRADOS,
     normalizeHeader,
     hasLetters,
     validateLength,
     parseYear,
     hasMeaningfulValue,
     isFormacionMeaningful,
-    isMagisterMeaningful,
+    isPostgradoMeaningful,
 } from '../profesores/profesores.utils.js';
 
 export const validateHeaders = (headers) => {
@@ -68,8 +68,8 @@ export const validateProfesorRecord = (record, rowNumber) => {
         errors.push({ fila: rowNumber, campo: 'Estado_I', error: 'Valor inválido. Usa 0/1, sí/no, true/false.' });
     }
 
-    if (record.magister === null) {
-        errors.push({ fila: rowNumber, campo: 'Magister', error: 'Valor inválido. Usa 0/1, sí/no, true/false.' });
+    if (record.postgrado === null) {
+        errors.push({ fila: rowNumber, campo: 'Postgrado', error: 'Valor inválido. Usa 0/1, sí/no, true/false.' });
     }
 
     return errors;
@@ -124,7 +124,7 @@ export const validateProfesorSedes = (sedes) => {
     };
 };
 
-export const validateProfesorPayload = ({ profesor, sedes, tallerIds, formaciones, magister }) => {
+export const validateProfesorPayload = ({ profesor, sedes, tallerIds, formaciones, postgrado }) => {
     const errors = [];
 
     if (!profesor.nombre) errors.push('El nombre del profesor es obligatorio.');
@@ -195,55 +195,55 @@ export const validateProfesorPayload = ({ profesor, sedes, tallerIds, formacione
         });
     });
 
-    let normalizedMagister = null;
-    const magisterCatalogoIds = [];
+    let normalizedPostgrado = null;
+    const postgradoCatalogoIds = [];
 
-    if (magister && (magister.id_catalogo_magister || isMagisterMeaningful(magister))) {
-        const anio = parseYear(magister.anio_obtencion);
+    if (postgrado && (postgrado.id_catalogo_postgrado || isPostgradoMeaningful(postgrado))) {
+        const anio = parseYear(postgrado.anio_obtencion);
 
-        if (magister.id_catalogo_magister) {
-            magisterCatalogoIds.push(Number(magister.id_catalogo_magister));
+        if (postgrado.id_catalogo_postgrado) {
+            postgradoCatalogoIds.push(Number(postgrado.id_catalogo_postgrado));
         } else {
-            if (!magister.nombre_magister) {
-                errors.push('El bloque de magíster requiere nombre del magíster.');
+            if (!postgrado.nombre_postgrado) {
+                errors.push('El bloque de postgrado requiere nombre del postgrado.');
             }
 
-            if (!magister.institucion || !magister.area_estudio || !magister.modalidad) {
-                errors.push('El bloque de magíster requiere institución, área de estudio y modalidad.');
+            if (!postgrado.institucion || !postgrado.area_estudio || !postgrado.modalidad) {
+                errors.push('El bloque de postgrado requiere institución, área de estudio y modalidad.');
             }
         }
 
-        if (hasMeaningfulValue(magister.anio_obtencion) && anio === null) {
-            errors.push('El año de obtención del magíster es inválido.');
+        if (hasMeaningfulValue(postgrado.anio_obtencion) && anio === null) {
+            errors.push('El año de obtención del postgrado es inválido.');
         }
 
-        if (magister.nombre_magister && !validateLength('nombre_magister', magister.nombre_magister)) {
-            errors.push(`El nombre del magíster no puede superar ${MAX_LENGTHS.nombre_magister} caracteres.`);
+        if (postgrado.nombre_postgrado && !validateLength('nombre_postgrado', postgrado.nombre_postgrado)) {
+            errors.push(`El nombre del postgrado no puede superar ${MAX_LENGTHS.nombre_postgrado} caracteres.`);
         }
 
-        if (magister.modalidad && !VALID_MODALIDADES_MAGISTER.includes(magister.modalidad)) {
-            errors.push('La modalidad del magíster es inválida.');
+        if (postgrado.modalidad && !VALID_MODALIDADES_POSTGRADOS.includes(postgrado.modalidad)) {
+            errors.push('La modalidad del postgrado es inválida.');
         }
 
-        if (magister.estado && !VALID_ESTADOS_MAGISTER.includes(magister.estado)) {
-            errors.push('El estado del magíster es inválido.');
+        if (postgrado.estado && !VALID_ESTADOS_POSTGRADOS.includes(postgrado.estado)) {
+            errors.push('El estado del postgrado es inválido.');
         }
 
-        normalizedMagister = {
-            ...magister,
+        normalizedPostgrado = {
+            ...postgrado,
             anio_obtencion: anio,
-            estado: magister.estado || 'finalizado',
+            estado: postgrado.estado || 'finalizado',
         };
     }
 
     return {
         errors,
         validFormaciones,
-        normalizedMagister,
+        normalizedPostgrado,
         sedes: validSedes,
         sedeIds,
         tallerIds: [...new Set(tallerIds)],
         formacionCatalogoIds: [...new Set(formacionCatalogoIds)],
-        magisterCatalogoIds: [...new Set(magisterCatalogoIds)],
+        postgradoCatalogoIds: [...new Set(postgradoCatalogoIds)],
     };
 };

@@ -2,7 +2,7 @@
 let profesoresCache = [];
 let catalogoTalleresCache = [];
 let catalogoFormacionesCache = [];
-let catalogoMagisterCache = [];
+let catalogoPostgradoCache = [];
 let catalogoSedesCache = [];
 
 export function normalizeProfesor(p) {
@@ -50,12 +50,12 @@ export function getCatalogoFormacionesCache() {
   return catalogoFormacionesCache;
 }
 
-export function setCatalogoMagisterCache(data) {
-  catalogoMagisterCache = Array.isArray(data) ? data : [];
+export function setCatalogoPostgradoCache(data) {
+  catalogoPostgradoCache = Array.isArray(data) ? data : [];
 }
 
-export function getCatalogoMagisterCache() {
-  return catalogoMagisterCache;
+export function getCatalogoPostgradoCache() {
+  return catalogoPostgradoCache;
 }
 
 export function setCatalogoSedesCache(data) {

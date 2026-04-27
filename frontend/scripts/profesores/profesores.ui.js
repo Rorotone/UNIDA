@@ -2,7 +2,8 @@ import {
   getProfesoresCache,
   getCatalogoTalleresCache,
   getCatalogoFormacionesCache,
-  getCatalogoSedesCache
+  getCatalogoSedesCache,
+  getCatalogoPostgradoCache
 } from './profesores.state.js';
 
 import {
@@ -89,7 +90,7 @@ export function initCatalogosModal() {
   const openBtn = document.getElementById('open-catalogos-modal-secondary-btn');
   const openTalleresBtn = document.getElementById('open-catalogo-modal-btn');
   const openFormacionesBtn = document.getElementById('open-catalogo-formaciones-btn');
-  const openMagisterBtn = document.getElementById('open-catalogo-magister-btn');
+  const openPostgradoBtn = document.getElementById('open-catalogo-postgrado-btn');
 
   if (!modal || !closeBtn) return;
 
@@ -117,7 +118,7 @@ export function initCatalogosModal() {
   openBtn?.addEventListener('click', () => abrirCatalogosEn('talleres'));
   openTalleresBtn?.addEventListener('click', () => abrirCatalogosEn('talleres'));
   openFormacionesBtn?.addEventListener('click', () => abrirCatalogosEn('formaciones'));
-  openMagisterBtn?.addEventListener('click', () => abrirCatalogosEn('magister'));
+  openPostgradoBtn?.addEventListener('click', () => abrirCatalogosEn('postgrados'));
 
   closeBtn.addEventListener('click', () => {
     modal.classList.remove('is-open');
@@ -273,6 +274,48 @@ export function renderFormacionesSelector(selectedIds = []) {
     .join('');
 
   updateSelectableCardState(container);
+
+
+}
+export function getSelectedPostgradoIds() {
+return getCheckedIds('#postgrados-selector');
+}
+
+export function renderPostgradosSelector(selectedIds = []) {
+  const container = document.getElementById('postgrados-selector');
+  if (!container) return;
+
+  const cache = getCatalogoPostgradoCache();
+  const selectedSet = new Set((selectedIds || []).map((id) => Number(id)));
+
+  const visibles = cache.filter(
+    (item) => item.estado === 'activo' || selectedSet.has(Number(item.id_catalogo_postgrado))
+  );
+
+  if (!visibles.length) {
+    container.innerHTML = `<div class="empty-selector">No hay postgrados activos en el catálogo.</div>`;
+    return;
+  }
+
+  container.innerHTML = visibles
+    .map((p) =>
+      buildCatalogCard({
+        inputType: 'checkbox',
+        inputName: 'postgrado_ids',
+        value: p.id_catalogo_postgrado,
+        checked: selectedSet.has(Number(p.id_catalogo_postgrado)),
+        title: p.nombre_postgrado,
+        subtitle: [
+          p.tipo_postgrado ? `Tipo: ${p.tipo_postgrado}` : '',
+          p.institucion ? `Institución: ${p.institucion}` : ''
+        ].filter(Boolean).join(' · '),
+        description: p.descripcion || 'Sin descripción',
+        status: p.estado || 'activo'
+      })
+    )
+    .join('');
+
+  updateSelectableCardState(container);
 }
 
 /* =========================================================
@@ -299,7 +342,7 @@ function abrirFormPostgrado(index = null) {
     const p = postgradosList[index];
     document.getElementById('postgrado_edit_index').value = index;
     document.getElementById('postgrado_tipo').value = p.tipo_postgrado || '';
-    document.getElementById('postgrado_nombre').value = p.nombre_magister || '';
+    document.getElementById('postgrado_nombre').value = p.nombre_postgrado || '';
     document.getElementById('postgrado_institucion').value = p.institucion || '';
     document.getElementById('postgrado_area').value = p.area_estudio || '';
     document.getElementById('postgrado_anio').value = p.anio_obtencion || '';
@@ -346,7 +389,7 @@ function guardarPostgradoLocal() {
 
   const postgrado = {
     tipo_postgrado: tipo,
-    nombre_magister: nombre,
+    nombre_postgrado: nombre,
     institucion,
     area_estudio: area,
     anio_obtencion: document.getElementById('postgrado_anio')?.value || null,
@@ -378,7 +421,7 @@ function renderPostgradosLista() {
   lista.innerHTML = postgradosList.map((p, i) => `
     <div class="postgrado-item">
       <div class="postgrado-item-info">
-        <span class="postgrado-item-title">${escapeHTML(p.nombre_magister)} <small>(${escapeHTML(p.tipo_postgrado)})</small></span>
+        <span class="postgrado-item-title">${escapeHTML(p.nombre_postgrado)} <small>(${escapeHTML(p.tipo_postgrado)})</small></span>
         <span class="postgrado-item-sub">
           ${escapeHTML(p.institucion)}${p.area_estudio ? ' · ' + escapeHTML(p.area_estudio) : ''}${p.anio_obtencion ? ' · ' + escapeHTML(String(p.anio_obtencion)) : ''} · ${escapeHTML(p.estado)}
         </span>
@@ -599,12 +642,12 @@ export function cerrarModalCatalogoFormaciones() {
   document.getElementById('modal-catalogo-formaciones')?.classList.remove('is-open');
 }
 
-export function abrirModalCatalogoMagister() {
-  document.getElementById('modal-catalogo-magister')?.classList.add('is-open');
+export function abrirModalCatalogoPostgrados() {
+  document.getElementById('modal-catalogo-postgrado')?.classList.add('is-open');
 }
 
-export function cerrarModalCatalogoMagister() {
-  document.getElementById('modal-catalogo-magister')?.classList.remove('is-open');
+export function cerrarModalCatalogoPostgrados() {
+  document.getElementById('modal-catalogo-postgrado')?.classList.remove('is-open');
 }
 
 /* =========================================================
@@ -666,7 +709,11 @@ export function fillForm(profesor) {
         .filter(Boolean) ??
       []
   );
-  setPostgradosList(profesor.postgrados ?? []);
+  renderPostgradosSelector(
+  profesor.postgrado_ids ??
+  profesor.postgrados?.map((p) => p.id_catalogo_postgrado).filter(Boolean) ??
+  []
+);
 
   const title = document.getElementById('form-title');
   if (title) title.textContent = 'Editar Profesor';
@@ -682,7 +729,7 @@ export function getFormData() {
     otro_i: document.getElementById('otro_i').value.trim(),
     taller_ids: getSelectedTallerIds(),
     formacion_ids: getSelectedFormacionIds(),
-    postgrados: getPostgradosList()
+    postgrado_ids: getSelectedPostgradoIds()
   };
 }
 
@@ -807,8 +854,8 @@ export function fillCatalogoFormacionForm(item) {
   document.getElementById('catalogo_estado_formacion').value = item.estado ?? 'activo';
 }
 
-export function renderCatalogoMagisterTable(data) {
-  const tbody = document.getElementById('catalogo-magister-body');
+export function renderCatalogoPostgradoTable(data) {
+  const tbody = document.getElementById('catalogo-postgrado-body');
   if (!tbody) return;
 
   tbody.innerHTML = '';
@@ -816,7 +863,7 @@ export function renderCatalogoMagisterTable(data) {
   if (!data || data.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align:center;">No hay magíster en el catálogo.</td>
+        <td colspan="5" style="text-align:center;">No hay postgrados en el catálogo.</td>
       </tr>
     `;
     return;
@@ -827,7 +874,7 @@ export function renderCatalogoMagisterTable(data) {
     tr.innerHTML = `
       <td>
         <div class="summary-stack">
-          <strong>${escapeHTML(item.nombre_magister)}</strong>
+          <strong>${escapeHTML(item.nombre_postgrado)}</strong>
           <span class="inline-note">${escapeHTML(item.descripcion || 'Sin descripción')}</span>
         </div>
       </td>
@@ -840,8 +887,8 @@ export function renderCatalogoMagisterTable(data) {
       </td>
       <td>
         <div class="action-buttons">
-          <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoMagister(${item.id_catalogo_magister})">Editar</button>
-          <button type="button" class="btn-danger btn-sm" onclick="eliminarCatalogoMagister(${item.id_catalogo_magister})">Eliminar</button>
+          <button type="button" class="btn-secondary btn-sm" onclick="editarCatalogoPostgrado(${item.id_catalogo_postgrado})">Editar</button>
+          <button type="button" class="btn-danger btn-sm" onclick="eliminarCatalogoPostgrado(${item.id_catalogo_postgrado})">Eliminar</button>
         </div>
       </td>
     `;
@@ -850,22 +897,26 @@ export function renderCatalogoMagisterTable(data) {
   });
 }
 
-export function resetCatalogoMagisterForm() {
-  document.getElementById('catalogo_id_magister').value = '';
-  document.getElementById('catalogo_nombre_magister').value = '';
-  document.getElementById('catalogo_institucion_magister').value = '';
-  document.getElementById('catalogo_area_estudio_magister').value = '';
-  document.getElementById('catalogo_descripcion_magister').value = '';
-  document.getElementById('catalogo_estado_magister').value = 'activo';
+export function resetCatalogoPostgradoForm() {
+  document.getElementById('catalogo_id_postgrado').value = '';
+  document.getElementById('catalogo_nombre_postgrado').value = '';
+  document.getElementById('catalogo_institucion_postgrado').value = '';
+  document.getElementById('catalogo_area_estudio_postgrado').value = '';
+  document.getElementById('catalogo_anio_obtencion_postgrado').value = '';
+  document.getElementById('catalogo_modalidad_postgrado').value = '';
+  document.getElementById('catalogo_observaciones_postgrado').value = '';
+  document.getElementById('catalogo_estado_postgrado').value = 'activo';
 }
 
-export function fillCatalogoMagisterForm(item) {
-  document.getElementById('catalogo_id_magister').value = item.id_catalogo_magister;
-  document.getElementById('catalogo_nombre_magister').value = item.nombre_magister ?? '';
-  document.getElementById('catalogo_institucion_magister').value = item.institucion ?? '';
-  document.getElementById('catalogo_area_estudio_magister').value = item.area_estudio ?? '';
-  document.getElementById('catalogo_descripcion_magister').value = item.descripcion ?? '';
-  document.getElementById('catalogo_estado_magister').value = item.estado ?? 'activo';
+export function fillCatalogoPostgradoForm(item) {
+  document.getElementById('catalogo_id_postgrado').value = item.id_catalogo_postgrado;
+  document.getElementById('catalogo_nombre_postgrado').value = item.nombre_postgrado ?? '';
+  document.getElementById('catalogo_institucion_postgrado').value = item.institucion ?? '';
+  document.getElementById('catalogo_area_estudio_postgrado').value = item.area_estudio ?? '';
+  document.getElementById('catalogo_anio_obtencion_postgrado').value = item.anio_obtencion ?? '';
+  document.getElementById('catalogo_modalidad_postgrado').value = item.modalidad ?? '';
+  document.getElementById('catalogo_observaciones_postgrado').value = item.observaciones ?? '';
+  document.getElementById('catalogo_estado_postgrado').value = item.estado ?? 'activo';
 }
 
 export function resetCatalogoSedeForm() {
@@ -955,7 +1006,7 @@ export function renderModalDetalleFormacion(profesor) {
         ? '<p class="detalle-vacio">Sin postgrados registrados.</p>'
         : postgrados.map(p => `
           <div class="detalle-item">
-            <div class="detalle-item-title">${escapeHTML(p.nombre_magister ?? '')} <small>(${escapeHTML(p.tipo_postgrado ?? '')})</small></div>
+            <div class="detalle-item-title">${escapeHTML(p.nombre_postgrado ?? '')} <small>(${escapeHTML(p.tipo_postgrado ?? '')})</small></div>
             <div class="detalle-item-sub">
               ${p.institucion ? `<span>${escapeHTML(p.institucion)}</span>` : ''}
               ${p.area_estudio ? `<span>· ${escapeHTML(p.area_estudio)}</span>` : ''}

@@ -6,7 +6,7 @@ import {
   deleteProfesor,
   fetchCatalogoTalleres,
   fetchCatalogoFormaciones,
-  fetchCatalogoMagister,
+  fetchCatalogoPostgrados,
   fetchCatalogoSedes
 } from './profesores.api.js';
 
@@ -18,8 +18,8 @@ import {
   getCatalogoTalleresCache,
   setCatalogoFormacionesCache,
   getCatalogoFormacionesCache,
-  setCatalogoMagisterCache,
-  getCatalogoMagisterCache,
+  setCatalogoPostgradoCache,
+  getCatalogoPostgradoCache,
   setCatalogoSedesCache,
   getCatalogoSedesCache
 } from './profesores.state.js';
@@ -36,25 +36,26 @@ import {
   cerrarModalCatalogo,
   abrirModalCatalogoFormaciones,
   cerrarModalCatalogoFormaciones,
-  abrirModalCatalogoMagister,
-  cerrarModalCatalogoMagister,
+  abrirModalCatalogoPostgrados,
+  cerrarModalCatalogoPostgrados,
   bindProfesorTabs,
   resetFormUI,
   fillForm,
   getFormData,
   renderCatalogoTalleresTable,
   renderCatalogoFormacionesTable,
-  renderCatalogoMagisterTable,
+  renderCatalogoPostgradoTable,
   renderTalleresSelector,
   renderFormacionesSelector,
   updateSelectableCardState,
   initCatalogosModal,
   bindCatalogoSearch,
   renderCatalogoSedesTable,
-  initPostgradosUI,
   abrirModalDetalleFormacion,
   cerrarModalDetalleFormacion,
-  renderModalDetalleFormacion
+  renderModalDetalleFormacion,
+  renderPostgradosSelector,
+  getSelectedPostgradoIds
 } from './profesores.ui.js';
 
 import {
@@ -86,7 +87,6 @@ export async function initProfesores() {
   bindSelectorCardEvents();
   initCatalogosModal();
   bindCatalogoSearch();
-  initPostgradosUI();
   bindDetalleFormacionEvents();
   await cargarDatosBase();
 }
@@ -95,7 +95,7 @@ export function bindModalEvents() {
   const modalProfesor = document.getElementById('modal-profesor');
   const modalTalleres = document.getElementById('modal-catalogo-talleres');
   const modalFormaciones = document.getElementById('modal-catalogo-formaciones');
-  const modalMagister = document.getElementById('modal-catalogo-magister');
+  const modalPostgrado = document.getElementById('modal-catalogo-postgrado');
 
   const openBtn = document.getElementById('open-modal-btn');
   const closeBtn = document.getElementById('close-modal');
@@ -107,8 +107,8 @@ export function bindModalEvents() {
   const openCatalogoFormacionesBtn = document.getElementById('open-catalogo-formaciones-btn');
   const closeCatalogoFormacionesBtn = document.getElementById('close-catalogo-formaciones-modal');
 
-  const openCatalogoMagisterBtn = document.getElementById('open-catalogo-magister-btn');
-  const closeCatalogoMagisterBtn = document.getElementById('close-catalogo-magister-modal');
+  const openCatalogoPostgradoBtn = document.getElementById('open-catalogo-postgrado-btn');
+  const closeCatalogoPostgradoBtn = document.getElementById('close-catalogo-postgrado-modal');
 
   openBtn?.addEventListener('click', async () => {
     resetFormUI();
@@ -125,14 +125,14 @@ export function bindModalEvents() {
   openCatalogoFormacionesBtn?.addEventListener('click', abrirModalCatalogoFormaciones);
   closeCatalogoFormacionesBtn?.addEventListener('click', cerrarModalCatalogoFormaciones);
 
-  openCatalogoMagisterBtn?.addEventListener('click', abrirModalCatalogoMagister);
-  closeCatalogoMagisterBtn?.addEventListener('click', cerrarModalCatalogoMagister);
+  openCatalogoPostgradoBtn?.addEventListener('click', abrirModalCatalogoPostgrados);
+  closeCatalogoPostgradoBtn?.addEventListener('click', cerrarModalCatalogoPostgrados);
 
   window.addEventListener('click', (event) => {
     if (event.target === modalProfesor) cerrarModal();
     if (event.target === modalTalleres) cerrarModalCatalogo();
     if (event.target === modalFormaciones) cerrarModalCatalogoFormaciones();
-    if (event.target === modalMagister) cerrarModalCatalogoMagister();
+    if (event.target === modalPostgrado) cerrarModalCatalogoPostgrados();
 
     const modalDetalle = document.getElementById('modal-detalle-formacion');
     if (event.target === modalDetalle) cerrarModalDetalleFormacion();
@@ -140,8 +140,10 @@ export function bindModalEvents() {
     const suggestions = document.getElementById('sedes-suggestions');
     const searchWrap = document.querySelector('.sedes-search-wrap');
 
-    if (suggestions && searchWrap && !searchWrap.contains(event.target)) {
-      hideSedesSuggestions();
+    if (suggestions && searchWrap && 
+    !searchWrap.contains(event.target) && 
+    !suggestions.contains(event.target)) {
+    hideSedesSuggestions();
     }
   });
 
@@ -151,7 +153,7 @@ export function bindModalEvents() {
     cerrarModal();
     cerrarModalCatalogo();
     cerrarModalCatalogoFormaciones();
-    cerrarModalCatalogoMagister();
+    cerrarModalCatalogoPostgrados();
     cerrarModalDetalleFormacion();
   });
 }
@@ -190,24 +192,24 @@ export async function cargarDatosBase() {
       profesores,
       catalogoTalleres,
       catalogoFormaciones,
-      catalogoMagister,
+      catalogoPostgrados,
       catalogoSedes
     ] = await Promise.all([
       fetchProfesores(),
       fetchCatalogoTalleres(),
       fetchCatalogoFormaciones(),
-      fetchCatalogoMagister(),
+      fetchCatalogoPostgrados(),
       fetchCatalogoSedes()
     ]);
 
-    if (!profesores || !catalogoTalleres || !catalogoFormaciones || !catalogoMagister || !catalogoSedes) {
+    if (!profesores || !catalogoTalleres || !catalogoFormaciones || !catalogoPostgrados || !catalogoSedes) {
       return;
     }
 
     setProfesoresCache(profesores);
     setCatalogoTalleresCache(catalogoTalleres);
     setCatalogoFormacionesCache(catalogoFormaciones);
-    setCatalogoMagisterCache(catalogoMagister);
+    setCatalogoPostgradoCache(catalogoPostgrados);
     setCatalogoSedesCache(catalogoSedes);
 
     renderRows(getProfesoresCache());
@@ -215,7 +217,7 @@ export async function cargarDatosBase() {
 
     renderCatalogoTalleresTable(getCatalogoTalleresCache());
     renderCatalogoFormacionesTable(getCatalogoFormacionesCache());
-    renderCatalogoMagisterTable(getCatalogoMagisterCache());
+    renderCatalogoPostgradoTable(getCatalogoPostgradoCache());
     renderCatalogoSedesTable(getCatalogoSedesCache());
 
     renderTalleresSelector([]);

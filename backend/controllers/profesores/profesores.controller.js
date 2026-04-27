@@ -18,10 +18,10 @@ import {
     createCatalogoFormacionService,
     updateCatalogoFormacionService,
     deleteCatalogoFormacionService,
-    getCatalogoMagisterService,
-    createCatalogoMagisterService,
-    updateCatalogoMagisterService,
-    deleteCatalogoMagisterService,
+    getCatalogoPostgradosService,
+    createCatalogoPostgradoService,
+    updateCatalogoPostgradoService,
+    deleteCatalogoPostgradoService,
 } from '../profesores/profesores.service.js';
 
 function handleError(res, error, label = 'Error interno del servidor.') {
@@ -204,38 +204,45 @@ export const deleteCatalogoFormacion = async (req, res) => {
     }
 };
 
-export const getCatalogoMagister = async (_req, res) => {
+export const getCatalogoPostgrados = async (_req, res) => {
     try {
-        const result = await getCatalogoMagisterService();
+        const result = await getCatalogoPostgradosService();
         return res.status(200).json(result);
     } catch (error) {
-        return handleError(res, error, 'Error al obtener catálogo de magíster:');
+        return handleError(res, error, 'Error al obtener catálogo de postgrados:');
     }
 };
 
-export const createCatalogoMagister = async (req, res) => {
+export const createCatalogoPostgrado = async (req, res) => {
     try {
-        const result = await createCatalogoMagisterService(req.body);
+        const result = await createCatalogoPostgradoService(req.body);
         return res.status(201).json(result);
     } catch (error) {
-        return handleError(res, error, 'Error al crear magíster del catálogo:');
+        return handleError(res, error, 'Error al crear postgrado del catálogo:');
     }
 };
 
-export const updateCatalogoMagister = async (req, res) => {
+export const updateCatalogoPostgrado = async (req, res) => {
     try {
-        const result = await updateCatalogoMagisterService(req.params.id_catalogo_magister, req.body);
+        const result = await updateCatalogoPostgradoService(req.params.id_catalogo_postgrado, req.body);
         return res.status(200).json(result);
     } catch (error) {
-        return handleError(res, error, 'Error al actualizar magíster del catálogo:');
+        return handleError(res, error, 'Error al actualizar postgrado del catálogo:');
     }
 };
 
-export const deleteCatalogoMagister = async (req, res) => {
+export const deleteCatalogoPostgrado = async (req, res) => {
     try {
-        const result = await deleteCatalogoMagisterService(req.params.id_catalogo_magister);
+        const result = await deleteCatalogoPostgradoService(req.params.id_catalogo_postgrado);
         return res.status(200).json(result);
     } catch (error) {
-        return handleError(res, error, 'Error al eliminar magíster del catálogo:');
+        return handleError(res, error, 'Error al eliminar postgrado del catálogo:');
     }
 };
+
+// ─── DEPRECADO: Compatibilidad con rutas antiguas ─────────────────────────────────────────
+// Redirigidas a las nuevas funciones de postgrados
+export const getCatalogoMagister = getCatalogoPostgrados;
+export const createCatalogoMagister = createCatalogoPostgrado;
+export const updateCatalogoMagister = updateCatalogoPostgrado;
+export const deleteCatalogoMagister = deleteCatalogoPostgrado;
