@@ -96,6 +96,7 @@
                     <label class="checkbox-item-inline" for="estado_I">
                       <input type="checkbox" id="estado_I">
                       <span>Profesor activo para investigación / formación</span>
+                      <span class="toggle-track" aria-hidden="true"></span>
                     </label>
                   </div>
 
@@ -635,6 +636,12 @@
     </div>
   </div>
 
+  <!-- Fallback toggle para navegadores sin soporte :has() -->
+  <script>
+    document.getElementById('estado_I')?.addEventListener('change', function () {
+      this.closest('.checkbox-item-inline')?.classList.toggle('is-checked', this.checked);
+    });
+  </script>
   <script src="/scripts/core/ui-alerts.js"></script>
   <script type="module" src="/scripts/profesores/profesores.js"></script>
 </body>
