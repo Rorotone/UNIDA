@@ -757,22 +757,51 @@ export async function updateCatalogoSedeService(idSede, body) {
 }
 
 export async function deleteCatalogoSedeService(idSede) {
-    const [relations] = await db.execute(
-        'SELECT COUNT(*) AS total FROM profesor_sedes WHERE id_sede = ?',
-        [idSede]
-    );
+    const connection = await db.getConnection();
 
-    if (safeNumber(relations[0]?.total, 0) > 0) {
-        throw createHttpError(400, 'No se puede eliminar la sede porque está asociada a uno o más profesores.');
+    try {
+        await connection.beginTransaction();
+
+        const [activeRelations] = await connection.execute(
+            `SELECT COUNT(*) AS total
+             FROM profesor_sedes ps
+             INNER JOIN profesores p 
+                ON p.id_profesor = ps.id_profesor
+             WHERE ps.id_sede = ?
+               AND p.deleted_at IS NULL`,
+            [idSede]
+        );
+
+        if (safeNumber(activeRelations[0]?.total, 0) > 0) {
+            throw createHttpError(
+                400,
+                'No se puede eliminar la sede porque está asociada a uno o más profesores activos.'
+            );
+        }
+
+        await connection.execute(
+            'DELETE FROM profesor_sedes WHERE id_sede = ?',
+            [idSede]
+        );
+
+        const [result] = await connection.execute(
+            'DELETE FROM catalogo_sedes WHERE id_sede = ?',
+            [idSede]
+        );
+
+        if (result.affectedRows === 0) {
+            throw createHttpError(404, 'Sede no encontrada.');
+        }
+
+        await connection.commit();
+
+        return { message: 'Sede eliminada correctamente.' };
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
     }
-
-    const [result] = await db.execute('DELETE FROM catalogo_sedes WHERE id_sede = ?', [idSede]);
-
-    if (result.affectedRows === 0) {
-        throw createHttpError(404, 'Sede no encontrada.');
-    }
-
-    return { message: 'Sede eliminada correctamente.' };
 }
 
 export async function getProfesorSedesService(idProfesor) {
