@@ -197,3 +197,9 @@ El sistema acepta archivos `.csv` con datos de profesores. Cada fila es validada
 Ingeniería Civil Informática — Universidad Andrés Bello  
 [linkedin.com/in/rodrigo-molina-817194176](https://linkedin.com/in/rodrigo-molina-817194176)
 (Base de datos en secreto)
+## Licencia
+
+Este repositorio es público con fines de portafolio y demostración académica.  
+El código **no está disponible para reutilización, modificación ni distribución** sin autorización expresa del autor.
+
+© 2025 Rodrigo Molina Castillo — Todos los derechos reservados.
